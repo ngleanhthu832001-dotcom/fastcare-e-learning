@@ -1,0 +1,668 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <link rel="icon" href="data:," />
+  <title>FASTCARE E-learning</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Newsreader:opsz,wght@6..72,600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root{
+      color-scheme:light dark;
+      --bg:#f4f5f2;
+      --surface:#ffffff;
+      --surface-2:#ebece8;
+      --ink:#171915;
+      --muted:#5d6258;
+      --line:#d9dcd4;
+      --brand:#e84924;
+      --brand-strong:#bf3215;
+      --brand-soft:#ffe7df;
+      --lime:#dce94d;
+      --teal:#176b61;
+      --teal-soft:#dceee9;
+      --gold:#e5ad32;
+      --gold-soft:#faecc9;
+      --shadow:0 12px 36px rgba(24,30,20,.08);
+      --sidebar:248px;
+    }
+    @media (prefers-color-scheme:dark){
+      :root{
+        --bg:#11130f;
+        --surface:#1a1d17;
+        --surface-2:#242820;
+        --ink:#f4f5ef;
+        --muted:#b1b7ab;
+        --line:#343930;
+        --brand:#ff6844;
+        --brand-strong:#ff8c70;
+        --brand-soft:#46241d;
+        --lime:#d9e95a;
+        --teal:#73c7ba;
+        --teal-soft:#183e37;
+        --gold:#f2c75d;
+        --gold-soft:#493a1d;
+        --shadow:0 14px 40px rgba(0,0,0,.25);
+      }
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;background:var(--bg);color:var(--ink);font-family:"Manrope",sans-serif;font-size:15px;line-height:1.55}
+    button{font:inherit;color:inherit}
+    button:focus-visible,[tabindex]:focus-visible{outline:3px solid color-mix(in srgb,var(--brand) 45%,transparent);outline-offset:3px}
+    .app{min-height:100dvh;display:grid;grid-template-columns:var(--sidebar) minmax(0,1fr)}
+    .sidebar{position:sticky;top:0;height:100dvh;padding:24px 18px;border-right:1px solid var(--line);background:var(--surface);display:flex;flex-direction:column;z-index:10}
+    .profile{display:flex;align-items:center;gap:12px;padding:2px 8px 22px;border-bottom:1px solid var(--line)}
+    .avatar{width:42px;height:42px;border-radius:14px;background:var(--ink);color:var(--surface);display:grid;place-items:center;font-weight:800;letter-spacing:-.03em}
+    .profile strong{display:block;font-size:14px}.profile span{font-size:12px;color:var(--muted)}
+    .demo-tag{margin-left:auto;background:var(--brand-soft);color:var(--brand-strong);padding:4px 7px;border-radius:6px;font-size:9px;font-weight:800;letter-spacing:.08em}
+    .nav{display:grid;gap:6px;margin-top:22px}
+    .nav button,.mobile-nav button{border:0;background:transparent;cursor:pointer}
+    .nav button{display:flex;align-items:center;gap:12px;width:100%;padding:12px;border-radius:10px;color:var(--muted);text-align:left;font-weight:650}
+    .nav button:hover{background:var(--surface-2);color:var(--ink)}
+    .nav button.active{background:var(--ink);color:var(--surface)}
+    .nav svg,.mobile-nav svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8}
+    .streak{margin-top:auto;background:var(--brand-soft);padding:16px;border-radius:14px}
+    .streak-top{display:flex;align-items:center;gap:10px}.streak-mark{width:36px;height:36px;border-radius:50%;background:var(--brand);color:white;display:grid;place-items:center;font-weight:800}
+    .streak strong{font-size:14px}.streak p{margin:7px 0 0;color:var(--muted);font-size:12px}
+    .content{padding:30px clamp(20px,4vw,56px) 80px;max-width:1480px;width:100%;margin:0 auto}
+    .topline{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:26px}
+    .topline p{margin:0;color:var(--muted);font-weight:600}.topline strong{color:var(--ink)}
+    .top-actions{display:flex;align-items:center;gap:10px}.icon-btn{width:42px;height:42px;border:1px solid var(--line);border-radius:12px;background:var(--surface);display:grid;place-items:center;cursor:pointer;position:relative}
+    .icon-btn svg{width:19px;fill:none;stroke:currentColor;stroke-width:1.8}.notify-dot{position:absolute;width:7px;height:7px;border-radius:50%;background:var(--brand);top:9px;right:9px}
+    .view{display:none}.view.active{display:block}
+    .hero{background:var(--ink);color:var(--surface);border-radius:22px;padding:clamp(24px,4vw,46px);position:relative;overflow:hidden;display:grid;grid-template-columns:minmax(0,1.35fr) minmax(240px,.65fr);gap:30px;align-items:center}
+    .hero:after{content:"";position:absolute;width:250px;height:250px;border:52px solid var(--brand);border-radius:50%;right:-95px;top:-115px;opacity:.95}
+    .hero-copy{position:relative;z-index:1}.eyebrow{font-size:11px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--lime);margin:0 0 12px}
+    h1,h2,h3,p{margin-top:0}.hero h1{font-family:"Newsreader",serif;font-size:clamp(34px,4.3vw,61px);line-height:.98;letter-spacing:-.035em;margin-bottom:18px;max-width:760px}
+    .hero p{max-width:620px;color:#cdd1c8;margin-bottom:24px}
+    .primary{border:0;background:var(--brand);color:white;padding:12px 18px;border-radius:10px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:9px}
+    .primary:hover{background:var(--brand-strong)}.primary svg{width:17px;fill:none;stroke:currentColor;stroke-width:2}
+    .hero-score{position:relative;z-index:1;justify-self:center;width:190px;height:190px;border-radius:50%;background:conic-gradient(var(--lime) 0 68%,#343832 68% 100%);display:grid;place-items:center}
+    .hero-score:before{content:"";position:absolute;width:146px;height:146px;border-radius:50%;background:var(--ink)}
+    .hero-score div{position:relative;text-align:center}.hero-score b{font-family:"Newsreader",serif;font-size:46px;line-height:1}.hero-score span{display:block;font-size:11px;color:#b9beb4;margin-top:5px}
+    .section-head{display:flex;align-items:end;justify-content:space-between;gap:18px;margin:34px 0 15px}.section-head h2{font-size:22px;letter-spacing:-.025em;margin:0}.section-head p{color:var(--muted);font-size:13px;margin:4px 0 0}.text-btn{border:0;background:transparent;color:var(--brand);font-weight:800;cursor:pointer;padding:6px}
+    .dashboard-grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(300px,.72fr);gap:20px}
+    .course-list{display:grid;gap:12px}
+    .course{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;display:grid;grid-template-columns:72px minmax(0,1fr) auto;gap:16px;align-items:center;box-shadow:0 1px 0 rgba(0,0,0,.02)}
+    .course:hover{border-color:color-mix(in srgb,var(--brand) 45%,var(--line))}
+    .thumb{width:72px;height:72px;border-radius:12px;display:grid;place-items:center;color:#fff}.thumb svg{width:32px;height:32px;fill:none;stroke:currentColor;stroke-width:1.6}.thumb.orange{background:var(--brand)}.thumb.teal{background:var(--teal)}.thumb.gold{background:#9b6b00}.thumb.gray{background:#61675e}
+    .course h3{font-size:15px;margin:0 0 4px}.meta{font-size:12px;color:var(--muted);display:flex;gap:12px;flex-wrap:wrap}.progress{height:6px;background:var(--surface-2);border-radius:10px;overflow:hidden;margin-top:11px}.progress span{display:block;height:100%;background:var(--brand);border-radius:inherit}
+    .course-action{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;cursor:pointer}.course-action:hover{background:var(--ink);color:var(--surface)}.course-action svg{width:17px;fill:none;stroke:currentColor;stroke-width:2}
+    .side-card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px}.side-card h3{font-size:16px;margin-bottom:15px}.agenda{display:grid;gap:16px}.agenda-item{display:grid;grid-template-columns:42px 1fr;gap:11px;align-items:start}.datebox{background:var(--surface-2);border-radius:10px;text-align:center;padding:6px 3px}.datebox b{display:block;font-size:16px;line-height:1}.datebox span{font-size:9px;color:var(--muted);font-weight:800}.agenda-item strong{font-size:13px;display:block}.agenda-item p{font-size:11px;color:var(--muted);margin:3px 0 0}.mini-rule{height:1px;background:var(--line);margin:18px 0}.goal-row{display:flex;justify-content:space-between;gap:12px;align-items:center}.goal-row b{font-size:25px;font-family:"Newsreader",serif}.goal-row span{color:var(--muted);font-size:11px}
+    .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:20px}.stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px}.stat span{font-size:11px;color:var(--muted);font-weight:700}.stat b{display:block;font-size:25px;margin-top:5px;letter-spacing:-.04em}.stat small{font-size:10px;color:var(--teal)}
+    .route-hero{display:flex;justify-content:space-between;gap:20px;align-items:end}.route-hero h1,.rank-hero h1{font-family:"Newsreader",serif;font-size:clamp(36px,5vw,62px);line-height:1;margin:0 0 10px;letter-spacing:-.035em}.route-hero p,.rank-hero p{color:var(--muted);max-width:640px}.route-track{margin-top:28px;position:relative}.route-track:before{content:"";position:absolute;left:30px;top:22px;bottom:22px;width:2px;background:var(--line)}
+    .module{position:relative;display:grid;grid-template-columns:62px 1fr;gap:18px;margin-bottom:18px}.module-num{width:62px;height:62px;border-radius:50%;background:var(--surface);border:2px solid var(--line);display:grid;place-items:center;font-weight:800;z-index:1}.module.done .module-num{background:var(--teal);border-color:var(--teal);color:white}.module.current .module-num{background:var(--brand);border-color:var(--brand);color:white;box-shadow:0 0 0 6px var(--brand-soft)}
+    .module-card{background:var(--surface);border:1px solid var(--line);padding:18px 20px;border-radius:15px;display:flex;justify-content:space-between;gap:16px;align-items:center}.module-card h3{margin:0 0 4px;font-size:16px}.module-card p{margin:0;color:var(--muted);font-size:12px}.status-chip{white-space:nowrap;padding:6px 9px;border-radius:8px;background:var(--surface-2);font-size:10px;font-weight:800}.module.current .status-chip{background:var(--brand-soft);color:var(--brand-strong)}.module.done .status-chip{background:var(--teal-soft);color:var(--teal)}
+    .rank-controls{display:flex;gap:8px;flex-wrap:wrap;margin:24px 0}.segmented{display:flex;background:var(--surface-2);padding:4px;border-radius:11px;gap:2px}.segmented button{border:0;background:transparent;padding:8px 13px;border-radius:8px;cursor:pointer;color:var(--muted);font-weight:700;font-size:12px}.segmented button.active{background:var(--surface);color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.07)}
+    .podium{display:grid;grid-template-columns:1fr 1.08fr 1fr;gap:12px;align-items:end;margin:12px 0 24px}.podium-card{background:var(--surface);border:1px solid var(--line);border-radius:18px 18px 8px 8px;text-align:center;padding:18px 12px 14px;min-height:155px}.podium-card.first{min-height:190px;background:var(--ink);color:var(--surface);border-color:var(--ink)}.medal{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;margin:0 auto 10px;background:var(--gold-soft);color:#8b5e00;font-weight:800}.first .medal{width:52px;height:52px;background:var(--lime);color:#252900}.podium-card strong{display:block;font-size:14px}.podium-card span{font-size:11px;color:var(--muted)}.first span{color:#bfc4ba}.podium-card b{display:block;font-size:21px;margin-top:8px}
+    .leaderboard{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden}.rank-row{display:grid;grid-template-columns:48px minmax(0,1.5fr) minmax(100px,1fr) 90px;gap:14px;align-items:center;padding:14px 18px;border-bottom:1px solid var(--line)}.rank-row:last-child{border:0}.rank-head{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.07em;font-weight:800;background:var(--surface-2)}.person{display:flex;gap:10px;align-items:center}.person-dot{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--brand-soft);color:var(--brand-strong);font-size:11px;font-weight:800}.person strong{display:block;font-size:13px}.person span,.dept{font-size:11px;color:var(--muted)}.xp{text-align:right;font-weight:800}
+    .lesson-overlay{position:fixed;inset:0;background:rgba(8,9,7,.72);z-index:50;display:none;align-items:center;justify-content:center;padding:20px}.lesson-overlay.open{display:flex}.lesson{width:min(920px,100%);max-height:92dvh;overflow:auto;background:var(--bg);border-radius:20px;box-shadow:var(--shadow)}
+    .lesson-top{padding:18px 22px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:2}.lesson-top strong{font-size:13px}.close-btn{border:1px solid var(--line);background:var(--surface);width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:20px;line-height:1}.video-mock{aspect-ratio:16/8;background:#171915;color:white;display:none;place-items:center;text-align:center;position:relative;overflow:hidden}.video-mock:before{content:"";width:360px;height:360px;border-radius:50%;border:70px solid var(--brand);position:absolute;right:-130px;top:-230px}.play{position:relative;width:66px;height:66px;border-radius:50%;border:0;background:white;color:#171915;display:grid;place-items:center;cursor:pointer}.play svg{width:24px;fill:currentColor;margin-left:3px}.playing{position:relative;font-weight:700;display:none}.video-mock.is-playing .play{display:none}.video-mock.is-playing .playing{display:block}.video-embed{display:block;aspect-ratio:16/9;background:#171915}.video-embed iframe{display:block;width:100%;height:100%;border:0}.lesson.next-mode .video-mock,.lesson.next-mode .video-embed{display:none}.lesson-body{padding:26px}.lesson-body h2{font-family:"Newsreader",serif;font-size:34px;line-height:1.05;margin-bottom:10px}.lesson-body>p{color:var(--muted);max-width:700px}.keypoints{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:20px 0}.point{padding:14px;background:var(--surface);border:1px solid var(--line);border-radius:12px}.point b{display:block;font-size:12px}.point span{font-size:11px;color:var(--muted)}
+    .quiz{border-top:1px solid var(--line);padding-top:22px}.quiz h3{font-size:18px}.question{margin-bottom:20px}.question>p{font-weight:700;margin-bottom:9px}.options{display:grid;gap:8px}.option{border:1px solid var(--line);background:var(--surface);text-align:left;padding:11px 13px;border-radius:10px;cursor:pointer}.option:hover{border-color:var(--brand)}.option.selected{border-color:var(--brand);background:var(--brand-soft)}.option.correct{border-color:var(--teal);background:var(--teal-soft)}.option.wrong{border-color:var(--brand);background:var(--brand-soft)}.quiz-footer{display:flex;align-items:center;justify-content:space-between;gap:15px}.quiz-result{font-weight:800}.quiz-result:empty{display:none}
+    .completion-actions{display:none;align-items:center;justify-content:flex-end;gap:10px;margin-top:16px}.completion-actions.show{display:flex}.secondary{border:2px solid var(--line);border-bottom-width:4px;background:var(--surface);color:var(--ink);padding:11px 16px;border-radius:14px;font-weight:800;cursor:pointer}.secondary:hover{border-color:#ffb18c}.course.completed{border-color:color-mix(in srgb,var(--teal) 55%,var(--line));background:var(--teal-soft)}.course.completed .progress span{background:var(--teal)}.course.completed .course-action{background:var(--teal);border-color:var(--teal);color:#fff;cursor:default;box-shadow:0 3px 0 color-mix(in srgb,var(--teal) 72%,#06463e)}.complete-label{display:none;color:var(--teal);font-size:11px;font-weight:800}.course.completed .complete-label{display:inline}.course.completed .lesson-count{display:none}.module.unlocked .module-num{background:var(--brand);border-color:var(--brand);color:#fff;box-shadow:0 0 0 6px var(--brand-soft)}.module.unlocked .status-chip{background:var(--brand-soft);color:var(--brand-strong)}.next-lesson-panel{display:none;border-top:1px solid var(--line);padding:22px 26px 28px}.next-lesson-panel.show{display:block}.next-lesson-panel h3{margin:0 0 7px;font-size:18px}.next-lesson-panel p{color:var(--muted);margin-bottom:16px}
+    .toast{position:fixed;right:24px;bottom:24px;background:var(--ink);color:var(--surface);padding:12px 16px;border-radius:11px;box-shadow:var(--shadow);z-index:70;transform:translateY(25px);opacity:0;pointer-events:none;transition:.2s}.toast.show{transform:none;opacity:1}
+    .mobile-nav{display:none}
+    @media(max-width:980px){
+      .app{display:block}.sidebar{display:none}.content{padding:22px 20px 95px}.mobile-nav{position:fixed;display:grid;grid-template-columns:repeat(3,1fr);left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom));z-index:30;background:var(--ink);color:#b9beb5;border-radius:15px;padding:6px;box-shadow:0 12px 35px rgba(0,0,0,.28)}.mobile-nav button{display:grid;place-items:center;gap:2px;font-size:9px;padding:6px;border-radius:10px}.mobile-nav button.active{background:var(--surface);color:var(--ink)}.mobile-nav svg{width:18px}.dashboard-grid{grid-template-columns:1fr}.side-card{display:none}.stat-grid{grid-template-columns:repeat(2,1fr)}
+    }
+    @media(max-width:700px){
+      .topline{margin-bottom:18px}.topline p{font-size:12px}.hero{grid-template-columns:1fr;padding:26px 22px}.hero-score{width:130px;height:130px;justify-self:start}.hero-score:before{width:100px;height:100px}.hero-score b{font-size:35px}.hero h1{font-size:39px}.course{grid-template-columns:58px minmax(0,1fr) auto;padding:12px;gap:12px}.thumb{width:58px;height:64px}.thumb svg{width:27px}.stat-grid{gap:8px}.stat{padding:13px}.stat b{font-size:21px}.route-hero{display:block}.module{grid-template-columns:46px 1fr;gap:12px}.route-track:before{left:22px}.module-num{width:46px;height:46px;font-size:12px}.module-card{display:block;padding:15px}.status-chip{display:inline-block;margin-top:10px}.podium{gap:6px}.podium-card{padding:13px 5px}.podium-card strong{font-size:11px}.rank-row{grid-template-columns:34px minmax(0,1fr) 66px;padding:12px;gap:8px}.rank-row .dept,.rank-head .dept{display:none}.rank-head{font-size:9px}.person-dot{width:30px;height:30px}.person strong{font-size:11px}.xp{font-size:12px}.keypoints{grid-template-columns:1fr}.lesson-overlay{padding:0}.lesson{height:100dvh;max-height:none;border-radius:0}.video-mock{aspect-ratio:16/9}.lesson-body{padding:20px}.lesson-body h2{font-size:28px}.quiz-footer{align-items:stretch;flex-direction:column}.quiz-footer .primary{justify-content:center}
+    }
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.toast{transition:none}}
+
+    /* Playful FASTCARE learning layer */
+    :root{
+      --bg:#fffaf7;--surface:#ffffff;--surface-2:#fff0e8;--ink:#2f2926;--muted:#756b66;
+      --line:#eadfd9;--brand:#f45b18;--brand-strong:#d84608;--brand-soft:#fff0e8;
+      --lime:#b8dc37;--teal:#22a699;--teal-soft:#e1f6f2;--gold:#f2b632;--gold-soft:#fff3d4;
+      --shadow:0 8px 0 rgba(73,49,37,.08);
+    }
+    @media(prefers-color-scheme:dark){:root{
+      --bg:#fff8f4;--surface:#ffffff;--surface-2:#ffede3;--ink:#2f2926;--muted:#6f625c;
+      --line:#ead8cf;--brand:#f45b18;--brand-strong:#c94008;--brand-soft:#fff0e8;
+      --lime:#b8dc37;--teal:#188f84;--teal-soft:#e1f6f2;--gold:#e8a51d;--gold-soft:#fff3d4;
+    }}
+    body{font-weight:500}
+    .brand-lockup{display:block;padding:5px 10px 21px;border-bottom:1px solid var(--line)}
+    .brand-lockup img{display:block;width:168px;height:auto;object-fit:contain}
+    .profile{border-bottom:0;padding-top:20px}
+    .avatar{background:var(--brand);border-radius:50%;box-shadow:0 4px 0 var(--brand-strong)}
+    .nav button{border-radius:13px;border:2px solid transparent;text-transform:uppercase;letter-spacing:.045em;font-size:12px;font-weight:800}
+    .nav button.active{background:var(--brand-soft);color:var(--brand-strong);border-color:#ffc4a8}
+    .streak{border:2px solid #ffd0ba;background:var(--brand-soft);box-shadow:0 4px 0 rgba(244,91,24,.12)}
+    .hero{background:linear-gradient(135deg,#ff7a35,#f45117);color:#fff;border-radius:24px;border:0;box-shadow:0 8px 0 #c9430e;grid-template-columns:minmax(0,1.2fr) minmax(260px,.8fr)}
+    .hero:after{display:none}.hero h1{font-family:"Manrope",sans-serif;font-weight:800;line-height:1.04;font-size:clamp(34px,4.2vw,58px)}
+    .hero p{color:#fff3ec}.hero .eyebrow{color:#fff5a8}.primary{border-radius:14px;box-shadow:0 4px 0 color-mix(in srgb,var(--brand-strong) 85%,#742400);text-transform:uppercase;letter-spacing:.035em;font-size:12px;padding:13px 18px}.hero .primary{background:#fff;color:var(--brand-strong);box-shadow:0 5px 0 rgba(115,46,12,.25)}
+    .hero-score{display:none}
+    .fastie-stage{position:relative;z-index:1;min-height:230px;display:grid;place-items:center}
+    .fastie-bubble{position:absolute;right:0;top:0;background:#fff;color:#6b3521;padding:11px 14px;border-radius:16px 16px 4px 16px;font-size:12px;font-weight:800;box-shadow:0 5px 0 rgba(115,46,12,.18);z-index:1}
+    .fastie{width:min(320px,100%);height:230px;object-fit:contain;filter:drop-shadow(0 10px 0 rgba(114,39,8,.18));transform:rotate(-2deg)}
+    .stat,.course,.side-card,.module-card,.leaderboard,.podium-card{box-shadow:0 4px 0 rgba(67,46,36,.08)}
+    .course{border-width:2px;border-radius:18px}.thumb{border-radius:16px}.course-action{border-width:2px;box-shadow:0 3px 0 var(--line)}
+    .progress{height:10px}.progress span{background:linear-gradient(90deg,var(--brand),#ff944f)}
+    .skill-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+    .skill-card{border:2px solid var(--line);border-bottom-width:5px;background:var(--surface);border-radius:18px;padding:16px 14px;text-align:left;cursor:pointer;min-height:145px;transition:transform .15s,border-color .15s}
+    .skill-card:hover{transform:translateY(-2px);border-color:#ffb18c}.skill-card:active{transform:translateY(2px);border-bottom-width:2px}
+    .skill-icon{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;margin-bottom:14px;color:#fff}.skill-icon svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:2}
+    .skill-card:nth-child(1) .skill-icon{background:var(--brand)}.skill-card:nth-child(2) .skill-icon{background:#ea4f87}.skill-card:nth-child(3) .skill-icon{background:var(--teal)}.skill-card:nth-child(4) .skill-icon{background:#775bc7}.skill-card:nth-child(5) .skill-icon{background:#e59a16}
+    .skill-card strong{display:block;font-size:13px;margin-bottom:4px}.skill-card span{font-size:11px;color:var(--muted)}
+    .reminder-panel{position:fixed;right:24px;top:82px;width:min(360px,calc(100vw - 32px));background:var(--surface);border:2px solid var(--line);border-bottom-width:6px;border-radius:20px;box-shadow:0 18px 50px rgba(44,30,24,.22);padding:18px;z-index:45;display:none}
+    .reminder-panel.open{display:block}.reminder-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.reminder-head h3{margin:0;font-size:17px}.reminder-close{border:0;background:var(--surface-2);width:30px;height:30px;border-radius:50%;cursor:pointer}
+    .reminder-mascot{display:grid;grid-template-columns:96px minmax(0,1fr);align-items:center;gap:12px;margin:12px 0 2px;padding:8px 12px 8px 4px;background:var(--brand-soft);border-radius:16px}.reminder-mascot img{width:96px;height:90px;object-fit:contain}.reminder-mascot p{margin:0;font-size:12px;font-weight:800;color:var(--brand-strong)}
+    .reminder-item{display:grid;grid-template-columns:42px 1fr;gap:11px;padding:14px 0;border-bottom:1px solid var(--line)}.reminder-item:last-of-type{border:0}.reminder-icon{width:42px;height:42px;border-radius:13px;background:var(--brand-soft);color:var(--brand);display:grid;place-items:center;font-weight:800}.reminder-item strong{display:block;font-size:13px}.reminder-item p{font-size:11px;color:var(--muted);margin:3px 0 0}.reminder-note{margin:8px 0 0;color:var(--muted);font-size:10px}
+    .lesson-intro{display:grid;grid-template-columns:minmax(0,1fr) 142px;gap:20px;align-items:center}.lesson-fastie{width:142px;height:130px;object-fit:contain;filter:drop-shadow(0 7px 0 rgba(244,91,24,.12))}
+    .success-card{display:none;grid-template-columns:150px minmax(0,1fr);align-items:center;gap:18px;margin:20px 0 0;padding:18px;background:var(--gold-soft);border:2px solid #f4c65a;border-bottom-width:5px;border-radius:18px}.success-card.show{display:grid}.success-card img{width:150px;height:138px;object-fit:contain;border-radius:14px}.success-card h3{margin:0 0 4px;color:#774b00}.success-card p{margin:0;color:#704f18;font-size:12px}
+    .activity-modal{position:fixed;inset:0;background:rgba(38,25,19,.72);z-index:60;display:none;align-items:center;justify-content:center;padding:20px}.activity-modal.open{display:flex}.activity-card{width:min(560px,100%);background:var(--bg);border-radius:22px;border:2px solid var(--line);padding:24px;box-shadow:0 8px 0 rgba(0,0,0,.16)}.activity-top{display:flex;justify-content:space-between;align-items:center;gap:14px}.activity-top h2{font-size:22px;margin:0}.activity-card textarea{width:100%;min-height:120px;margin:16px 0;padding:14px;border:2px solid var(--line);border-radius:14px;background:var(--surface);font:inherit;color:var(--ink);resize:vertical}.survey-options{display:grid;gap:9px;margin:16px 0}.survey-options button{border:2px solid var(--line);border-bottom-width:4px;border-radius:13px;background:var(--surface);padding:12px;text-align:left;cursor:pointer}.survey-options button.selected{border-color:var(--brand);background:var(--brand-soft)}
+    .mobile-logo{display:none;width:128px;height:auto}
+    @media(max-width:980px){.brand-lockup{display:none}.mobile-logo{display:block}.topline{flex-wrap:wrap}.topline>p{order:3;width:100%;margin-top:-4px}.skill-grid{grid-template-columns:repeat(3,1fr)}}
+    @media(max-width:700px){.hero{grid-template-columns:1fr}.fastie-stage{min-height:190px}.fastie{width:240px;height:190px}.fastie-bubble{right:4px}.skill-grid{grid-template-columns:repeat(2,1fr)}.skill-card:last-child{grid-column:1/-1;min-height:auto}.reminder-panel{right:16px;top:70px}.activity-modal{padding:12px}.lesson-intro{grid-template-columns:1fr}.lesson-fastie{display:none}.success-card{grid-template-columns:96px minmax(0,1fr);padding:13px;gap:12px}.success-card img{width:96px;height:90px}.completion-actions.show{display:grid;grid-template-columns:1fr}.completion-actions .primary,.completion-actions .secondary{justify-content:center;width:100%}.next-lesson-panel{padding:20px}}
+    /* Supabase auth layer */
+    body.locked .app,body.locked .mobile-nav{display:none}
+    #authGate{display:none;min-height:100dvh;align-items:center;justify-content:center;padding:24px;background:radial-gradient(1200px 600px at 20% 0%,#ffe9dc,#fffaf7)}
+    body.locked #authGate{display:flex}
+    .auth-card{width:min(430px,100%);background:var(--surface);border:2px solid var(--line);border-bottom-width:6px;border-radius:22px;padding:32px 28px;box-shadow:0 18px 50px rgba(44,30,24,.12);text-align:center}
+    .auth-card h2{font-size:24px;margin:0 0 6px;letter-spacing:-.02em}
+    .auth-card>p{color:var(--muted);font-size:13px;margin:0 0 20px}
+    .auth-tabs{display:flex;background:var(--surface-2);border-radius:12px;padding:4px;gap:4px;margin-bottom:18px}
+    .auth-tabs button{flex:1;border:0;background:transparent;padding:10px;border-radius:9px;font-weight:800;font-size:13px;color:var(--muted);cursor:pointer}
+    .auth-tabs button.active{background:var(--surface);color:var(--brand-strong);box-shadow:0 2px 8px rgba(0,0,0,.08)}
+    .auth-form{display:grid;gap:12px;text-align:left}
+    .auth-form[hidden]{display:none}
+    .auth-form label{font-size:12px;font-weight:800;color:var(--muted);display:block;margin-bottom:5px}
+    .auth-form input{width:100%;padding:13px 14px;border:2px solid var(--line);border-radius:13px;font:inherit;background:var(--surface);color:var(--ink)}
+    .auth-form input:focus{outline:none;border-color:var(--brand)}
+    .auth-form .primary{justify-content:center;width:100%}
+    .auth-error{color:var(--brand-strong);font-size:12px;font-weight:700;min-height:18px;margin:6px 0 0}
+    .auth-hint{font-size:11px;color:var(--muted);margin:14px 0 0}
+    .logout-btn{margin-top:14px;width:100%;border:2px solid var(--line);background:transparent;border-radius:12px;padding:10px;font-weight:800;font-size:12px;color:var(--muted);cursor:pointer;text-transform:uppercase;letter-spacing:.05em}
+    .logout-btn:hover{border-color:var(--brand);color:var(--brand-strong)}
+    .muted-center{color:var(--muted);text-align:center;padding:22px;grid-column:1/-1;font-size:13px}
+  </style>
+</head>
+<body class="locked">
+  <div id="authGate" role="dialog" aria-modal="true" aria-label="Đăng nhập">
+    <div class="auth-card">
+      <h2>FASTCARE E-learning</h2>
+      <p>Nền tảng học tập nội bộ dành cho nhân sự FASTCARE</p>
+      <div class="auth-tabs" role="tablist">
+        <button type="button" data-authmode="login" class="active">Đăng nhập</button>
+        <button type="button" data-authmode="signup">Đăng ký</button>
+      </div>
+      <form class="auth-form" id="loginForm">
+        <div><label for="loginEmail">Email</label><input id="loginEmail" type="email" required autocomplete="email" placeholder="ban@fastcare.vn"></div>
+        <div><label for="loginPassword">Mật khẩu</label><input id="loginPassword" type="password" required autocomplete="current-password" placeholder="••••••••"></div>
+        <button class="primary" type="submit" id="loginBtn">Đăng nhập</button>
+      </form>
+      <form class="auth-form" id="signupForm" hidden>
+        <div><label for="signupName">Họ và tên</label><input id="signupName" type="text" required autocomplete="name" placeholder="Nguyễn Văn A"></div>
+        <div><label for="signupEmail">Email</label><input id="signupEmail" type="email" required autocomplete="email" placeholder="ban@fastcare.vn"></div>
+        <div><label for="signupPassword">Mật khẩu</label><input id="signupPassword" type="password" required minlength="6" autocomplete="new-password" placeholder="Ít nhất 6 ký tự"></div>
+        <button class="primary" type="submit" id="signupBtn">Tạo tài khoản</button>
+      </form>
+      <p class="auth-error" id="authError" role="alert"></p>
+      <p class="auth-hint">Một tài khoản dùng chung cho mọi thiết bị của bạn.</p>
+    </div>
+  </div>
+  <div class="app">
+    <aside class="sidebar" aria-label="Điều hướng chính">
+      <div class="brand-lockup"><img src="assets/fastie-logo.png" alt="FASTCARE"></div>
+      <div class="profile"><div class="avatar" id="userAvatar">MN</div><div><strong id="userName">Minh Nguyễn</strong><span id="userRole">Nhân viên mới</span></div><span class="demo-tag" id="demoTag">DEMO</span></div>
+      <nav class="nav">
+        <button class="active" data-view="home"><svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5V21h-6v-6H9v6H3z"/></svg>Trang học</button>
+        <button data-view="route"><svg viewBox="0 0 24 24"><path d="M5 3v18M5 6h10l-2 3 2 3H5M5 17h13l-2 3"/></svg>Lộ trình</button>
+        <button data-view="rank"><svg viewBox="0 0 24 24"><path d="M8 21v-8H3v8M14.5 21V3h-5v18M21 21V8h-5v13"/></svg>Xếp hạng</button>
+        <button data-view="admin" id="adminNav" style="display:none"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></svg>Quản trị</button>
+      </nav>
+      <div class="streak"><div class="streak-top"><div class="streak-mark">4</div><strong>Chuỗi học 4 ngày</strong></div><p>Thêm 1 bài hôm nay để giữ nhịp học.</p></div>
+      <button class="logout-btn" id="logoutBtn">Đăng xuất</button>
+    </aside>
+
+    <main class="content">
+      <header class="topline"><img class="mobile-logo" src="assets/fastie-logo.png" alt="FASTCARE"><p><strong id="greetingName">Xin chào, Minh!</strong> Sẵn sàng cho bài học hôm nay?</p><div class="top-actions"><button class="icon-btn" id="notifyBtn" aria-label="Thông báo"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span class="notify-dot"></span></button></div></header>
+
+      <section id="home" class="view active">
+        <div class="hero">
+          <div class="hero-copy"><p class="eyebrow" id="heroEyebrow">Bài học đang tiếp tục</p><h1 id="heroTitle">Văn hoá phục vụ bắt đầu từ sự chủ động.</h1><p id="heroSummary">Tiếp tục bài 3 trong lộ trình 30 ngày: cách lắng nghe, xác nhận và cập nhật minh bạch với khách hàng.</p><button class="primary open-lesson" id="heroAction">Học tiếp · 6 phút <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></button></div>
+          <div class="fastie-stage" aria-label="Fastie, chú sóc đồng hành học tập">
+            <div class="fastie-bubble">Cố thêm 1 bài nhé!</div>
+            <img class="fastie" src="assets/fastie-hero.webp" alt="Sóc Fastie đeo kính, mặc đồng phục FASTCARE và học cùng sách">
+          </div>
+        </div>
+
+        <div class="section-head"><div><h2>Luyện tập theo cách bạn thích</h2><p>Clip ngắn, câu hỏi nhanh và thử thách tương tác để nhớ kiến thức lâu hơn.</p></div></div>
+        <div class="skill-grid" aria-label="Các dạng bài luyện tập">
+          <button class="skill-card" data-activity="quiz"><span class="skill-icon"><svg viewBox="0 0 24 24"><path d="M4 5h16v14H4zM8 9h8M8 13h5"/></svg></span><strong>Trắc nghiệm</strong><span>Chọn đáp án · nhận điểm ngay</span></button>
+          <button class="skill-card" data-activity="essay"><span class="skill-icon"><svg viewBox="0 0 24 24"><path d="m4 20 4-1 11-11-3-3L5 16zM14 7l3 3"/></svg></span><strong>Tự luận ngắn</strong><span>Viết cách xử lý tình huống</span></button>
+          <button class="skill-card" data-activity="survey"><span class="skill-icon"><svg viewBox="0 0 24 24"><path d="M5 4h14v16H5zM8 9h8M8 13h8M8 17h5"/></svg></span><strong>Khảo sát</strong><span>Chia sẻ cảm nhận sau bài học</span></button>
+          <button class="skill-card" data-activity="video"><span class="skill-icon"><svg viewBox="0 0 24 24"><path d="M4 5h12v14H4zM16 9l4-2v10l-4-2z"/></svg></span><strong>Xem clip</strong><span>Bài học trực quan 3–5 phút</span></button>
+          <button class="skill-card" data-activity="game"><span class="skill-icon"><svg viewBox="0 0 24 24"><path d="M8 12H4m2-2v4m10-1h.01M19 10h.01M7 7h10l4 10-3 2-3-4H9l-3 4-3-2z"/></svg></span><strong>Mini-game</strong><span>Thử thách vui · cộng XP</span></button>
+        </div>
+
+        <div class="stat-grid" aria-label="Thống kê học tập mẫu">
+          <div class="stat"><span>XP tháng 10</span><b id="xpTotal">1.280</b><small id="xpDelta">+180 tuần này</small></div>
+          <div class="stat"><span>Bài đã hoàn thành</span><b id="completedTotal">8/12</b><small id="progressNote">Đúng tiến độ</small></div>
+          <div class="stat"><span>Điểm quiz trung bình</span><b>88%</b><small>Top 15% khối</small></div>
+          <div class="stat"><span>Huy hiệu</span><b>04</b><small>1 huy hiệu mới</small></div>
+        </div>
+
+        <div class="section-head"><div><h2>Bài học dành cho bạn</h2><p>Nội dung được sắp theo lộ trình nhân sự mới khối cửa hàng.</p></div><button class="text-btn" data-goto="route">Xem lộ trình →</button></div>
+        <div class="dashboard-grid">
+          <div class="course-list">
+            <article class="course" id="currentCourse"><div class="thumb orange"><svg viewBox="0 0 24 24"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/></svg></div><div><h3>Văn hoá FASTCARE: Chủ động để khách hàng an tâm</h3><div class="meta"><span class="lesson-count">Bài 3/4</span><span class="complete-label">✓ Đã hoàn thành</span><span>6 phút</span><span>+120 XP</span></div><div class="progress"><span id="currentProgress" style="width:72%"></span></div></div><button class="course-action open-lesson" id="currentCourseAction" aria-label="Mở bài học"><svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></button></article>
+            <article class="course" id="nextCourse"><div class="thumb teal"><svg viewBox="0 0 24 24"><path d="M4 18h16M7 18V8l5-4 5 4v10M10 18v-5h4v5"/></svg></div><div><h3>Quy định tại cửa hàng & chuẩn tác phong</h3><div class="meta"><span>Bài 1/3</span><span>8 phút</span><span>+150 XP</span></div><div class="progress"><span style="width:0%"></span></div></div><button class="course-action" id="nextCourseAction" data-toast="Bài này sẽ mở sau khi hoàn thành bài hiện tại" aria-label="Bài học bị khóa"><svg viewBox="0 0 24 24"><path d="M8 11V8a4 4 0 0 1 8 0v3M6 11h12v9H6z"/></svg></button></article>
+            <article class="course"><div class="thumb gold"><svg viewBox="0 0 24 24"><path d="M4 5h16v12H8l-4 3zM8 9h8M8 13h5"/></svg></div><div><h3>Giao tiếp khi tiếp nhận thiết bị</h3><div class="meta"><span>3 bài</span><span>22 phút</span><span>+300 XP</span></div><div class="progress"><span style="width:0%"></span></div></div><button class="course-action" data-toast="Hoàn thành mô-đun 2 để mở khóa" aria-label="Bài học bị khóa"><svg viewBox="0 0 24 24"><path d="M8 11V8a4 4 0 0 1 8 0v3M6 11h12v9H6z"/></svg></button></article>
+          </div>
+          <aside class="side-card">
+            <h3>Lịch học sắp tới</h3>
+            <div class="agenda"><div class="agenda-item"><div class="datebox"><b>10</b><span>THG 10</span></div><div><strong>Quiz văn hoá phục vụ</strong><p>Hạn hoàn thành · 17:00</p></div></div><div class="agenda-item"><div class="datebox"><b>15</b><span>THG 10</span></div><div><strong>Khảo sát tuần đầu tiên</strong><p>Khoảng 3 phút</p></div></div></div>
+            <div class="mini-rule"></div><div class="goal-row"><div><b>4/5</b><span> ngày học trong tuần</span></div><span>Mục tiêu tuần</span></div>
+          </aside>
+        </div>
+      </section>
+
+      <section id="route" class="view">
+        <div class="route-hero"><div><p class="eyebrow" style="color:var(--brand)">Lộ trình nhân sự mới</p><h1>30 ngày hiểu việc,<br>vững văn hoá.</h1><p>Từng mô-đun mở theo tiến độ, kết hợp clip ngắn, tình huống thực tế và bài kiểm tra cuối chặng.</p></div><button class="primary open-lesson" id="routeContinue">Tiếp tục mô-đun 2</button></div>
+        <div class="route-track">
+          <article class="module done"><div class="module-num">✓</div><div class="module-card"><div><h3>01 · Chào mừng đến FASTCARE</h3><p>Câu chuyện thương hiệu, hệ thống và những người bạn sẽ đồng hành.</p></div><span class="status-chip">HOÀN THÀNH</span></div></article>
+          <article class="module current" id="currentModule"><div class="module-num">02</div><div class="module-card"><div><h3>Văn hoá phục vụ khách hàng</h3><p>4 bài · Lắng nghe, chủ động, minh bạch và theo sát đến cùng.</p></div><span class="status-chip" id="currentModuleStatus">3/4 BÀI</span></div></article>
+          <article class="module" id="nextModule"><div class="module-num">03</div><div class="module-card"><div><h3>Chính sách & quy định chung</h3><p>3 bài · Tác phong, bảo mật thông tin và quy trình nội bộ.</p></div><span class="status-chip" id="nextModuleStatus">CHƯA MỞ</span></div></article>
+          <article class="module"><div class="module-num">04</div><div class="module-card"><div><h3>Nghiệp vụ theo vị trí</h3><p>5 bài · Lộ trình riêng cho khối cửa hàng hoặc từng phòng ban văn phòng.</p></div><span class="status-chip">CHƯA MỞ</span></div></article>
+          <article class="module"><div class="module-num">05</div><div class="module-card"><div><h3>Thử thách 30 ngày</h3><p>Tình huống tổng hợp, khảo sát trải nghiệm và chứng nhận hoàn thành.</p></div><span class="status-chip">CHƯA MỞ</span></div></article>
+        </div>
+      </section>
+
+      <section id="rank" class="view">
+        <div class="rank-hero"><p class="eyebrow" style="color:var(--brand)">Bảng xếp hạng</p><h1>Cùng tiến bộ,<br>cùng tạo chuẩn mới.</h1><p>Điểm XP ghi nhận việc hoàn thành bài, kết quả quiz và chuỗi học đều đặn.</p></div>
+        <div class="rank-controls">
+          <div class="segmented" data-group="period"><button class="active">Tháng</button><button>Quý</button><button>Năm</button></div>
+          <div class="segmented" data-group="scope"><button class="active" data-scope="individual" aria-pressed="true">Cá nhân</button><button data-scope="unit" aria-pressed="false">Đơn vị</button></div>
+        </div>
+        <div class="podium" id="rankPodium" aria-live="polite">
+          <p class="muted-center">Đang tải bảng xếp hạng…</p>
+        </div>
+        <div class="leaderboard" id="rankTable" aria-live="polite">
+        </div>
+      </section>
+
+      <section id="admin" class="view">
+        <div class="rank-hero"><p class="eyebrow" style="color:var(--brand)">Khu vực quản trị</p><h1>Quản lý<br>học viên.</h1><p>Danh sách học viên và tổng điểm XP — chỉ hiển thị với tài khoản quản trị.</p></div>
+        <div class="leaderboard" id="adminTable" aria-live="polite">
+          <p class="muted-center">Đang tải danh sách…</p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <nav class="mobile-nav" aria-label="Điều hướng di động">
+    <button class="active" data-view="home"><svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5V21h-6v-6H9v6H3z"/></svg>Trang học</button>
+    <button data-view="route"><svg viewBox="0 0 24 24"><path d="M5 3v18M5 6h10l-2 3 2 3H5M5 17h13l-2 3"/></svg>Lộ trình</button>
+    <button data-view="rank"><svg viewBox="0 0 24 24"><path d="M8 21v-8H3v8M14.5 21V3h-5v18M21 21V8h-5v13"/></svg>Xếp hạng</button>
+  </nav>
+
+  <section class="reminder-panel" id="reminderPanel" aria-label="Nhắc nhở học tập">
+    <div class="reminder-head"><h3>Nhắc nhở của Fastie</h3><button class="reminder-close" id="reminderClose" aria-label="Đóng nhắc nhở">×</button></div>
+    <div class="reminder-mascot"><img src="assets/fastie-celebrate.webp" alt="Sóc Fastie cầm loa nhắc lịch học"><p>Minh ơi, mình hoàn thành bài đúng hạn để giữ chuỗi học nhé!</p></div>
+    <div class="reminder-item"><div class="reminder-icon">!</div><div><strong>Quiz văn hoá sắp đến hạn</strong><p>Hoàn thành trước 17:00 ngày 10/10 để giữ chuỗi học.</p></div></div>
+    <div class="reminder-item"><div class="reminder-icon">2</div><div><strong>Bạn còn 2 bài trong tuần</strong><p>Mỗi bài chỉ mất khoảng 6 phút. Fastie đang chờ bạn!</p></div></div>
+    <p class="reminder-note">Bản demo hiển thị nhắc hẹn ngay trong trang. Web chính thức có thể kết nối tài khoản nhân sự để gửi đúng người, đúng hạn.</p>
+  </section>
+
+  <div class="activity-modal" id="activityModal" role="dialog" aria-modal="true" aria-label="Bài luyện tập">
+    <article class="activity-card"><div class="activity-top"><h2 id="activityTitle">Bài luyện tập</h2><button class="close-btn" id="activityClose" aria-label="Đóng">×</button></div><div id="activityBody"></div></article>
+  </div>
+
+  <div class="lesson-overlay" id="lessonOverlay" role="dialog" aria-modal="true" aria-label="Bài học Văn hoá phục vụ">
+    <article class="lesson">
+      <div class="lesson-top"><strong id="lessonTopLabel">Bài 3/4 · Văn hoá phục vụ khách hàng</strong><button class="close-btn" id="closeLesson" aria-label="Đóng">×</button></div>
+      <div class="video-embed" id="videoEmbed"><iframe id="storeConductVideo" src="https://drive.google.com/file/d/1UchCbHOR3_oHk7rOWO_Xxo5loTLBZ3rx/preview" title="Clip Quy tắc 4C trong bài Văn hoá phục vụ khách hàng" allow="autoplay; fullscreen" allowfullscreen loading="lazy"></iframe></div>
+      <div class="lesson-body">
+        <div class="lesson-intro"><div><h2 id="lessonTitle">Chủ động cập nhật để khách hàng luôn an tâm</h2><p id="lessonSummary">Một trải nghiệm tốt không chỉ đến từ kết quả sửa chữa. Khách hàng cần biết thiết bị của mình đang ở đâu trong quy trình và bước tiếp theo là gì.</p></div><img class="lesson-fastie" src="assets/fastie-hero.webp" alt="Sóc Fastie đồng hành trong bài học"></div>
+        <div class="keypoints" id="keypoints"><div class="point"><b>01 · Lắng nghe đủ</b><span>Xác nhận đúng nhu cầu và tình trạng thiết bị.</span></div><div class="point"><b>02 · Nói rõ bước tiếp theo</b><span>Thống nhất cách liên hệ, thời gian và đầu việc.</span></div><div class="point"><b>03 · Theo sát đến cùng</b><span>Chủ động cập nhật khi có thay đổi hoặc phát sinh.</span></div></div>
+        <div class="quiz" id="lessonQuiz"><h3>Kiểm tra nhanh · 10 câu</h3>
+          <div class="question" data-answer="0"><p>1. “4C” trong Quy tắc 4C của FASTCARE gồm những gì?</p><div class="options"><button class="option">A. Chủ động – Cười – Chào – Cảm ơn</button><button class="option">B. Chào hỏi – Chăm sóc – Chốt đơn – Cảm ơn</button><button class="option">C. Cẩn thận – Chu đáo – Chuyên nghiệp – Cảm ơn</button></div></div>
+          <div class="question" data-answer="0"><p>2. Khi khách hàng vừa bước vào cửa hàng, điều đầu tiên nhân sự cần làm là gì?</p><div class="options"><button class="option">A. Đón tiếp từ cửa ra vào với nụ cười thân thiện và lời chào niềm nở</button><button class="option">B. Mời khách ngồi chờ đến lượt mình</button><button class="option">C. Hỏi ngay khách cần sửa gì và báo giá luôn</button></div></div>
+          <div class="question" data-answer="0"><p>3. Khi cửa hàng đang đông khách, cách xử lý đúng là gì?</p><div class="options"><button class="option">A. Hướng dẫn khách đến khu vực chờ, phục vụ nước uống, trà, cà phê miễn phí</button><button class="option">B. Để khách tự tìm chỗ đứng chờ</button><button class="option">C. Hẹn khách hôm khác quay lại khi vắng hơn</button></div></div>
+          <div class="question" data-answer="0"><p>4. Tại quầy tiếp nhận, ai sẽ cùng hỗ trợ khách hàng?</p><div class="options"><button class="option">A. Tư vấn và Kỹ thuật cùng hỗ trợ</button><button class="option">B. Chỉ nhân viên Tư vấn</button><button class="option">C. Chỉ Kỹ thuật viên</button></div></div>
+          <div class="question" data-answer="0"><p>5. Trước khi thực hiện sửa chữa, cần trao đổi rõ với khách hàng những nội dung nào?</p><div class="options"><button class="option">A. Nguyên nhân lỗi, phương án sửa chữa và các thông tin liên quan</button><button class="option">B. Chỉ báo giá tiền sửa</button><button class="option">C. Không cần trao đổi trước, sửa xong báo sau</button></div></div>
+          <div class="question" data-answer="0"><p>6. Để đảm bảo tính minh bạch, FASTCARE thực hiện điều nào trước khi sửa chữa?</p><div class="options"><button class="option">A. Cho khách xem trước linh kiện dự kiến thay thế và thông báo rõ chi phí</button><button class="option">B. Thay linh kiện xong mới báo giá cho khách</button><button class="option">C. Chỉ báo giá khi khách chủ động hỏi</button></div></div>
+          <div class="question" data-answer="0"><p>7. Khi khách hàng đồng ý sử dụng dịch vụ, khách hàng có quyền gì?</p><div class="options"><button class="option">A. Trực tiếp theo dõi quá trình sửa chữa tại cửa hàng</button><button class="option">B. Ngồi ở khu vực chờ, không được xem quá trình sửa</button><button class="option">C. Về nhà chờ điện thoại thông báo</button></div></div>
+          <div class="question" data-answer="0"><p>8. Với trường hợp khách gửi máy lại cửa hàng, bước nào giúp bảo vệ quyền lợi của khách hàng?</p><div class="options"><button class="option">A. Hướng dẫn khách ký tên lên linh kiện</button><button class="option">B. Giữ lại hộp đựng máy của khách</button><button class="option">C. Chụp ảnh máy rồi bàn giao cho kỹ thuật</button></div></div>
+          <div class="question" data-answer="0"><p>9. Sau khi hoàn tất sửa chữa, trước khi bàn giao máy cho khách cần làm gì?</p><div class="options"><button class="option">A. Kiểm tra lại, vệ sinh thiết bị và hướng dẫn khách kiểm tra các chức năng quan trọng</button><button class="option">B. Giao máy ngay cho khách để tiết kiệm thời gian</button><button class="option">C. Chỉ lau màn hình bên ngoài cho sạch</button></div></div>
+          <div class="question" data-answer="0"><p>10. Tại quầy thanh toán, cần xác nhận lại với khách hàng những thông tin nào?</p><div class="options"><button class="option">A. Chi phí dịch vụ, hình thức thanh toán và thông tin bảo hành</button><button class="option">B. Chỉ tổng số tiền cần thanh toán</button><button class="option">C. Không cần xác nhận thêm gì</button></div></div>
+          <div class="success-card" id="successCard" role="status"><img src="assets/fastie-wave.webp" alt="Sóc Fastie vui mừng khi bạn trả lời đúng"><div><h3>Chính xác rồi!</h3><p>Fastie chúc mừng bạn đã nắm trọn nội dung bài học. Bạn nhận 120 XP trong bản demo.</p></div></div>
+          <div class="quiz-footer"><div class="quiz-result" id="quizResult"></div><button class="primary" id="submitQuiz">Nộp bài kiểm tra</button></div>
+          <div class="completion-actions" id="completionActions"><button class="secondary" id="backToRoute">Về lộ trình học</button><button class="primary" id="nextLesson">Bài tiếp theo <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></button></div>
+        </div>
+        <div class="next-lesson-panel" id="nextLessonPanel"><h3>Bài tiếp theo đã được mở</h3><p>Quay lại lộ trình để xem nội dung và tiến độ của mô-đun tiếp theo.</p><button class="primary" id="startNextVideo">Về lộ trình học</button></div>
+      </div>
+    </article>
+  </div>
+  <div class="toast" id="toast" role="status"></div>
+
+  <script>
+    (function(){
+      /* ===== Supabase: đăng nhập thật + dữ liệu chung ===== */
+      var SUPABASE_URL='https://lmcqcdpzgdxntwodjed.supabase.co';
+      var SUPABASE_KEY='sb_publishable_Hvwz9IQza278-z6j1NAxnQ_Qo1yEkuD';
+      var LESSON_ID='bai-3-4-van-hoa-phuc-vu';
+      var LESSON_XP=120;
+      var sb=null,currentUser=null,userRole='staff';
+      function fmt(n){return Number(n||0).toLocaleString('vi-VN')}
+      function initials(name){if(!name)return'?';var p=String(name).trim().split(/\s+/);if(p.length>1){return (p[p.length-2].charAt(0)+p[p.length-1].charAt(0)).toUpperCase()}return p[0].substring(0,2).toUpperCase()}
+      function escapeHtml(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+      function dbErrorToast(){showToast('Không kết nối được máy chủ, vui lòng thử lại sau.')}
+      function authMsg(err){
+        var m=(err&&err.message)||'';
+        if(m.indexOf('Invalid login credentials')>-1)return 'Email hoặc mật khẩu chưa đúng, vui lòng thử lại.';
+        if(m.indexOf('User already registered')>-1||m.indexOf('already been registered')>-1)return 'Email này đã được đăng ký, hãy đăng nhập.';
+        if(m.indexOf('Email not confirmed')>-1)return 'Vui lòng kiểm tra email để xác nhận tài khoản.';
+        if(m.indexOf('Password should be')>-1)return 'Mật khẩu cần ít nhất 6 ký tự.';
+        if(m.indexOf('Unable to validate email')>-1||m.indexOf('Invalid email')>-1)return 'Địa chỉ email chưa hợp lệ.';
+        return 'Có lỗi xảy ra, vui lòng thử lại.';
+      }
+      function setAuthError(t){var el=document.getElementById('authError');if(el)el.textContent=t||''}
+      function unlockApp(){document.body.classList.remove('locked')}
+      function lockApp(){document.body.classList.add('locked');currentUser=null;userRole='staff';var an=document.getElementById('adminNav');if(an)an.style.display='none'}
+      async function fetchMyProfile(){
+        try{
+          var r=await sb.from('profiles').select('full_name,role,department').eq('id',currentUser.id).single();
+          if(r.error)throw r.error;
+          return r.data||null;
+        }catch(e){return null}
+      }
+      function applyProfileToUI(profile){
+        var metaName=currentUser.user_metadata&&currentUser.user_metadata.full_name;
+        var name=(profile&&profile.full_name)||metaName||currentUser.email||'Học viên';
+        var first=String(name).trim().split(/\s+/).pop();
+        document.getElementById('userAvatar').textContent=initials(name);
+        document.getElementById('userName').textContent=name;
+        document.getElementById('greetingName').textContent='Xin chào, '+first+'!';
+        var dt=document.getElementById('demoTag');if(dt)dt.style.display='none';
+        var roleEl=document.getElementById('userRole');
+        if(profile&&profile.role==='admin'){userRole='admin';roleEl.textContent='Quản trị viên';document.getElementById('adminNav').style.display=''}
+        else{userRole='staff';roleEl.textContent=(profile&&profile.department)||'Nhân sự FASTCARE'}
+      }
+      async function refreshMyStats(){
+        if(!currentUser)return;
+        try{
+          var lp=await sb.from('lesson_progress').select('lesson_id,completed,xp_earned,updated_at').eq('user_id',currentUser.id);
+          if(lp.error)throw lp.error;
+          var qa=await sb.from('quiz_attempts').select('score,total,xp_earned,created_at').eq('user_id',currentUser.id);
+          if(qa.error)throw qa.error;
+          var rows=lp.data||[],atts=qa.data||[];
+          var totalXp=0,completed=0,weekXp=0;
+          var weekAgo=Date.now()-7*24*3600*1000;
+          rows.forEach(function(r){totalXp+=r.xp_earned||0;if(r.completed)completed++;if(r.updated_at&&new Date(r.updated_at).getTime()>weekAgo)weekXp+=r.xp_earned||0});
+          atts.forEach(function(a){totalXp+=a.xp_earned||0;if(a.created_at&&new Date(a.created_at).getTime()>weekAgo)weekXp+=a.xp_earned||0});
+          document.getElementById('xpTotal').textContent=fmt(totalXp);
+          document.getElementById('xpDelta').textContent='+'+fmt(weekXp)+' tuần này';
+          document.getElementById('completedTotal').textContent=String(completed);
+          document.getElementById('progressNote').textContent='Dữ liệu mới nhất';
+          var done=false;
+          rows.forEach(function(r){if(r.lesson_id===LESSON_ID&&r.completed)done=true});
+          if(done&&!lessonCompleted)completeCurrentLesson();
+        }catch(e){/* giữ số liệu hiện tại, không crash */}
+      }
+      async function saveLessonProgress(){
+        if(!currentUser)return false;
+        try{
+          var r=await sb.from('lesson_progress').upsert({user_id:currentUser.id,lesson_id:LESSON_ID,completed:true,xp_earned:LESSON_XP},{onConflict:'user_id,lesson_id'});
+          if(r.error)throw r.error;
+          return true;
+        }catch(e){dbErrorToast();return false}
+      }
+      async function recordQuizAttempt(score,total){
+        if(!currentUser)return;
+        try{
+          var r=await sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:LESSON_ID,score:score,total:total,xp_earned:score===total?LESSON_XP:0});
+          if(r.error)throw r.error;
+        }catch(e){dbErrorToast()}
+      }
+      function emptyRankHTML(){return '<p class="muted-center">Chưa có dữ liệu — hãy là người đầu tiên học!</p>'}
+      async function renderRanking(scope){
+        var podium=document.getElementById('rankPodium'),table=document.getElementById('rankTable');
+        if(!podium||!table)return;
+        podium.innerHTML='<p class="muted-center">Đang tải bảng xếp hạng…</p>';table.innerHTML='';
+        try{
+          var res=await sb.rpc(scope==='unit'?'get_unit_leaderboard':'get_leaderboard');
+          if(res.error)throw res.error;
+          var rows=res.data||[];
+          if(!rows.length){podium.innerHTML=emptyRankHTML();return}
+          var top=rows.slice(0,3),rest=rows.slice(3,10);
+          podium.innerHTML=[1,0,2].map(function(i){
+            var it=top[i];if(!it)return '';
+            var cls=i===0?' first':'';
+            if(scope==='unit'){
+              return '<div class="podium-card'+cls+'"><div class="medal">'+(i+1)+'</div><strong>'+escapeHtml(it.department||'Chưa rõ')+'</strong><span>'+(it.member_count||0)+' thành viên</span><b>'+fmt(it.total_xp)+' XP</b></div>';
+            }
+            var you=currentUser&&it.user_id===currentUser.id?' · Bạn':'';
+            return '<div class="podium-card'+cls+'"><div class="medal">'+(i+1)+'</div><strong>'+escapeHtml(it.full_name||'Học viên')+you+'</strong><span>'+escapeHtml(it.department||'FASTCARE')+'</span><b>'+fmt(it.total_xp)+' XP</b></div>';
+          }).join('');
+          var head=scope==='unit'?['Đơn vị','Loại hình','Tổng XP']:['Nhân sự','Đơn vị','Điểm'];
+          var body=rest.map(function(it,idx){
+            var rank=String(idx+4).padStart(2,'0');
+            if(scope==='unit'){
+              return '<div class="rank-row"><b>'+rank+'</b><div class="person"><div class="person-dot">'+escapeHtml(initials(it.department))+'</div><div><strong>'+escapeHtml(it.department||'Chưa rõ')+'</strong><span>'+(it.member_count||0)+' thành viên</span></div></div><span class="dept">Đơn vị</span><span class="xp">'+fmt(it.total_xp)+' XP</span></div>';
+            }
+            var you2=currentUser&&it.user_id===currentUser.id?' · Bạn':'';
+            return '<div class="rank-row"><b>'+rank+'</b><div class="person"><div class="person-dot">'+escapeHtml(initials(it.full_name))+'</div><div><strong>'+escapeHtml(it.full_name||'Học viên')+you2+'</strong><span>'+escapeHtml(it.department||'FASTCARE')+'</span></div></div><span class="dept">'+escapeHtml(it.department||'—')+'</span><span class="xp">'+fmt(it.total_xp)+'</span></div>';
+          }).join('');
+          table.innerHTML='<div class="rank-row rank-head"><span>Hạng</span><span>'+head[0]+'</span><span class="dept">'+head[1]+'</span><span class="xp">'+head[2]+'</span></div>'+body;
+          table.setAttribute('aria-label',scope==='unit'?'Bảng xếp hạng đơn vị theo tổng XP':'Bảng xếp hạng cá nhân theo điểm XP');
+        }catch(e){podium.innerHTML=emptyRankHTML()}
+      }
+      async function renderAdmin(){
+        var box=document.getElementById('adminTable');
+        if(!box)return;
+        box.innerHTML='<p class="muted-center">Đang tải danh sách…</p>';
+        try{
+          var res=await sb.rpc('get_leaderboard');
+          if(res.error)throw res.error;
+          var rows=res.data||[];
+          if(!rows.length){box.innerHTML=emptyRankHTML();return}
+          box.innerHTML='<div class="rank-row rank-head"><span>#</span><span>Học viên</span><span class="dept">Đơn vị</span><span class="xp">Tổng XP</span></div>'+rows.map(function(it,idx){
+            return '<div class="rank-row"><b>'+(idx+1)+'</b><div class="person"><div class="person-dot">'+escapeHtml(initials(it.full_name))+'</div><div><strong>'+escapeHtml(it.full_name||'Học viên')+'</strong><span>'+escapeHtml(it.department||'FASTCARE')+'</span></div></div><span class="dept">'+escapeHtml(it.department||'—')+'</span><span class="xp">'+fmt(it.total_xp)+'</span></div>';
+          }).join('');
+        }catch(e){box.innerHTML='<p class="muted-center">Chưa tải được danh sách học viên.</p>'}
+      }
+      async function handleSession(session){
+        if(session&&session.user){
+          currentUser=session.user;
+          unlockApp();
+          var profile=await fetchMyProfile();
+          applyProfileToUI(profile);
+          refreshMyStats();
+          renderRanking('individual');
+          if(userRole==='admin')renderAdmin();
+        }else{
+          lockApp();
+        }
+      }
+      function initAuth(){
+        if(!window.supabase){setAuthError('Không tải được thư viện đăng nhập, vui lòng kiểm tra mạng rồi tải lại trang.');return}
+        sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+        var tabs=document.querySelectorAll('[data-authmode]');
+        tabs.forEach(function(t){t.addEventListener('click',function(){
+          tabs.forEach(function(x){x.classList.remove('active')});t.classList.add('active');
+          var mode=t.getAttribute('data-authmode');
+          document.getElementById('loginForm').hidden=mode!=='login';
+          document.getElementById('signupForm').hidden=mode!=='signup';
+          setAuthError('');
+        })});
+        document.getElementById('loginForm').addEventListener('submit',async function(e){
+          e.preventDefault();setAuthError('');
+          var btn=document.getElementById('loginBtn');btn.disabled=true;btn.textContent='Đang đăng nhập…';
+          try{
+            var r=await sb.auth.signInWithPassword({email:document.getElementById('loginEmail').value.trim(),password:document.getElementById('loginPassword').value});
+            if(r.error)throw r.error;
+          }catch(err){setAuthError(authMsg(err))}
+          btn.disabled=false;btn.textContent='Đăng nhập';
+        });
+        document.getElementById('signupForm').addEventListener('submit',async function(e){
+          e.preventDefault();setAuthError('');
+          var btn=document.getElementById('signupBtn');btn.disabled=true;btn.textContent='Đang tạo…';
+          try{
+            var r=await sb.auth.signUp({email:document.getElementById('signupEmail').value.trim(),password:document.getElementById('signupPassword').value,options:{data:{full_name:document.getElementById('signupName').value.trim()}}});
+            if(r.error)throw r.error;
+            if(r.data&&!r.data.session){setAuthError('Vui lòng kiểm tra email để xác nhận tài khoản.')}
+          }catch(err){setAuthError(authMsg(err))}
+          btn.disabled=false;btn.textContent='Tạo tài khoản';
+        });
+        document.getElementById('logoutBtn').addEventListener('click',async function(){try{await sb.auth.signOut()}catch(e){lockApp()}});
+        sb.auth.onAuthStateChange(function(evt,session){handleSession(session)});
+        sb.auth.getSession().then(function(r){handleSession(r.data&&r.data.session)}).catch(function(){});
+      }
+      initAuth();
+      var views = document.querySelectorAll('.view');
+      var navButtons = document.querySelectorAll('[data-view]');
+      function switchView(id){
+        views.forEach(function(v){v.classList.toggle('active',v.id===id)});
+        navButtons.forEach(function(b){b.classList.toggle('active',b.getAttribute('data-view')===id)});
+        window.scrollTo({top:0,behavior:'smooth'});
+      }
+      navButtons.forEach(function(btn){btn.addEventListener('click',function(){switchView(btn.getAttribute('data-view'))})});
+      document.querySelectorAll('[data-goto]').forEach(function(btn){btn.addEventListener('click',function(){switchView(btn.getAttribute('data-goto'))})});
+
+      var overlay=document.getElementById('lessonOverlay');
+      var lastFocus=null;
+      var lessonCompleted=false;
+      var nextLessonMode=false;
+      function renderNextLesson(){
+        nextLessonMode=true;
+        document.querySelector('.lesson').classList.add('next-mode');
+        document.getElementById('lessonTopLabel').textContent='Bài 1/3 · Chính sách & quy định chung';
+        document.getElementById('lessonTitle').textContent='Quy định tại cửa hàng & chuẩn tác phong';
+        document.getElementById('lessonSummary').textContent='Tác phong thống nhất giúp khách hàng nhận ra sự chuyên nghiệp của FASTCARE ngay từ lần tiếp xúc đầu tiên.';
+        document.getElementById('keypoints').innerHTML='<div class="point"><b>01 · Đúng giờ</b><span>Có mặt và sẵn sàng trước giờ nhận ca.</span></div><div class="point"><b>02 · Đúng hình ảnh</b><span>Đồng phục gọn gàng, bảng tên rõ ràng.</span></div><div class="point"><b>03 · Đúng quy trình</b><span>Chào hỏi, tiếp nhận và bàn giao đủ bước.</span></div>';
+        document.getElementById('lessonQuiz').style.display='none';
+        document.getElementById('nextLessonPanel').classList.add('show');
+        var video=document.getElementById('storeConductVideo');
+        if(!video.src)video.src='https://drive.google.com/file/d/1UchCbHOR3_oHk7rOWO_Xxo5loTLBZ3rx/preview';
+      }
+      function openLesson(btn,openNext){
+        lastFocus=btn;
+        if(openNext||lessonCompleted)renderNextLesson();
+        overlay.classList.add('open');document.body.style.overflow='hidden';
+        document.getElementById('closeLesson').focus();
+      }
+      document.querySelectorAll('.open-lesson').forEach(function(btn){btn.addEventListener('click',function(){openLesson(btn,false)})});
+      function closeLesson(){overlay.classList.remove('open');document.body.style.overflow='';if(lastFocus&&!lastFocus.disabled)lastFocus.focus()}
+      document.getElementById('closeLesson').addEventListener('click',closeLesson);
+      overlay.addEventListener('click',function(e){if(e.target===overlay)closeLesson()});
+      document.addEventListener('keydown',function(e){if(e.key==='Escape'&&overlay.classList.contains('open'))closeLesson()});
+      document.querySelectorAll('.question').forEach(function(q){q.querySelectorAll('.option').forEach(function(opt,idx){opt.addEventListener('click',function(){q.querySelectorAll('.option').forEach(function(o){o.classList.remove('selected')});opt.classList.add('selected');q.dataset.selected=idx})})});
+      function completeCurrentLesson(){
+        if(lessonCompleted)return;
+        lessonCompleted=true;
+        saveLessonProgress().then(function(){refreshMyStats()});
+        var currentCourse=document.getElementById('currentCourse');
+        currentCourse.classList.add('completed');
+        document.getElementById('currentProgress').style.width='100%';
+        var currentAction=document.getElementById('currentCourseAction');
+        currentAction.disabled=true;
+        currentAction.setAttribute('aria-label','Bài học đã hoàn thành');
+        currentAction.innerHTML='<svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg>';
+        var nextAction=document.getElementById('nextCourseAction');
+        var unlockedAction=nextAction.cloneNode(true);
+        unlockedAction.removeAttribute('data-toast');
+        unlockedAction.setAttribute('aria-label','Mở bài học tiếp theo');
+        unlockedAction.innerHTML='<svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg>';
+        nextAction.parentNode.replaceChild(unlockedAction,nextAction);
+        unlockedAction.addEventListener('click',function(){openLesson(unlockedAction,true)});
+        var currentModule=document.getElementById('currentModule');
+        currentModule.classList.remove('current');currentModule.classList.add('done');
+        currentModule.querySelector('.module-num').textContent='✓';
+        document.getElementById('currentModuleStatus').textContent='HOÀN THÀNH';
+        document.getElementById('nextModule').classList.add('unlocked');
+        document.getElementById('nextModuleStatus').textContent='BÀI 1/3 ĐÃ MỞ';
+        document.getElementById('routeContinue').textContent='Bắt đầu mô-đun 3';
+        document.getElementById('heroEyebrow').textContent='Bài tiếp theo đã mở';
+        document.getElementById('heroTitle').textContent='Chuẩn tác phong tạo nên sự chuyên nghiệp.';
+        document.getElementById('heroSummary').textContent='Bắt đầu mô-đun 3: các quy định cần nhớ khi làm việc tại cửa hàng FASTCARE.';
+        document.getElementById('heroAction').innerHTML='Bài tiếp theo · 8 phút <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg>';
+      }
+      document.getElementById('submitQuiz').addEventListener('click',function(){
+        var questions=document.querySelectorAll('.question');var answered=0,score=0;
+        questions.forEach(function(q){
+          var selected=q.dataset.selected;if(selected!==undefined){answered++}
+          q.querySelectorAll('.option').forEach(function(o,i){o.classList.remove('correct','wrong');if(i===Number(q.dataset.answer))o.classList.add('correct');if(selected!==undefined&&i===Number(selected)&&i!==Number(q.dataset.answer))o.classList.add('wrong')});
+          if(Number(selected)===Number(q.dataset.answer))score++;
+        });
+        var result=document.getElementById('quizResult');
+        var successCard=document.getElementById('successCard');
+        successCard.classList.remove('show');
+        if(answered<questions.length){result.textContent='Hãy trả lời đủ '+questions.length+' câu.';return}
+        result.textContent='Kết quả: '+score+'/'+questions.length+' câu đúng';
+        recordQuizAttempt(score,questions.length);
+        if(score===questions.length){
+          successCard.classList.add('show');
+          document.getElementById('submitQuiz').style.display='none';
+          document.getElementById('completionActions').classList.add('show');
+          completeCurrentLesson();
+          successCard.scrollIntoView({behavior:'smooth',block:'nearest'});
+          showToast('Xuất sắc! Đã cộng 120 XP và mở bài tiếp theo');
+        }else{
+          document.getElementById('submitQuiz').textContent='Nộp lại bài kiểm tra';
+          showToast('Bạn có thể chọn lại đáp án rồi nộp lại');
+        }
+      });
+      document.getElementById('nextLesson').addEventListener('click',function(){renderNextLesson();document.querySelector('.lesson').scrollTo({top:0,behavior:'smooth'});showToast('Đã mở bài tiếp theo')});
+      document.getElementById('backToRoute').addEventListener('click',function(){closeLesson();switchView('route')});
+      document.getElementById('startNextVideo').addEventListener('click',function(){closeLesson();switchView('route')});
+
+      document.querySelectorAll('.segmented').forEach(function(group){group.querySelectorAll('button').forEach(function(btn){btn.addEventListener('click',function(){
+        group.querySelectorAll('button').forEach(function(b){b.classList.remove('active');if(group.getAttribute('data-group')==='scope')b.setAttribute('aria-pressed','false')});
+        btn.classList.add('active');
+        if(group.getAttribute('data-group')==='scope'){
+          btn.setAttribute('aria-pressed','true');
+          renderRanking(btn.getAttribute('data-scope'));
+        }
+        showToast('Đã chuyển sang '+btn.textContent.toLowerCase());
+      })})});
+      var toast=document.getElementById('toast');var toastTimer;
+      function showToast(text){toast.textContent=text;toast.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(function(){toast.classList.remove('show')},2300)}
+      document.querySelectorAll('[data-toast]').forEach(function(btn){btn.addEventListener('click',function(){showToast(btn.getAttribute('data-toast'))})});
+
+      var reminder=document.getElementById('reminderPanel');
+      document.getElementById('notifyBtn').addEventListener('click',function(e){e.stopPropagation();reminder.classList.toggle('open')});
+      document.getElementById('reminderClose').addEventListener('click',function(){reminder.classList.remove('open')});
+      document.addEventListener('click',function(e){if(reminder.classList.contains('open')&&!reminder.contains(e.target)&&!document.getElementById('notifyBtn').contains(e.target)){reminder.classList.remove('open')}});
+
+      var activity=document.getElementById('activityModal');
+      var activityTitle=document.getElementById('activityTitle');
+      var activityBody=document.getElementById('activityBody');
+      function closeActivity(){activity.classList.remove('open');document.body.style.overflow=''}
+      document.getElementById('activityClose').addEventListener('click',closeActivity);
+      activity.addEventListener('click',function(e){if(e.target===activity)closeActivity()});
+      document.querySelectorAll('[data-activity]').forEach(function(btn){btn.addEventListener('click',function(){
+        var type=btn.getAttribute('data-activity');
+        if(type==='quiz'||type==='video'){
+          lastFocus=btn;overlay.classList.add('open');document.body.style.overflow='hidden';
+          document.getElementById('closeLesson').focus();
+          if(type==='video')showToast('Clip bài học đã sẵn sàng');
+          return;
+        }
+        activity.classList.add('open');document.body.style.overflow='hidden';
+        if(type==='essay'){
+          activityTitle.textContent='Tự luận tình huống';
+          activityBody.innerHTML='<p>Khách hàng lo lắng vì thời gian sửa kéo dài hơn dự kiến. Bạn sẽ phản hồi thế nào để khách hàng an tâm?</p><textarea aria-label="Câu trả lời tự luận" placeholder="Viết câu trả lời của bạn..."></textarea><button class="primary" id="activityDone">Hoàn thành</button>';
+        }else if(type==='survey'){
+          activityTitle.textContent='Khảo sát sau bài học';
+          activityBody.innerHTML='<p>Nội dung vừa học giúp bạn tự tin đến mức nào khi xử lý tình huống với khách hàng?</p><div class="survey-options"><button>Rất tự tin</button><button>Khá tự tin</button><button>Cần luyện thêm</button></div><button class="primary" id="activityDone">Gửi phản hồi</button>';
+          activityBody.querySelectorAll('.survey-options button').forEach(function(o){o.addEventListener('click',function(){activityBody.querySelectorAll('.survey-options button').forEach(function(x){x.classList.remove('selected')});o.classList.add('selected')})});
+        }else{
+          activityTitle.textContent='Mini-game · Phản xạ phục vụ';
+          activityBody.innerHTML='<p>Khách hàng hỏi tiến độ nhưng bộ phận kỹ thuật chưa có kết luận cuối. Chọn phản xạ tốt nhất:</p><div class="survey-options"><button>Hẹn khách chờ đến khi có kết quả cuối</button><button data-correct="true">Xác nhận đã tiếp nhận và chủ động hẹn mốc cập nhật tiếp theo</button><button>Chuyển khách sang một kênh khác</button></div><p id="gameResult" class="quiz-result"></p><div class="success-card" id="gameSuccess" role="status"><img src="assets/fastie-wave.webp" alt="Sóc Fastie vui mừng khi bạn trả lời đúng"><div><h3>Phản xạ tuyệt vời!</h3><p>Bạn đã chọn đúng cách chủ động và minh bạch với khách hàng.</p></div></div>';
+          activityBody.querySelectorAll('.survey-options button').forEach(function(o){o.addEventListener('click',function(){activityBody.querySelectorAll('.survey-options button').forEach(function(x){x.classList.remove('selected')});o.classList.add('selected');var isCorrect=o.getAttribute('data-correct')==='true';document.getElementById('gameResult').textContent=isCorrect?'Chính xác! +30 XP (minh hoạ)':'Thử lại nhé — hãy ưu tiên sự chủ động và minh bạch.';document.getElementById('gameSuccess').classList.toggle('show',isCorrect)})});
+        }
+        var done=document.getElementById('activityDone');if(done)done.addEventListener('click',function(){closeActivity();showToast('Đã hoàn thành hoạt động trong phiên demo')});
+      })});
+    })();
+  </script>
+</body>
+</html>
