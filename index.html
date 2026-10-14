@@ -363,7 +363,7 @@
         if(m.indexOf('Email not confirmed')>-1)return 'Vui lòng kiểm tra email để xác nhận tài khoản.';
         if(m.indexOf('Password should be')>-1)return 'Mật khẩu cần ít nhất 6 ký tự.';
         if(m.indexOf('Unable to validate email')>-1||m.indexOf('Invalid email')>-1)return 'Địa chỉ email chưa hợp lệ.';
-        return 'Có lỗi xảy ra, vui lòng thử lại.';
+        return 'Có lỗi xảy ra, vui lòng thử lại.'+(m?' Chi tiết kỹ thuật: '+m:'');
       }
       function setAuthError(t){var el=document.getElementById('authError');if(el)el.textContent=t||''}
       function unlockApp(){document.body.classList.remove('locked')}
