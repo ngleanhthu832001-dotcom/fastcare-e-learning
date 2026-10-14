@@ -59,6 +59,29 @@
     .profile{display:flex;align-items:center;gap:12px;padding:2px 8px 22px;border-bottom:1px solid var(--line)}
     .avatar{width:42px;height:42px;border-radius:14px;background:var(--ink);color:var(--surface);display:grid;place-items:center;font-weight:800;letter-spacing:-.03em}
     .profile strong{display:block;font-size:14px}.profile span{font-size:12px;color:var(--muted)}
+    .profile[role="button"]{cursor:pointer;border-radius:14px;transition:background .15s}
+    .profile[role="button"]:hover{background:var(--surface-2)}
+    .profile[role="button"]:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+    .avatar{overflow:hidden}.avatar img{width:100%;height:100%;object-fit:cover}
+    .person-dot{overflow:hidden}.person-dot img{width:100%;height:100%;object-fit:cover}
+    .profile-modal{position:fixed;inset:0;background:rgba(8,9,7,.72);z-index:60;display:none;align-items:center;justify-content:center;padding:20px}
+    .profile-modal.open{display:flex}
+    .profile-card{width:min(440px,100%);max-height:92dvh;overflow:auto;background:var(--bg);border-radius:20px;box-shadow:var(--shadow)}
+    .profile-card-head{display:flex;align-items:center;justify-content:space-between;padding:18px 20px 0}
+    .profile-card-head h2{font-size:20px;margin:0}
+    .profile-card-body{padding:16px 20px 22px;display:grid;gap:14px}
+    .pf-avatar-row{display:flex;align-items:center;gap:14px}
+    .pf-avatar{width:72px;height:72px;border-radius:50%;background:var(--ink);color:var(--surface);display:grid;place-items:center;font-weight:800;font-size:24px;overflow:hidden;flex:none}
+    .pf-avatar img{width:100%;height:100%;object-fit:cover}
+    .pf-hint{font-size:11px;color:var(--muted);margin:6px 0 0}
+    .pf-field{display:grid;gap:6px}
+    .pf-field label{font-size:13px;font-weight:700;color:var(--muted)}
+    .pf-field input{padding:12px 14px;border:2px solid var(--line);border-radius:12px;font:inherit;background:var(--surface);color:var(--ink);width:100%;box-sizing:border-box}
+    .pf-field input:focus{outline:none;border-color:var(--brand)}
+    .pf-field input[readonly]{background:var(--surface-2);color:var(--muted)}
+    .pf-actions{display:flex;gap:10px;justify-content:flex-end}
+    .btn-secondary{padding:12px 18px;border-radius:12px;border:2px solid var(--line);background:var(--surface);font:inherit;font-weight:700;cursor:pointer;color:var(--ink)}
+    .btn-secondary:disabled{opacity:.6;cursor:default}
     .demo-tag{margin-left:auto;background:var(--brand-soft);color:var(--brand-strong);padding:4px 7px;border-radius:6px;font-size:9px;font-weight:800;letter-spacing:.08em}
     .nav{display:grid;gap:6px;margin-top:22px}
     .nav button,.mobile-nav button{border:0;background:transparent;cursor:pointer}
@@ -211,7 +234,7 @@
   <div class="app">
     <aside class="sidebar" aria-label="Điều hướng chính">
       <div class="brand-lockup"><img src="assets/fastie-logo.png" alt="FASTCARE"></div>
-      <div class="profile"><div class="avatar" id="userAvatar">MN</div><div><strong id="userName">Minh Nguyễn</strong><span id="userRole">Nhân viên mới</span></div><span class="demo-tag" id="demoTag">DEMO</span></div>
+      <div class="profile" id="profileBlock" role="button" tabindex="0" title="Xem và sửa thông tin cá nhân" aria-label="Mở thông tin cá nhân"><div class="avatar" id="userAvatar">MN</div><div><strong id="userName">Minh Nguyễn</strong><span id="userRole">Nhân viên mới</span></div><span class="demo-tag" id="demoTag">DEMO</span></div>
       <nav class="nav">
         <button class="active" data-view="home"><svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5V21h-6v-6H9v6H3z"/></svg>Trang học</button>
         <button data-view="route"><svg viewBox="0 0 24 24"><path d="M5 3v18M5 6h10l-2 3 2 3H5M5 17h13l-2 3"/></svg>Lộ trình</button>
@@ -316,6 +339,23 @@
     <article class="activity-card"><div class="activity-top"><h2 id="activityTitle">Bài luyện tập</h2><button class="close-btn" id="activityClose" aria-label="Đóng">×</button></div><div id="activityBody"></div></article>
   </div>
 
+  <div class="profile-modal" id="profileModal" role="dialog" aria-modal="true" aria-label="Thông tin cá nhân">
+    <div class="profile-card">
+      <div class="profile-card-head"><h2>Thông tin cá nhân</h2><button class="close-btn" id="profileClose" aria-label="Đóng">×</button></div>
+      <div class="profile-card-body">
+        <div class="pf-avatar-row">
+          <div class="pf-avatar" id="pfAvatarPreview">?</div>
+          <div><button class="btn-secondary" id="avatarChangeBtn" type="button">Đổi ảnh đại diện</button><input type="file" id="avatarInput" accept="image/*" hidden><p class="pf-hint">Ảnh vuông, dưới 2MB.</p></div>
+        </div>
+        <div class="pf-field"><label for="pfName">Họ và tên</label><input id="pfName" type="text" maxlength="100" autocomplete="name"></div>
+        <div class="pf-field"><label for="pfDept">Đơn vị / Phòng ban</label><input id="pfDept" type="text" maxlength="100" placeholder="VD: Cửa hàng Quận 1"></div>
+        <div class="pf-field"><label for="pfCode">Mã nhân sự</label><input id="pfCode" type="text" maxlength="30" placeholder="VD: FC001"></div>
+        <div class="pf-field"><label for="pfEmail">Email đăng nhập</label><input id="pfEmail" type="text" readonly></div>
+        <div class="pf-actions"><button class="btn-secondary" id="profileCancel" type="button">Huỷ</button><button class="primary" id="profileSave" type="button">Lưu thay đổi</button></div>
+      </div>
+    </div>
+  </div>
+
   <div class="lesson-overlay" id="lessonOverlay" role="dialog" aria-modal="true" aria-label="Bài học Văn hoá phục vụ">
     <article class="lesson">
       <div class="lesson-top"><strong id="lessonTopLabel">Bài 3/4 · Văn hoá phục vụ khách hàng</strong><button class="close-btn" id="closeLesson" aria-label="Đóng">×</button></div>
@@ -351,10 +391,11 @@
       var SUPABASE_KEY='sb_publishable_Hvwz9IQza278-z6j1NAxnQ_Qo1yEkuD';
       var LESSON_ID='bai-3-4-van-hoa-phuc-vu';
       var LESSON_XP=120;
-      var sb=null,currentUser=null,userRole='staff';
+      var sb=null,currentUser=null,userRole='staff',myProfile=null;
       function fmt(n){return Number(n||0).toLocaleString('vi-VN')}
       function initials(name){if(!name)return'?';var p=String(name).trim().split(/\s+/);if(p.length>1){return (p[p.length-2].charAt(0)+p[p.length-1].charAt(0)).toUpperCase()}return p[0].substring(0,2).toUpperCase()}
       function escapeHtml(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+      function dotAvatar(url,name){return url?'<img src="'+escapeHtml(url)+'" alt="">':escapeHtml(initials(name))}
       function dbErrorToast(){showToast('Không kết nối được máy chủ, vui lòng thử lại sau.')}
       function authMsg(err){
         var m=(err&&err.message)||'';
@@ -370,16 +411,19 @@
       function lockApp(){document.body.classList.add('locked');currentUser=null;userRole='staff';var an=document.getElementById('adminNav');if(an)an.style.display='none'}
       async function fetchMyProfile(){
         try{
-          var r=await sb.from('profiles').select('full_name,role,department').eq('id',currentUser.id).single();
+          var r=await sb.from('profiles').select('full_name,role,department,employee_code,avatar_url').eq('id',currentUser.id).single();
           if(r.error)throw r.error;
           return r.data||null;
         }catch(e){return null}
       }
       function applyProfileToUI(profile){
+        myProfile=profile||null;
         var metaName=currentUser.user_metadata&&currentUser.user_metadata.full_name;
         var name=(profile&&profile.full_name)||metaName||currentUser.email||'Học viên';
         var first=String(name).trim().split(/\s+/).pop();
-        document.getElementById('userAvatar').textContent=initials(name);
+        var avEl=document.getElementById('userAvatar');
+        if(profile&&profile.avatar_url){avEl.innerHTML='<img src="'+escapeHtml(profile.avatar_url)+'" alt="Ảnh đại diện của '+escapeHtml(name)+'">'}
+        else{avEl.textContent=initials(name)}
         document.getElementById('userName').textContent=name;
         document.getElementById('greetingName').textContent='Xin chào, '+first+'!';
         var dt=document.getElementById('demoTag');if(dt)dt.style.display='none';
@@ -454,7 +498,7 @@
               return '<div class="rank-row"><b>'+rank+'</b><div class="person"><div class="person-dot">'+escapeHtml(initials(it.department))+'</div><div><strong>'+escapeHtml(it.department||'Chưa rõ')+'</strong><span>'+(it.member_count||0)+' thành viên</span></div></div><span class="dept">Đơn vị</span><span class="xp">'+fmt(it.total_xp)+' XP</span></div>';
             }
             var you2=currentUser&&it.user_id===currentUser.id?' · Bạn':'';
-            return '<div class="rank-row"><b>'+rank+'</b><div class="person"><div class="person-dot">'+escapeHtml(initials(it.full_name))+'</div><div><strong>'+escapeHtml(it.full_name||'Học viên')+you2+'</strong><span>'+escapeHtml(it.department||'FASTCARE')+'</span></div></div><span class="dept">'+escapeHtml(it.department||'—')+'</span><span class="xp">'+fmt(it.total_xp)+'</span></div>';
+            return '<div class="rank-row"><b>'+rank+'</b><div class="person"><div class="person-dot">'+dotAvatar(it.avatar_url,it.full_name)+'</div><div><strong>'+escapeHtml(it.full_name||'Học viên')+you2+'</strong><span>'+escapeHtml(it.department||'FASTCARE')+'</span></div></div><span class="dept">'+escapeHtml(it.department||'—')+'</span><span class="xp">'+fmt(it.total_xp)+'</span></div>';
           }).join('');
           table.innerHTML='<div class="rank-row rank-head"><span>Hạng</span><span>'+head[0]+'</span><span class="dept">'+head[1]+'</span><span class="xp">'+head[2]+'</span></div>'+body;
           table.setAttribute('aria-label',scope==='unit'?'Bảng xếp hạng đơn vị theo tổng XP':'Bảng xếp hạng cá nhân theo điểm XP');
@@ -470,7 +514,7 @@
           var rows=res.data||[];
           if(!rows.length){box.innerHTML=emptyRankHTML();return}
           box.innerHTML='<div class="rank-row rank-head"><span>#</span><span>Học viên</span><span class="dept">Đơn vị</span><span class="xp">Tổng XP</span></div>'+rows.map(function(it,idx){
-            return '<div class="rank-row"><b>'+(idx+1)+'</b><div class="person"><div class="person-dot">'+escapeHtml(initials(it.full_name))+'</div><div><strong>'+escapeHtml(it.full_name||'Học viên')+'</strong><span>'+escapeHtml(it.department||'FASTCARE')+'</span></div></div><span class="dept">'+escapeHtml(it.department||'—')+'</span><span class="xp">'+fmt(it.total_xp)+'</span></div>';
+            return '<div class="rank-row"><b>'+(idx+1)+'</b><div class="person"><div class="person-dot">'+dotAvatar(it.avatar_url,it.full_name)+'</div><div><strong>'+escapeHtml(it.full_name||'Học viên')+'</strong><span>'+escapeHtml(it.department||'FASTCARE')+'</span></div></div><span class="dept">'+escapeHtml(it.department||'—')+'</span><span class="xp">'+fmt(it.total_xp)+'</span></div>';
           }).join('');
         }catch(e){box.innerHTML='<p class="muted-center">Chưa tải được danh sách học viên.</p>'}
       }
@@ -518,6 +562,54 @@
           btn.disabled=false;btn.textContent='Tạo tài khoản';
         });
         document.getElementById('logoutBtn').addEventListener('click',async function(){try{await sb.auth.signOut()}catch(e){lockApp()}});
+        function renderPfAvatar(url,name){var el=document.getElementById('pfAvatarPreview');if(!el)return;if(url){el.innerHTML='<img src="'+escapeHtml(url)+'" alt="Ảnh đại diện">'}else{el.textContent=initials(name||'HV')}}
+        function openProfile(){
+          if(!currentUser)return;
+          var p=myProfile||{};
+          var metaName=currentUser.user_metadata&&currentUser.user_metadata.full_name;
+          document.getElementById('pfName').value=p.full_name||metaName||'';
+          document.getElementById('pfDept').value=p.department||'';
+          document.getElementById('pfCode').value=p.employee_code||'';
+          document.getElementById('pfEmail').value=currentUser.email||'';
+          renderPfAvatar(p.avatar_url,p.full_name||metaName);
+          document.getElementById('profileModal').classList.add('open');
+        }
+        function closeProfile(){document.getElementById('profileModal').classList.remove('open')}
+        var pb=document.getElementById('profileBlock');
+        if(pb){pb.addEventListener('click',openProfile);pb.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();openProfile()}})}
+        document.getElementById('profileClose').addEventListener('click',closeProfile);
+        document.getElementById('profileCancel').addEventListener('click',closeProfile);
+        document.getElementById('profileModal').addEventListener('click',function(e){if(e.target===this)closeProfile()});
+        document.getElementById('profileSave').addEventListener('click',async function(){
+          if(!currentUser)return;
+          var btn=this;btn.disabled=true;btn.textContent='Đang lưu…';
+          try{
+            var r=await sb.from('profiles').update({full_name:document.getElementById('pfName').value.trim(),department:document.getElementById('pfDept').value.trim()||null,employee_code:document.getElementById('pfCode').value.trim()||null}).eq('id',currentUser.id);
+            if(r.error)throw r.error;
+            applyProfileToUI(await fetchMyProfile());
+            closeProfile();showToast('Đã lưu thông tin cá nhân');
+          }catch(e){showToast('Không lưu được, vui lòng thử lại')}
+          btn.disabled=false;btn.textContent='Lưu thay đổi';
+        });
+        document.getElementById('avatarChangeBtn').addEventListener('click',function(){document.getElementById('avatarInput').click()});
+        document.getElementById('avatarInput').addEventListener('change',async function(){
+          var f=this.files&&this.files[0];if(!f||!currentUser)return;
+          if(f.size>2*1024*1024){showToast('Ảnh quá lớn, hãy chọn ảnh dưới 2MB');this.value='';return}
+          showToast('Đang tải ảnh lên…');
+          try{
+            var ext=(f.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';
+            var path=currentUser.id+'/avatar.'+ext;
+            var up=await sb.storage.from('avatars').upload(path,f,{upsert:true,contentType:f.type});
+            if(up.error)throw up.error;
+            var pub=sb.storage.from('avatars').getPublicUrl(path).data.publicUrl;
+            var r2=await sb.from('profiles').update({avatar_url:pub}).eq('id',currentUser.id);
+            if(r2.error)throw r2.error;
+            applyProfileToUI(await fetchMyProfile());
+            renderPfAvatar(pub+'?t='+Date.now(),myProfile&&myProfile.full_name);
+            showToast('Đã đổi ảnh đại diện');
+          }catch(e){showToast('Không tải được ảnh, vui lòng thử lại')}
+          this.value='';
+        });
         sb.auth.onAuthStateChange(function(evt,session){handleSession(session)});
         sb.auth.getSession().then(function(r){handleSession(r.data&&r.data.session)}).catch(function(){});
       }
