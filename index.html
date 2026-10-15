@@ -439,7 +439,13 @@
           var r=await sb.from('profiles').select('full_name,role,department,employee_code,avatar_url').eq('id',currentUser.id).single();
           if(r.error)throw r.error;
           return r.data||null;
-        }catch(e){return null}
+        }catch(e){
+          try{
+            var r2=await sb.from('profiles').select('full_name,role,department,employee_code').eq('id',currentUser.id).single();
+            if(r2.error)throw r2.error;
+            return r2.data||null;
+          }catch(e2){return null}
+        }
       }
       function applyProfileToUI(profile){
         myProfile=profile||null;
