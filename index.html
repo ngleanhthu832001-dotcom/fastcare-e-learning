@@ -453,8 +453,9 @@
         document.getElementById('greetingName').textContent='Xin chào, '+first+'!';
         var dt=document.getElementById('demoTag');if(dt)dt.style.display='none';
         var roleEl=document.getElementById('userRole');
-        if(profile&&profile.role==='admin'){userRole='admin';roleEl.textContent='Quản trị viên';document.getElementById('adminNav').style.display=''}
-        else{userRole='staff';roleEl.textContent=(profile&&profile.department)||'Nhân sự FASTCARE'}
+        if(profile&&profile.role==='admin'){userRole='admin';document.getElementById('adminNav').style.display=''}
+        else{userRole='staff'}
+        roleEl.textContent=(profile&&profile.department)||(userRole==='admin'?'Quản trị viên':'Nhân sự FASTCARE');
       }
       async function refreshMyStats(){
         if(!currentUser)return;
