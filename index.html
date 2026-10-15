@@ -76,8 +76,8 @@
     .pf-hint{font-size:11px;color:var(--muted);margin:6px 0 0}
     .pf-field{display:grid;gap:6px}
     .pf-field label{font-size:13px;font-weight:700;color:var(--muted)}
-    .pf-field input{padding:12px 14px;border:2px solid var(--line);border-radius:12px;font:inherit;background:var(--surface);color:var(--ink);width:100%;box-sizing:border-box}
-    .pf-field input:focus{outline:none;border-color:var(--brand)}
+    .pf-field input,.pf-field select{padding:12px 14px;border:2px solid var(--line);border-radius:12px;font:inherit;background:var(--surface);color:var(--ink);width:100%;box-sizing:border-box}
+    .pf-field input:focus,.pf-field select:focus{outline:none;border-color:var(--brand)}
     .pf-field input[readonly]{background:var(--surface-2);color:var(--muted)}
     .pf-actions{display:flex;gap:10px;justify-content:flex-end}
     .btn-secondary{padding:12px 18px;border-radius:12px;border:2px solid var(--line);background:var(--surface);font:inherit;font-weight:700;cursor:pointer;color:var(--ink)}
@@ -348,8 +348,33 @@
           <div><button class="btn-secondary" id="avatarChangeBtn" type="button">Đổi ảnh đại diện</button><input type="file" id="avatarInput" accept="image/*" hidden><p class="pf-hint">Ảnh vuông, dưới 2MB.</p></div>
         </div>
         <div class="pf-field"><label for="pfName">Họ và tên</label><input id="pfName" type="text" maxlength="100" autocomplete="name"></div>
-        <div class="pf-field"><label for="pfDept">Đơn vị / Phòng ban</label><input id="pfDept" type="text" maxlength="100" placeholder="VD: Cửa hàng Quận 1"></div>
-        <div class="pf-field"><label for="pfCode">Mã nhân sự</label><input id="pfCode" type="text" maxlength="30" placeholder="VD: FC001"></div>
+        <div class="pf-field"><label for="pfDept">Chi nhánh/Phòng ban</label><select id="pfDept">
+          <option value="">— Chọn chi nhánh/phòng ban —</option>
+          <optgroup label="Chi nhánh">
+            <option>Chi nhánh Lê Hồng Phong</option>
+            <option>Chi nhánh Âu Cơ</option>
+            <option>Chi nhánh Hậu Giang</option>
+            <option>Chi nhánh Hoàng Văn Thụ</option>
+            <option>Chi nhánh Quang Trung</option>
+            <option>Chi nhánh Tô Ký</option>
+            <option>Chi nhánh Khánh Hội</option>
+            <option>Chi nhánh Nguyễn Thị Thập</option>
+            <option>Chi nhánh Xô Viết Nghệ Tĩnh</option>
+            <option>Chi nhánh Võ Văn Ngân</option>
+            <option>Chi nhánh Lê Văn Việt</option>
+            <option>Chi nhánh Nguyễn An Ninh</option>
+          </optgroup>
+          <optgroup label="Phòng ban">
+            <option>Kho Tổng</option>
+            <option>Thu mua</option>
+            <option>Tài chính Kế toán</option>
+            <option>Chăm sóc Khách hàng</option>
+            <option>Ngành hàng</option>
+            <option>Hành chính Nhân sự</option>
+            <option>Marketing</option>
+            <option>Ban kiểm soát/Quản lý Khu vực</option>
+          </optgroup>
+        </select></div>
         <div class="pf-field"><label for="pfEmail">Email đăng nhập</label><input id="pfEmail" type="text" readonly></div>
         <div class="pf-actions"><button class="btn-secondary" id="profileCancel" type="button">Huỷ</button><button class="primary" id="profileSave" type="button">Lưu thay đổi</button></div>
       </div>
@@ -569,7 +594,6 @@
           var metaName=currentUser.user_metadata&&currentUser.user_metadata.full_name;
           document.getElementById('pfName').value=p.full_name||metaName||'';
           document.getElementById('pfDept').value=p.department||'';
-          document.getElementById('pfCode').value=p.employee_code||'';
           document.getElementById('pfEmail').value=currentUser.email||'';
           renderPfAvatar(p.avatar_url,p.full_name||metaName);
           document.getElementById('profileModal').classList.add('open');
@@ -584,7 +608,7 @@
           if(!currentUser)return;
           var btn=this;btn.disabled=true;btn.textContent='Đang lưu…';
           try{
-            var r=await sb.from('profiles').update({full_name:document.getElementById('pfName').value.trim(),department:document.getElementById('pfDept').value.trim()||null,employee_code:document.getElementById('pfCode').value.trim()||null}).eq('id',currentUser.id);
+            var r=await sb.from('profiles').update({full_name:document.getElementById('pfName').value.trim(),department:document.getElementById('pfDept').value||null}).eq('id',currentUser.id);
             if(r.error)throw r.error;
             applyProfileToUI(await fetchMyProfile());
             closeProfile();showToast('Đã lưu thông tin cá nhân');
