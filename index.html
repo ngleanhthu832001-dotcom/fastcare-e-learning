@@ -82,6 +82,15 @@
     .pf-actions{display:flex;gap:10px;justify-content:flex-end}
     .btn-secondary{padding:12px 18px;border-radius:12px;border:2px solid var(--line);background:var(--surface);font:inherit;font-weight:700;cursor:pointer;color:var(--ink)}
     .btn-secondary:disabled{opacity:.6;cursor:default}
+    .pending-overlay{position:fixed;inset:0;background:var(--bg);z-index:70;display:none;align-items:center;justify-content:center;padding:20px}
+    .pending-overlay.open{display:flex}
+    .pending-card{max-width:430px;text-align:center;display:grid;gap:14px;justify-items:center}
+    .pending-card img{width:150px}
+    .pending-card h2{font-size:24px;margin:0}
+    .pending-card p{color:var(--muted);margin:0}
+    .nav-badge{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:var(--brand);color:#fff;font-size:11px;font-weight:800;margin-left:6px;vertical-align:middle}
+    .approve-btn{border:0;background:var(--brand);color:#fff;padding:9px 16px;border-radius:10px;font-weight:800;cursor:pointer;font-size:12px}
+    .approve-btn:disabled{opacity:.6;cursor:default}
     .demo-tag{margin-left:auto;background:var(--brand-soft);color:var(--brand-strong);padding:4px 7px;border-radius:6px;font-size:9px;font-weight:800;letter-spacing:.08em}
     .nav{display:grid;gap:6px;margin-top:22px}
     .nav button,.mobile-nav button{border:0;background:transparent;cursor:pointer}
@@ -239,7 +248,7 @@
         <button class="active" data-view="home"><svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5V21h-6v-6H9v6H3z"/></svg>Trang học</button>
         <button data-view="route"><svg viewBox="0 0 24 24"><path d="M5 3v18M5 6h10l-2 3 2 3H5M5 17h13l-2 3"/></svg>Lộ trình</button>
         <button data-view="rank"><svg viewBox="0 0 24 24"><path d="M8 21v-8H3v8M14.5 21V3h-5v18M21 21V8h-5v13"/></svg>Xếp hạng</button>
-        <button data-view="admin" id="adminNav" style="display:none"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></svg>Quản trị</button>
+        <button data-view="admin" id="adminNav" style="display:none"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></svg>Quản trị<span class="nav-badge" id="adminBadge" style="display:none">0</span></button>
       </nav>
       <div class="streak"><div class="streak-top"><div class="streak-mark">4</div><strong>Chuỗi học 4 ngày</strong></div><p>Thêm 1 bài hôm nay để giữ nhịp học.</p></div>
       <button class="logout-btn" id="logoutBtn">Đăng xuất</button>
@@ -314,6 +323,7 @@
 
       <section id="admin" class="view">
         <div class="rank-hero"><p class="eyebrow" style="color:var(--brand)">Khu vực quản trị</p><h1>Quản lý<br>học viên.</h1><p>Danh sách học viên và tổng điểm XP — chỉ hiển thị với tài khoản quản trị.</p></div>
+        <div id="pendingApprovals" style="margin-bottom:18px"></div>
         <div class="leaderboard" id="adminTable" aria-live="polite">
           <p class="muted-center">Đang tải danh sách…</p>
         </div>
@@ -381,6 +391,15 @@
     </div>
   </div>
 
+  <div class="pending-overlay" id="pendingOverlay" role="dialog" aria-modal="true" aria-label="Tài khoản đang chờ duyệt">
+    <div class="pending-card">
+      <img src="assets/fastie-wave.webp" alt="Sóc Fastie vẫy chào">
+      <h2>Tài khoản đang chờ duyệt</h2>
+      <p>Cảm ơn bạn đã đăng ký! Quản trị viên sẽ duyệt tài khoản của bạn sớm. Bạn cứ để trang này mở — hệ thống sẽ tự động cho bạn vào ngay khi được duyệt.</p>
+      <button class="btn-secondary" id="pendingLogout" type="button">Đăng xuất</button>
+    </div>
+  </div>
+
   <div class="lesson-overlay" id="lessonOverlay" role="dialog" aria-modal="true" aria-label="Bài học Văn hoá phục vụ">
     <article class="lesson">
       <div class="lesson-top"><strong id="lessonTopLabel">Bài 3/4 · Văn hoá phục vụ khách hàng</strong><button class="close-btn" id="closeLesson" aria-label="Đóng">×</button></div>
@@ -435,17 +454,19 @@
       function unlockApp(){document.body.classList.remove('locked')}
       function lockApp(){document.body.classList.add('locked');currentUser=null;userRole='staff';var an=document.getElementById('adminNav');if(an)an.style.display='none'}
       async function fetchMyProfile(){
-        try{
-          var r=await sb.from('profiles').select('full_name,role,department,employee_code,avatar_url').eq('id',currentUser.id).single();
-          if(r.error)throw r.error;
-          return r.data||null;
-        }catch(e){
+        var fields=[
+          'full_name,role,department,employee_code,avatar_url,is_approved',
+          'full_name,role,department,employee_code,is_approved',
+          'full_name,role,department,employee_code'
+        ];
+        for(var i=0;i<fields.length;i++){
           try{
-            var r2=await sb.from('profiles').select('full_name,role,department,employee_code').eq('id',currentUser.id).single();
-            if(r2.error)throw r2.error;
-            return r2.data||null;
-          }catch(e2){return null}
+            var r=await sb.from('profiles').select(fields[i]).eq('id',currentUser.id).single();
+            if(r.error)throw r.error;
+            return r.data||null;
+          }catch(e){/* thử tầng tiếp theo */}
         }
+        return null;
       }
       function applyProfileToUI(profile){
         myProfile=profile||null;
@@ -459,9 +480,8 @@
         document.getElementById('greetingName').textContent='Xin chào, '+first+'!';
         var dt=document.getElementById('demoTag');if(dt)dt.style.display='none';
         var roleEl=document.getElementById('userRole');
-        if(profile&&profile.role==='admin'){userRole='admin';document.getElementById('adminNav').style.display=''}
-        else{userRole='staff'}
-        roleEl.textContent=(profile&&profile.department)||(userRole==='admin'?'Quản trị viên':'Nhân sự FASTCARE');
+        if(profile&&profile.role==='admin'){userRole='admin';roleEl.textContent='Quản trị viên';document.getElementById('adminNav').style.display=''}
+        else{userRole='staff';roleEl.textContent=(profile&&profile.department)||'Nhân sự FASTCARE'}
       }
       async function refreshMyStats(){
         if(!currentUser)return;
@@ -550,17 +570,75 @@
           }).join('');
         }catch(e){box.innerHTML='<p class="muted-center">Chưa tải được danh sách học viên.</p>'}
       }
+      var pendingTimer=null;
+      function showPending(){
+        document.getElementById('pendingOverlay').classList.add('open');
+        startPendingWatch();
+      }
+      function hidePending(){
+        document.getElementById('pendingOverlay').classList.remove('open');
+        stopPendingWatch();
+      }
+      function stopPendingWatch(){if(pendingTimer){clearInterval(pendingTimer);pendingTimer=null}}
+      function startPendingWatch(){
+        stopPendingWatch();
+        pendingTimer=setInterval(async function(){
+          if(!currentUser)return;
+          var p=await fetchMyProfile();
+          if(p&&(p.is_approved===true||p.role==='admin')){
+            hidePending();
+            applyProfileToUI(p);
+            refreshMyStats();renderRanking('individual');
+            if(userRole==='admin'){renderAdmin();renderPendingApprovals()}
+            showToast('Tài khoản đã được duyệt, chào mừng bạn!');
+          }
+        },30000);
+      }
+      async function renderPendingApprovals(){
+        var box=document.getElementById('pendingApprovals');
+        var badge=document.getElementById('adminBadge');
+        if(!box)return 0;
+        try{
+          var res=await sb.from('profiles').select('id,full_name,email,department,created_at').eq('is_approved',false).order('created_at',{ascending:true});
+          if(res.error)throw res.error;
+          var rows=res.data||[];
+          if(badge){badge.textContent=rows.length;badge.style.display=rows.length?'':'none'}
+          if(!rows.length){box.innerHTML='';return 0}
+          box.innerHTML='<div class="leaderboard"><div class="rank-row rank-head"><span>⏳</span><span>Tài khoản chờ duyệt ('+rows.length+')</span><span class="dept">Ngày đăng ký</span><span class="xp"></span></div>'+
+            rows.map(function(it){
+              var d=it.created_at?new Date(it.created_at).toLocaleDateString('vi-VN'):'—';
+              return '<div class="rank-row"><b>•</b><div class="person"><div class="person-dot">'+dotAvatar(null,it.full_name)+'</div><div><strong>'+escapeHtml(it.full_name||'Học viên')+'</strong><span>'+escapeHtml(it.email||'')+(it.department?' · '+escapeHtml(it.department):'')+'</span></div></div><span class="dept">'+d+'</span><span class="xp"><button class="approve-btn" data-approve="'+it.id+'">Duyệt</button></span></div>';
+            }).join('')+'</div>';
+          box.querySelectorAll('[data-approve]').forEach(function(b){
+            b.addEventListener('click',function(){approveUser(b.getAttribute('data-approve'),b)});
+          });
+          return rows.length;
+        }catch(e){box.innerHTML='';if(badge)badge.style.display='none';return 0}
+      }
+      async function approveUser(id,btn){
+        if(btn)btn.disabled=true;
+        try{
+          var r=await sb.from('profiles').update({is_approved:true}).eq('id',id);
+          if(r.error)throw r.error;
+          showToast('Đã duyệt tài khoản');
+          renderPendingApprovals();renderAdmin();
+        }catch(e){showToast('Không duyệt được, vui lòng thử lại');if(btn)btn.disabled=false}
+      }
       async function handleSession(session){
         if(session&&session.user){
           currentUser=session.user;
           unlockApp();
           var profile=await fetchMyProfile();
           applyProfileToUI(profile);
+          if(profile&&profile.role!=='admin'&&profile.is_approved===false){
+            showPending();return;
+          }
+          hidePending();
           refreshMyStats();
           renderRanking('individual');
-          if(userRole==='admin')renderAdmin();
+          if(userRole==='admin'){renderAdmin();var _n=await renderPendingApprovals();if(_n>0)showToast('Có '+_n+' tài khoản đang chờ bạn duyệt')}
         }else{
-          lockApp();
+          hidePending();lockApp();
         }
       }
       function initAuth(){
@@ -594,6 +672,7 @@
           btn.disabled=false;btn.textContent='Tạo tài khoản';
         });
         document.getElementById('logoutBtn').addEventListener('click',async function(){try{await sb.auth.signOut()}catch(e){lockApp()}});
+        document.getElementById('pendingLogout').addEventListener('click',async function(){hidePending();try{await sb.auth.signOut()}catch(e){lockApp()}});
         function renderPfAvatar(url,name){var el=document.getElementById('pfAvatarPreview');if(!el)return;if(url){el.innerHTML='<img src="'+escapeHtml(url)+'" alt="Ảnh đại diện">'}else{el.textContent=initials(name||'HV')}}
         function openProfile(){
           if(!currentUser)return;
@@ -652,7 +731,7 @@
         navButtons.forEach(function(b){b.classList.toggle('active',b.getAttribute('data-view')===id)});
         window.scrollTo({top:0,behavior:'smooth'});
       }
-      navButtons.forEach(function(btn){btn.addEventListener('click',function(){switchView(btn.getAttribute('data-view'))})});
+      navButtons.forEach(function(btn){btn.addEventListener('click',function(){var v=btn.getAttribute('data-view');switchView(v);if(v==='admin'&&userRole==='admin'){renderPendingApprovals()}})});
       document.querySelectorAll('[data-goto]').forEach(function(btn){btn.addEventListener('click',function(){switchView(btn.getAttribute('data-goto'))})});
 
       var overlay=document.getElementById('lessonOverlay');
