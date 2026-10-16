@@ -190,6 +190,7 @@
     .lesson-intro{display:grid;grid-template-columns:minmax(0,1fr) 142px;gap:20px;align-items:center}.lesson-fastie{width:142px;height:130px;object-fit:contain;filter:drop-shadow(0 7px 0 rgba(244,91,24,.12))}
     .success-card{display:none;grid-template-columns:150px minmax(0,1fr);align-items:center;gap:18px;margin:20px 0 0;padding:18px;background:var(--gold-soft);border:2px solid #f4c65a;border-bottom-width:5px;border-radius:18px}.success-card.show{display:grid}.success-card img{width:150px;height:138px;object-fit:contain;border-radius:14px}.success-card h3{margin:0 0 4px;color:#774b00}.success-card p{margin:0;color:#704f18;font-size:12px}
     .activity-modal{position:fixed;inset:0;background:rgba(38,25,19,.72);z-index:60;display:none;align-items:center;justify-content:center;padding:20px}.activity-modal.open{display:flex}.activity-card{width:min(560px,100%);background:var(--bg);border-radius:22px;border:2px solid var(--line);padding:24px;box-shadow:0 8px 0 rgba(0,0,0,.16)}.activity-top{display:flex;justify-content:space-between;align-items:center;gap:14px}.activity-top h2{font-size:22px;margin:0}.activity-card textarea{width:100%;min-height:120px;margin:16px 0;padding:14px;border:2px solid var(--line);border-radius:14px;background:var(--surface);font:inherit;color:var(--ink);resize:vertical}.survey-options{display:grid;gap:9px;margin:16px 0}.survey-options button{border:2px solid var(--line);border-bottom-width:4px;border-radius:13px;background:var(--surface);padding:12px;text-align:left;cursor:pointer}.survey-options button.selected{border-color:var(--brand);background:var(--brand-soft)}
+    .mem-intro{margin:0 0 12px}.mem-stats{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}.mem-stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:13px}.mem-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.mem-card{aspect-ratio:3/4;border:0;background:none;padding:0;cursor:pointer;perspective:700px}.mem-inner{position:relative;display:block;width:100%;height:100%;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.3,1.3,.5,1)}.mem-card.flipped .mem-inner{transform:rotateY(180deg)}.mem-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:6px}.mem-front{background:var(--brand);color:#fff;font-size:32px;font-weight:800;box-shadow:0 4px 0 rgba(0,0,0,.18)}.mem-back{background:var(--ps,#fff);border:2px solid var(--pc,#e84924);transform:rotateY(180deg)}.mem-icon{font-size:26px;line-height:1}.mem-letter{font-size:30px;font-weight:800;color:var(--pc,#e84924);line-height:1}.mem-word{font-size:12.5px;font-weight:800;color:var(--pc,#e84924);text-align:center;line-height:1.25}.mem-card.matched{cursor:default}.mem-card.matched .mem-back{box-shadow:0 0 0 3px var(--pc,#e84924),0 6px 14px rgba(0,0,0,.12)}#memWin{margin-top:16px}#memWin .primary{margin-top:10px}
     .mobile-logo{display:none;width:128px;height:auto}
     @media(max-width:980px){.brand-lockup{display:none}.mobile-logo{display:block}.topline{flex-wrap:wrap}.topline>p{order:3;width:100%;margin-top:-4px}.skill-grid{grid-template-columns:repeat(3,1fr)}}
     @media(max-width:700px){.hero{grid-template-columns:1fr}.fastie-stage{min-height:190px}.fastie{width:240px;height:190px}.fastie-bubble{right:4px}.skill-grid{grid-template-columns:repeat(2,1fr)}.skill-card:last-child{grid-column:1/-1;min-height:auto}.reminder-panel{right:16px;top:70px}.activity-modal{padding:12px}.lesson-intro{grid-template-columns:1fr}.lesson-fastie{display:none}.success-card{grid-template-columns:96px minmax(0,1fr);padding:13px;gap:12px}.success-card img{width:96px;height:90px}.completion-actions.show{display:grid;grid-template-columns:1fr}.completion-actions .primary,.completion-actions .secondary{justify-content:center;width:100%}.next-lesson-panel{padding:20px}}
@@ -866,9 +867,66 @@
           activityBody.innerHTML='<p>Nội dung vừa học giúp bạn tự tin đến mức nào khi xử lý tình huống với khách hàng?</p><div class="survey-options"><button>Rất tự tin</button><button>Khá tự tin</button><button>Cần luyện thêm</button></div><button class="primary" id="activityDone">Gửi phản hồi</button>';
           activityBody.querySelectorAll('.survey-options button').forEach(function(o){o.addEventListener('click',function(){activityBody.querySelectorAll('.survey-options button').forEach(function(x){x.classList.remove('selected')});o.classList.add('selected')})});
         }else{
-          activityTitle.textContent='Mini-game · Phản xạ phục vụ';
-          activityBody.innerHTML='<p>Khách hàng hỏi tiến độ nhưng bộ phận kỹ thuật chưa có kết luận cuối. Chọn phản xạ tốt nhất:</p><div class="survey-options"><button>Hẹn khách chờ đến khi có kết quả cuối</button><button data-correct="true">Xác nhận đã tiếp nhận và chủ động hẹn mốc cập nhật tiếp theo</button><button>Chuyển khách sang một kênh khác</button></div><p id="gameResult" class="quiz-result"></p><div class="success-card" id="gameSuccess" role="status"><img src="assets/fastie-wave.webp" alt="Sóc Fastie vui mừng khi bạn trả lời đúng"><div><h3>Phản xạ tuyệt vời!</h3><p>Bạn đã chọn đúng cách chủ động và minh bạch với khách hàng.</p></div></div>';
-          activityBody.querySelectorAll('.survey-options button').forEach(function(o){o.addEventListener('click',function(){activityBody.querySelectorAll('.survey-options button').forEach(function(x){x.classList.remove('selected')});o.classList.add('selected');var isCorrect=o.getAttribute('data-correct')==='true';document.getElementById('gameResult').textContent=isCorrect?'Chính xác! +30 XP (minh hoạ)':'Thử lại nhé — hãy ưu tiên sự chủ động và minh bạch.';document.getElementById('gameSuccess').classList.toggle('show',isCorrect)})});
+          activityTitle.textContent='Mini-game · Lật thẻ 4C';
+          var PAIRS=[
+            {icon:'⚡',label:'Chủ động',color:'#e84924',soft:'#ffe7df'},
+            {icon:'😊',label:'Cười',color:'#0f766e',soft:'#dceee9'},
+            {icon:'👋',label:'Chào',color:'#b97f10',soft:'#faecc9'},
+            {icon:'🙏',label:'Cảm ơn',color:'#7c5cbf',soft:'#ece5f9'}
+          ];
+          activityBody.innerHTML='<p class="mem-intro">Tìm 2 thẻ cùng cặp: chữ <b>C</b> đi với đúng ý nghĩa của nó. Lật càng ít lượt, XP càng cao!</p><div class="mem-stats"><span class="mem-stat">🔄 Lượt lật: <b id="memTurns">0</b></span><span class="mem-stat">🎯 Cặp đã tìm: <b><span id="memFound">0</span>/4</b></span></div><div class="mem-grid" id="memGrid" role="grid" aria-label="Bàn thẻ 4C"></div><div class="success-card" id="memWin" role="status"><img src="assets/fastie-celebrate.webp" alt="Sóc Fastie ăn mừng chiến thắng"><div><h3>Tuyệt vời!</h3><p id="memWinText"></p><button class="primary" id="memReplay" type="button">Chơi lại</button></div></div>';
+          var memGrid=document.getElementById('memGrid'),memFirst=null,memLock=false,memTurns=0,memFound=0,memDone=false;
+          function memBuild(){
+            var deck=[];
+            PAIRS.forEach(function(p,i){deck.push({pair:i,kind:'letter'});deck.push({pair:i,kind:'word'});});
+            for(var k=deck.length-1;k>0;k--){var j=Math.floor(Math.random()*(k+1));var t=deck[k];deck[k]=deck[j];deck[j]=t;}
+            memGrid.innerHTML='';
+            deck.forEach(function(c){
+              var p=PAIRS[c.pair];
+              var el=document.createElement('button');
+              el.type='button';el.className='mem-card';el.setAttribute('aria-label','Thẻ úp, bấm để lật');
+              el.innerHTML='<span class="mem-inner"><span class="mem-face mem-front">?</span><span class="mem-face mem-back" style="--pc:'+p.color+';--ps:'+p.soft+'"><span class="mem-icon">'+p.icon+'</span>'+(c.kind==='letter'?'<span class="mem-letter">C</span>':'<span class="mem-word">'+p.label+'</span>')+'</span></span>';
+              el._pair=c.pair;
+              el.addEventListener('click',function(){memFlip(el);});
+              memGrid.appendChild(el);
+            });
+            memFirst=null;memLock=false;memTurns=0;memFound=0;memDone=false;
+            document.getElementById('memTurns').textContent='0';
+            document.getElementById('memFound').textContent='0';
+            document.getElementById('memWin').classList.remove('show');
+          }
+          function memFlip(el){
+            if(memLock||memDone||el.classList.contains('flipped'))return;
+            el.classList.add('flipped');
+            el.setAttribute('aria-label','Thẻ đã lật');
+            if(!memFirst){memFirst=el;return;}
+            memTurns++;document.getElementById('memTurns').textContent=memTurns;
+            if(memFirst._pair===el._pair){
+              memFirst.classList.add('matched');el.classList.add('matched');
+              memFirst=null;memFound++;document.getElementById('memFound').textContent=memFound;
+              if(memFound===PAIRS.length)memWin();
+            }else{
+              memLock=true;
+              var a=memFirst,b=el;memFirst=null;
+              setTimeout(function(){a.classList.remove('flipped');a.setAttribute('aria-label','Thẻ úp, bấm để lật');b.classList.remove('flipped');b.setAttribute('aria-label','Thẻ úp, bấm để lật');memLock=false;},850);
+            }
+          }
+          async function memWin(){
+            memDone=true;
+            var xp=Math.max(40,100-(memTurns-PAIRS.length)*10);
+            document.getElementById('memWinText').textContent='Bạn tìm đủ 4 cặp chỉ sau '+memTurns+' lượt lật — nhận '+xp+' XP!';
+            document.getElementById('memWin').classList.add('show');
+            showToast('Hoàn thành Lật thẻ 4C! +'+xp+' XP');
+            if(currentUser&&sb){
+              try{
+                var r=await sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:'mini-game-lat-the-4c',score:PAIRS.length,total:PAIRS.length,xp_earned:xp});
+                if(r.error)throw r.error;
+                refreshMyStats();renderRanking('individual');
+              }catch(e){/* điểm đã hiển thị trên giao diện */}
+            }
+          }
+          document.getElementById('memReplay').addEventListener('click',memBuild);
+          memBuild();
         }
         var done=document.getElementById('activityDone');if(done)done.addEventListener('click',function(){closeActivity();showToast('Đã hoàn thành hoạt động trong phiên demo')});
       })});
