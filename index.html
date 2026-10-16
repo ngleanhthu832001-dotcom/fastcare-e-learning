@@ -218,6 +218,45 @@
     .badge-win h3{font-size:22px;margin:10px 0 6px}
     .badge-win p{color:var(--muted);margin:0 0 6px}
     .badge-xp{font-size:20px;font-weight:800;color:var(--brand)!important}
+    .activity-card.wide{width:min(1020px,100%)}
+    .sim-main{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:18px;align-items:start}
+    .sim-scene-panel{background:var(--surface);border:2px solid var(--line);border-radius:18px;padding:16px;min-width:0}
+    .sim-scene-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+    .sim-store{font-size:12px;font-weight:800;color:var(--brand);letter-spacing:.06em}
+    .sim-stage-badge{background:var(--brand-soft);color:var(--brand-strong);font-size:11px;font-weight:800;padding:5px 10px;border-radius:20px;white-space:nowrap}
+    .sim-scene-title{font-size:20px;margin:0 0 12px}
+    .sim-scene{background:linear-gradient(180deg,#fff8ef,#ffefd9);border-radius:14px;padding:14px;overflow:hidden}
+    .sim-awning{background:repeating-linear-gradient(90deg,var(--brand) 0 18px,#fff 18px 36px);border-radius:8px;text-align:center;padding:6px;margin-bottom:12px}
+    .sim-awning span{background:#fff;color:var(--brand-strong);font-weight:800;font-size:13px;padding:2px 14px;border-radius:6px;letter-spacing:.1em}
+    .sim-chars{display:flex;align-items:flex-end;justify-content:space-around;gap:6px}
+    .sim-char{display:flex;flex-direction:column;align-items:center;gap:6px;flex:none}
+    .sim-avatar{width:84px;height:102px;border-radius:42px;display:grid;place-items:center;overflow:hidden;font-size:42px}
+    .sim-avatar.staff{background:var(--brand)}
+    .sim-avatar.staff img{width:100%;height:100%;object-fit:cover}
+    .sim-avatar.cust{background:#dbeafe}
+    .sim-name{font-size:10px;font-weight:800;background:#fff;border:1px solid var(--line);border-radius:12px;padding:3px 10px;white-space:nowrap}
+    .sim-bubble{position:relative;background:#fff;border:2px solid var(--line);border-radius:14px;padding:10px 12px;font-size:13px;font-weight:600;max-width:230px;align-self:flex-start;margin-top:4px}
+    .sim-bubble:after{content:'';position:absolute;bottom:-9px;left:30px;width:14px;height:14px;background:#fff;border-right:2px solid var(--line);border-bottom:2px solid var(--line);transform:rotate(45deg)}
+    .sim-act-label{margin:14px 0 10px;font-weight:800;font-size:13px;color:var(--brand-strong);border:2px dashed var(--brand);border-radius:12px;padding:10px;text-align:center;background:var(--brand-soft)}
+    .sim-actions{display:grid;gap:10px}
+    .sim-act{display:flex;gap:12px;align-items:center;background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:12px;cursor:pointer;text-align:left;width:100%}
+    .sim-act:hover{border-color:var(--pc)}
+    .sim-act.sel{border-color:var(--pc);background:var(--ps);box-shadow:0 0 0 2px var(--pc)}
+    .sim-act.good{border-color:var(--teal);background:var(--teal-soft)}
+    .sim-act.bad{border-color:var(--brand-strong);background:#ffe9e4}
+    .sim-act:disabled{cursor:default}
+    .sim-act-icon{font-size:28px;flex:none}
+    .sim-act strong{display:block;font-size:14px}
+    .sim-act small{color:var(--muted);font-size:12px}
+    .sim-mission-panel{background:var(--surface);border:2px solid var(--line);border-radius:18px;padding:18px;min-width:0}
+    .sim-eyebrow{font-size:12px;font-weight:800;letter-spacing:.08em}
+    .sim-mission-panel h3{font-size:22px;margin:6px 0 10px}
+    .sim-desc{color:var(--muted);font-size:14px;margin:0 0 12px}
+    .sim-tip{background:var(--gold-soft);border-radius:12px;padding:12px;font-size:13px;margin-bottom:12px}
+    .sim-hint{font-size:13px;color:var(--muted)}
+    .sim-submit{width:100%;margin-top:6px}
+    .sim-submit:disabled{opacity:.55;cursor:not-allowed}
+    @media(max-width:760px){.sim-main{grid-template-columns:1fr}.sim-bubble{max-width:180px}}
     .mem-intro{margin:0 0 12px}.mem-stats{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}.mem-stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:13px}.mem-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.mem-card{aspect-ratio:3/4;border:0;background:none;padding:0;cursor:pointer;perspective:700px}.mem-inner{position:relative;display:block;width:100%;height:100%;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.3,1.3,.5,1)}.mem-card.flipped .mem-inner{transform:rotateY(180deg)}.mem-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:6px}.mem-front{background:var(--brand);color:#fff;font-size:32px;font-weight:800;box-shadow:0 4px 0 rgba(0,0,0,.18)}.mem-back{background:var(--ps,#fff);border:2px solid var(--pc,#e84924);transform:rotateY(180deg)}.mem-icon{font-size:26px;line-height:1}.mem-letter{font-size:30px;font-weight:800;color:var(--pc,#e84924);line-height:1}.mem-word{font-size:12.5px;font-weight:800;color:var(--pc,#e84924);text-align:center;line-height:1.25}.mem-card.matched{cursor:default}.mem-card.matched .mem-back{box-shadow:0 0 0 3px var(--pc,#e84924),0 6px 14px rgba(0,0,0,.12)}#memWin{margin-top:16px}#memWin .primary{margin-top:10px}
     .mobile-logo{display:none;width:128px;height:auto}
     @media(max-width:980px){.brand-lockup{display:none}.mobile-logo{display:block}.topline{flex-wrap:wrap}.topline>p{order:3;width:100%;margin-top:-4px}.skill-grid{grid-template-columns:repeat(3,1fr)}}
@@ -875,7 +914,7 @@
       var activity=document.getElementById('activityModal');
       var activityTitle=document.getElementById('activityTitle');
       var activityBody=document.getElementById('activityBody');
-      function closeActivity(){activity.classList.remove('open');document.body.style.overflow=''}
+      function closeActivity(){activity.classList.remove('open');document.body.style.overflow='';var ac=activity.querySelector('.activity-card');if(ac)ac.classList.remove('wide')}
       document.getElementById('activityClose').addEventListener('click',closeActivity);
       activity.addEventListener('click',function(e){if(e.target===activity)closeActivity()});
       document.querySelectorAll('[data-activity]').forEach(function(btn){btn.addEventListener('click',function(){
@@ -897,6 +936,7 @@
         }else{
           activityTitle.textContent='Mini-game · Thử thách vui';
           function showGameMenu(){
+            var card0=document.querySelector('.activity-card');if(card0)card0.classList.remove('wide');
             activityTitle.textContent='Mini-game · Thử thách vui';
             activityBody.innerHTML='<p>Chọn một thử thách để chơi và cộng XP:</p><div class="game-menu"><button class="game-pick" id="pickMem" type="button"><span class="game-pick-icon">🎴</span><span><strong>Lật thẻ 4C</strong><small>Game trí nhớ 8 thẻ · tối đa 100 XP</small></span></button><button class="game-pick" id="pickStage" type="button"><span class="game-pick-icon">🏪</span><span><strong>Vượt ải 4C</strong><small>Mô phỏng cửa hàng · 4 ải · tối đa 120 XP</small></span></button></div>';
             document.getElementById('pickMem').addEventListener('click',startMemGame);
@@ -967,67 +1007,206 @@
           }
           function startStageGame(){
             var STAGES=[
-              {icon:'⚡',name:'Ải 1 · Chủ động',desc:'Ghi nhận và tiếp đón khách đúng lúc',color:'#e84924',soft:'#ffe7df',qs:[
-                {s:'Khách vừa bước vào cửa hàng, bạn đang sắp xếp quầy. Việc đầu tiên nên làm là gì?',opts:['Ngẩng lên, mỉm cười và chào đón khách ngay','Làm nốt việc đang dở rồi mới ra chào','Đợi khách lên tiếng trước'],a:0,why:'Chủ động tiếp đón ngay từ giây đầu tiên — đừng để khách phải chờ hay phải lên tiếng trước.'},
-                {s:'Thấy khách đứng nhìn quanh có vẻ đang tìm kiếm, bạn sẽ làm gì?',opts:['Đứng quan sát thêm xem khách cần gì','Chủ động tiến lại: “Dạ anh/chị cần em hỗ trợ gì ạ?”','Tiếp tục công việc của mình, khách cần sẽ gọi'],a:1,why:'Đừng đợi khách mở lời — chủ động hỏi thăm thể hiện sự quan tâm.'},
-                {s:'Khách hỏi về một lỗi mà bạn chưa chắc chắn nguyên nhân. Cách xử lý đúng tinh thần Chủ động?',opts:['Đoán nhanh một nguyên nhân để khách yên tâm','Thừa nhận cần kiểm tra kỹ và hẹn mốc thời gian cụ thể để cập nhật','Chuyển khách sang nhân viên khác ngay'],a:1,why:'Chủ động không có nghĩa là đoán mò — minh bạch và hẹn mốc cập nhật cụ thể mới là chuyên nghiệp.'}
+              {icon:'⚡',code:'C1',name:'Chủ động',color:'#e84924',soft:'#ffe7df',qs:[
+                {scene:'Khách vừa đến!',cust:'🧑',line:'Xin chào, mình cần hỗ trợ ạ!',mission:'Đón khách đúng lúc',
+                 s:'Một vị khách vừa bước vào cửa hàng. Bạn đang hỗ trợ khách khác tại quầy.',
+                 tip:'Chủ động ghi nhận khách mới, đồng thời không bỏ dở trách nhiệm với khách đang phục vụ.',
+                 opts:[
+                   {icon:'🙋',t:'Chủ động ghi nhận khách',d:'Chào khách và báo sẽ hỗ trợ ngay'},
+                   {icon:'📱',t:'Chờ khách tự lên tiếng',d:'Tiếp tục làm việc, không phản hồi'},
+                   {icon:'🏃',t:'Bỏ khách đang phục vụ',d:'Chạy ngay sang khách mới'}
+                 ],a:0,
+                 why:'Chủ động tiếp đón ngay từ giây đầu — đồng thời khéo léo hẹn khách mới chờ một chút thay vì bỏ dở khách đang phục vụ.'},
+                {scene:'Khách đang ngó nghiêng!',cust:'👩',line:'Hmm, không biết hỏi ai đây…',mission:'Đừng để khách phải mở lời',
+                 s:'Một chị khách đứng nhìn quanh cửa hàng, có vẻ đang tìm kiếm sự giúp đỡ.',
+                 tip:'Quan sát và chủ động hỏi thăm trước khi khách phải lên tiếng.',
+                 opts:[
+                   {icon:'👀',t:'Đứng quan sát thêm',d:'Xem khách cần gì rồi tính'},
+                   {icon:'💬',t:'Chủ động hỏi thăm',d:'“Dạ chị cần em hỗ trợ gì ạ?”'},
+                   {icon:'💼',t:'Tiếp tục việc của mình',d:'Khách cần sẽ tự gọi'}
+                 ],a:1,
+                 why:'Đừng đợi khách mở lời — chủ động hỏi thăm thể hiện sự quan tâm chân thành.'},
+                {scene:'Câu hỏi khó!',cust:'🧔',line:'Lỗi này do đâu vậy em?',mission:'Trung thực khi chưa chắc chắn',
+                 s:'Khách hỏi về một lỗi mà bạn chưa chắc chắn nguyên nhân.',
+                 tip:'Chủ động không có nghĩa là đoán mò — minh bạch và hẹn mốc cập nhật cụ thể.',
+                 opts:[
+                   {icon:'🎲',t:'Đoán nhanh nguyên nhân',d:'Để khách yên tâm trước đã'},
+                   {icon:'📋',t:'Hẹn mốc cập nhật cụ thể',d:'“Để em kiểm tra kỹ, 10h em báo anh nhé!”'},
+                   {icon:'🔀',t:'Chuyển cho người khác',d:'Nhờ đồng nghiệp xử lý ngay'}
+                 ],a:1,
+                 why:'Đoán mò nghe có vẻ “chủ động” nhưng rất nguy hiểm — minh bạch và hẹn mốc cập nhật cụ thể mới là chuyên nghiệp.'}
               ]},
-              {icon:'😊',name:'Ải 2 · Cười',desc:'Tạo thiện cảm khi khách phải chờ',color:'#0f766e',soft:'#dceee9',qs:[
-                {s:'Khách phải chờ 15 phút vì cửa hàng đang đông. Khi mang nước ra mời, bạn nên?',opts:['Mỉm cười, nhìn vào mắt khách: “Dạ em mời anh/chị dùng nước ạ!”','Đặt nước xuống rồi quay đi làm việc tiếp','Nhắn khách thông cảm rồi đi ngay'],a:0,why:'Nụ cười + giao tiếp bằng mắt biến thời gian chờ thành trải nghiệm dễ chịu.'},
-                {s:'Khách tỏ vẻ khó chịu vì chờ lâu. Cách xoa dịu hiệu quả nhất?',opts:['Giải thích dài dòng vì sao hôm nay đông','Im lặng, cố làm nhanh hơn','Giữ nụ cười thân thiện và chủ động cập nhật tiến độ cho khách'],a:2,why:'Khách cần biết thiết bị của mình đang ở đâu — cập nhật chủ động với nụ cười xoa dịu tốt nhất.'},
-                {s:'Khi trao đổi về chi phí sửa chữa — chủ đề dễ căng thẳng — thái độ nào đúng?',opts:['Giữ nụ cười nhẹ, trao đổi rõ ràng từng khoản chi phí','Nghiêm mặt để thể hiện sự chuyên nghiệp','Cười thật tươi để không khí vui vẻ'],a:0,why:'Chuyên nghiệp không có nghĩa là nghiêm nghị — nụ cười nhẹ + minh bạch chi phí tạo niềm tin.'}
+              {icon:'😊',code:'C2',name:'Cười',color:'#0f766e',soft:'#dceee9',qs:[
+                {scene:'Khách phải chờ!',cust:'👵',line:'Chờ lâu quá…',mission:'Nụ cười xoa dịu thời gian chờ',
+                 s:'Cửa hàng đang đông, một bác khách phải chờ 15 phút. Bạn mang nước ra mời.',
+                 tip:'Nụ cười + giao tiếp bằng mắt biến thời gian chờ thành trải nghiệm dễ chịu.',
+                 opts:[
+                   {icon:'😊',t:'Cười tươi mời nước',d:'“Dạ con mời bác dùng nước ạ!”'},
+                   {icon:'🥤',t:'Đặt nước rồi đi',d:'Không nói gì thêm'},
+                   {icon:'⏳',t:'Nhắn khách thông cảm',d:'Rồi quay lại quầy ngay'}
+                 ],a:0,
+                 why:'Ly nước kèm nụ cười và ánh mắt chân thành — khách sẽ thấy 15 phút chờ đợi nhẹ nhàng hơn nhiều.'},
+                {scene:'Khách khó chịu!',cust:'😠',line:'Sao lâu thế?!',mission:'Giữ bình tĩnh, chủ động cập nhật',
+                 s:'Khách tỏ vẻ khó chịu vì chờ đợi quá lâu.',
+                 tip:'Khách cần biết thiết bị của mình đang ở đâu — cập nhật chủ động với nụ cười.',
+                 opts:[
+                   {icon:'🗣️',t:'Giải thích dài dòng',d:'Kể vì sao hôm nay đông khách'},
+                   {icon:'🤫',t:'Im lặng làm nhanh hơn',d:'Không nói gì, cố tăng tốc'},
+                   {icon:'😊',t:'Cười và cập nhật tiến độ',d:'“Máy mình đang ở bước kiểm tra cuối ạ!”'}
+                 ],a:2,
+                 why:'Giải thích dài dòng nghe như biện minh — nụ cười thân thiện + cập nhật tiến độ cụ thể mới xoa dịu được.'},
+                {scene:'Báo giá căng thẳng!',cust:'🧐',line:'Sao mắc vậy?',mission:'Nụ cười + minh bạch chi phí',
+                 s:'Khách nhăn mặt khi nghe báo giá sửa chữa.',
+                 tip:'Chuyên nghiệp không có nghĩa là nghiêm nghị — nụ cười nhẹ + minh bạch từng khoản.',
+                 opts:[
+                   {icon:'😊',t:'Cười nhẹ, giải thích rõ',d:'Phân tích từng khoản chi phí'},
+                   {icon:'😐',t:'Nghiêm mặt cho chuyên nghiệp',d:'Giữ vẻ mặt nghiêm túc'},
+                   {icon:'😂',t:'Cười lớn cho vui',d:'Pha trò để không khí nhẹ nhàng'}
+                 ],a:0,
+                 why:'Nghiêm mặt dễ khiến khách thêm căng thẳng — nụ cười nhẹ kèm giải thích minh bạch từng khoản mới tạo niềm tin.'}
               ]},
-              {icon:'👋',name:'Ải 3 · Chào',desc:'Chào khách đúng thời điểm',color:'#b97f10',soft:'#faecc9',qs:[
-                {s:'Khách nhận máy xong và chuẩn bị ra về. Bạn nên?',opts:['Quay lại quầy làm việc tiếp','Chỉ gật đầu nhẹ','Vẫy tay chào: “Dạ em chào anh/chị ạ!”'],a:2,why:'Chào khi đưa khách về — khép lại trải nghiệm một cách trọn vẹn.'},
-                {s:'Đang tư vấn cho khách A thì bắt gặp ánh mắt khách B vừa bước vào. Bạn xử lý thế nào?',opts:['Mỉm cười, gật đầu chào khách B bằng ánh mắt rồi tiếp tục với khách A','Làm ngơ, tư vấn xong khách A đã','Dừng ngay để ra chào khách B'],a:0,why:'Chào bằng ánh mắt khi bắt gặp ánh mắt khách — ghi nhận mà không làm gián đoạn.'},
-                {s:'Khách quen quay lại lần thứ 3 trong tháng. Cách chào đúng tinh thần 4C nhất?',opts:['Chào như khách mới cho đúng quy trình','Không cần chào vì đã quen mặt nhau','Chào thân mật có ghi nhận: “Dạ em chào anh! Máy mình dùng ổn không anh?”'],a:2,why:'Chào đúng thời điểm + ghi nhận khách quen — sự quan tâm chân thành.'}
+              {icon:'👋',code:'C3',name:'Chào',color:'#b97f10',soft:'#faecc9',qs:[
+                {scene:'Khách ra về!',cust:'👋',line:'Cảm ơn nhé!',mission:'Chào khi tiễn khách',
+                 s:'Khách đã nhận máy xong và chuẩn bị ra về.',
+                 tip:'Chào khi đưa khách về — khép lại trải nghiệm một cách trọn vẹn.',
+                 opts:[
+                   {icon:'💼',t:'Quay lại quầy việc',d:'Tiếp tục công việc dang dở'},
+                   {icon:'🙂',t:'Gật đầu nhẹ',d:'Không nói gì thêm'},
+                   {icon:'👋',t:'Vẫy tay chào tạm biệt',d:'“Dạ em chào anh/chị ạ!”'}
+                 ],a:2,
+                 why:'Đừng để khách ra về trong im lặng — lời chào tạm biệt ấm áp là dấu chấm đẹp cho trải nghiệm.'},
+                {scene:'Hai khách cùng lúc!',cust:'🧑‍💼',line:'(vừa bước vào cửa hàng)',mission:'Chào bằng ánh mắt',
+                 s:'Bạn đang tư vấn cho khách A thì bắt gặp ánh mắt khách B vừa bước vào.',
+                 tip:'Chào bằng ánh mắt khi bắt gặp ánh mắt khách — ghi nhận mà không làm gián đoạn.',
+                 opts:[
+                   {icon:'😊',t:'Cười, gật đầu chào',d:'Rồi tiếp tục với khách A'},
+                   {icon:'🙈',t:'Làm ngơ',d:'Tư vấn xong khách A đã'},
+                   {icon:'🏃',t:'Chạy ra chào ngay',d:'Bỏ dở khách A'}
+                 ],a:0,
+                 why:'Làm ngơ khiến khách B thấy bị bỏ rơi, bỏ dở khách A thì thiếu tôn trọng — chào bằng ánh mắt là cách vẹn cả đôi đường.'},
+                {scene:'Khách quen trở lại!',cust:'😎',line:'Lại gặp nhau rồi!',mission:'Chào có ghi nhận',
+                 s:'Anh khách quen quay lại cửa hàng lần thứ 3 trong tháng.',
+                 tip:'Chào đúng thời điểm + ghi nhận khách quen — sự quan tâm chân thành.',
+                 opts:[
+                   {icon:'📋',t:'Chào đúng quy trình',d:'Như với khách mới'},
+                   {icon:'🤝',t:'Chào thân mật',d:'“Máy mình dùng ổn không anh?”'},
+                   {icon:'👋',t:'Không cần chào',d:'Đã quen mặt nhau rồi'}
+                 ],a:1,
+                 why:'Khách quen được ghi nhận sẽ thấy mình đặc biệt — một câu hỏi thăm chân thành hơn vạn lời chào xã giao.'}
               ]},
-              {icon:'🙏',name:'Ải 4 · Cảm ơn',desc:'Khép lại trải nghiệm bằng sự trân trọng',color:'#7c5cbf',soft:'#ece5f9',qs:[
-                {s:'Sau khi khách thanh toán xong, câu nói đúng là?',opts:['“Xong rồi ạ!” rồi đưa hóa đơn','Không nói gì, đưa hóa đơn là đủ','“Dạ em cảm ơn anh/chị ạ!” kèm nụ cười'],a:2,why:'Luôn cảm ơn và cười với khách hàng — câu nói nhỏ, ấn tượng lớn.'},
-                {s:'Khách góp ý: “Lần trước em chờ hơi lâu.” Phản ứng đúng?',opts:['Giải thích hôm đó đông khách nên thông cảm','Im lặng cho qua chuyện','“Dạ em cảm ơn góp ý của anh/chị, bên em sẽ cải thiện ạ!”'],a:2,why:'Cảm ơn khách khi nhận được góp ý — biến phàn nàn thành cơ hội.'},
-                {s:'Khách tham khảo xong nhưng quyết định chưa sửa và ra về. Bạn nên?',opts:['Vẫn cảm ơn khách đã ghé và mời quay lại khi cần','Không nói gì vì khách không dùng dịch vụ','Hỏi dồn vì sao khách không sửa'],a:0,why:'Trân trọng cả khi khách chưa mua — hôm nay chưa sửa, mai họ sẽ nhớ thái độ của bạn.'}
+              {icon:'🙏',code:'C4',name:'Cảm ơn',color:'#7c5cbf',soft:'#ece5f9',qs:[
+                {scene:'Thanh toán xong!',cust:'💳',line:'Anh gửi tiền nhé!',mission:'Cảm ơn sau giao dịch',
+                 s:'Khách vừa thanh toán xong chi phí sửa chữa.',
+                 tip:'Luôn cảm ơn và cười với khách hàng — câu nói nhỏ, ấn tượng lớn.',
+                 opts:[
+                   {icon:'🧾',t:'Đưa hóa đơn',d:'“Xong rồi ạ!”'},
+                   {icon:'🤫',t:'Im lặng đưa hóa đơn',d:'Không nói gì thêm'},
+                   {icon:'🙏',t:'Cảm ơn kèm nụ cười',d:'“Dạ em cảm ơn anh/chị ạ!”'}
+                 ],a:2,
+                 why:'Đừng để giao dịch kết thúc khô khan — lời cảm ơn kèm nụ cười khiến khách nhớ mãi.'},
+                {scene:'Khách góp ý!',cust:'😐',line:'Lần trước chờ hơi lâu đó.',mission:'Cảm ơn cả lời chê',
+                 s:'Khách góp ý về trải nghiệm chưa tốt lần trước.',
+                 tip:'Cảm ơn khách khi nhận được góp ý — biến phàn nàn thành cơ hội.',
+                 opts:[
+                   {icon:'🗣️',t:'Giải thích lý do',d:'Hôm đó đông khách mà'},
+                   {icon:'🙏',t:'Cảm ơn và ghi nhận',d:'“Bên em sẽ cải thiện ạ!”'},
+                   {icon:'🤐',t:'Im lặng cho qua',d:'Không phản hồi'}
+                 ],a:1,
+                 why:'Biện minh khiến khách thêm bực — cảm ơn góp ý và cam kết cải thiện mới giữ được lòng tin.'},
+                {scene:'Khách chưa mua!',cust:'🚶',line:'Để anh về suy nghĩ đã.',mission:'Trân trọng đến phút cuối',
+                 s:'Khách tham khảo xong nhưng quyết định chưa sửa và ra về.',
+                 tip:'Trân trọng cả khi khách chưa mua — hôm nay chưa sửa, mai họ sẽ nhớ thái độ của bạn.',
+                 opts:[
+                   {icon:'🙏',t:'Cảm ơn và mời quay lại',d:'“Khi nào cần anh ghé em nhé!”'},
+                   {icon:'😶',t:'Không nói gì',d:'Khách không mua thì thôi'},
+                   {icon:'❓',t:'Hỏi dồn lý do',d:'“Sao anh không sửa ạ?”'}
+                 ],a:0,
+                 why:'Thái độ trân trọng ngay cả khi khách chưa mua — đó là cách gieo niềm tin cho lần quay lại sau.'}
               ]}
             ];
             var si=0,qi=0,correct=0;
             var totalQ=STAGES.reduce(function(n,s){return n+s.qs.length;},0);
             function stageIntro(){
+              var card=document.querySelector('.activity-card');if(card)card.classList.add('wide');
               activityTitle.textContent='Mini-game · Vượt ải 4C';
               var map=STAGES.map(function(s){
-                return '<div class="stage-chip" style="--pc:'+s.color+';--ps:'+s.soft+'"><span>'+s.icon+'</span><b>'+s.name+'</b></div>';
+                return '<div class="stage-chip" style="--pc:'+s.color+';--ps:'+s.soft+'"><span>'+s.icon+'</span><b>Ải · '+s.name+'</b></div>';
               }).join('');
-              activityBody.innerHTML='<button class="linklike" id="backMenu2" type="button">‹ Chọn game khác</button><p class="mem-intro">Một ngày làm việc tại cửa hàng FASTCARE! Vượt qua <b>4 cửa ải</b> — mỗi ải 3 tình huống thực tế — để nhận <b>🏅 Huy hiệu Nhân viên 4C</b>.</p><div class="stage-map">'+map+'</div><button class="primary" id="stageStart" type="button">Bắt đầu ca làm việc</button>';
+              activityBody.innerHTML='<button class="linklike" id="backMenu2" type="button">‹ Chọn game khác</button><p class="mem-intro">Hóa thân thành <b>Chiến binh FASTCARE</b>! Vượt qua <b>4 cửa ải</b> — mỗi ải 3 tình huống thực tế tại cửa hàng — để nhận <b>🏅 Huy hiệu Nhân viên 4C</b>.</p><div class="stage-map">'+map+'</div><button class="primary" id="stageStart" type="button">Bắt đầu ca làm việc</button>';
               document.getElementById('backMenu2').addEventListener('click',showGameMenu);
               document.getElementById('stageStart').addEventListener('click',function(){si=0;showStageHead();});
             }
             function showStageHead(){
               var s=STAGES[si];
-              activityTitle.textContent='Mini-game · '+s.name;
-              activityBody.innerHTML='<div class="stage-banner" style="--pc:'+s.color+';--ps:'+s.soft+'"><span class="stage-big-icon">'+s.icon+'</span><div><h3>'+s.name+'</h3><p>'+s.desc+'</p></div></div><p class="mem-intro">Ải này có <b>'+s.qs.length+' tình huống</b>. Chọn cách xử lý đúng nhất nhé!</p><button class="primary" id="stageGo" type="button">Vào ải</button>';
-              document.getElementById('stageGo').addEventListener('click',function(){qi=0;showQ();});
+              activityTitle.textContent='Mini-game · Ải '+(si+1)+' '+s.name;
+              activityBody.innerHTML='<div class="stage-banner" style="--pc:'+s.color+';--ps:'+s.soft+'"><span class="stage-big-icon">'+s.icon+'</span><div><h3>Ải '+(si+1)+' · '+s.name+'</h3><p>'+s.code+' — '+({ 'Chủ động':'Ghi nhận và tiếp đón khách đúng lúc','Cười':'Tạo thiện cảm khi khách phải chờ','Chào':'Chào khách đúng thời điểm','Cảm ơn':'Khép lại trải nghiệm bằng sự trân trọng' })[s.name]+'</p></div></div><p class="mem-intro">Ải này có <b>'+s.qs.length+' tình huống</b>. Chọn hành động đúng nhất nhé!</p><button class="primary" id="stageGo" type="button">Vào ải</button>';
+              document.getElementById('stageGo').addEventListener('click',function(){qi=0;showSimQ();});
             }
-            function showQ(){
+            function showSimQ(){
               var s=STAGES[si],q=s.qs[qi];
-              activityTitle.textContent='Mini-game · '+s.name+' ('+(qi+1)+'/'+s.qs.length+')';
-              var opts=q.opts.map(function(o,i){return '<button class="option" data-i="'+i+'" type="button"><b>'+'ABC'[i]+'.</b> '+o+'</button>';}).join('');
-              activityBody.innerHTML='<div class="stage-progress"><span>Ải '+(si+1)+'/4</span><span>✅ Đúng: <b id="stCorrect">'+correct+'</b>/'+totalQ+'</span></div><div class="stage-scenario"><p>'+q.s+'</p></div><div class="options stage-options">'+opts+'</div><div id="stFb"></div>';
-              activityBody.querySelectorAll('.stage-options .option').forEach(function(b){
-                b.addEventListener('click',function(){answerQ(b,q);});
+              activityTitle.textContent='FASTCARE – Chiến binh FASTCARE';
+              var opts=q.opts.map(function(o,i){
+                return '<button class="sim-act" data-i="'+i+'" type="button"><span class="sim-act-icon">'+o.icon+'</span><span><strong>'+o.t+'</strong><small>'+o.d+'</small></span></button>';
+              }).join('');
+              activityBody.innerHTML=
+              '<div class="sim-game" style="--pc:'+s.color+';--ps:'+s.soft+'">'+
+                '<div class="sim-main">'+
+                  '<div class="sim-scene-panel">'+
+                    '<div class="sim-scene-top"><span class="sim-store">CỬA HÀNG FASTCARE</span><span class="sim-stage-badge">CỬA ẢI '+(si+1)+'/4 · ✅ <span id="simScore">'+correct+'</span>/'+totalQ+'</span></div>'+
+                    '<h3 class="sim-scene-title">'+q.scene+'</h3>'+
+                    '<div class="sim-scene">'+
+                      '<div class="sim-awning"><span>FASTCARE</span></div>'+
+                      '<div class="sim-chars">'+
+                        '<div class="sim-char"><div class="sim-avatar staff"><img src="assets/fastie-wave.webp" alt="Sóc Fastie - Chiến binh FASTCARE"></div><span class="sim-name">CHIẾN BINH FASTCARE</span></div>'+
+                        '<div class="sim-bubble">'+q.line+'</div>'+
+                        '<div class="sim-char"><div class="sim-avatar cust"><span>'+q.cust+'</span></div><span class="sim-name">KHÁCH HÀNG</span></div>'+
+                      '</div>'+
+                    '</div>'+
+                    '<div class="sim-act-label">✨ Chọn hành động để giúp khách hàng</div>'+
+                    '<div class="sim-actions">'+opts+'</div>'+
+                  '</div>'+
+                  '<div class="sim-mission-panel">'+
+                    '<div class="sim-eyebrow" style="color:'+s.color+'">'+s.code+' · '+s.name.toUpperCase()+'</div>'+
+                    '<h3>'+q.mission+'</h3>'+
+                    '<p class="sim-desc">'+q.s+'</p>'+
+                    '<div class="sim-tip"><b>💡 Mẹo văn hoá:</b> '+q.tip+'</div>'+
+                    '<p class="sim-hint">Chọn hành động phù hợp để hoàn thành nhiệm vụ nhé!</p>'+
+                    '<button class="primary sim-submit" id="simSubmit" type="button" disabled>HOÀN THÀNH NHIỆM VỤ →</button>'+
+                    '<div id="simFb"></div>'+
+                  '</div>'+
+                '</div>'+
+              '</div>';
+              var picked=-1;
+              var submitBtn=document.getElementById('simSubmit');
+              activityBody.querySelectorAll('.sim-act').forEach(function(b){
+                b.addEventListener('click',function(){
+                  if(b.disabled)return;
+                  activityBody.querySelectorAll('.sim-act').forEach(function(x){x.classList.remove('sel');});
+                  b.classList.add('sel');
+                  picked=+b.getAttribute('data-i');
+                  submitBtn.disabled=false;
+                });
               });
+              submitBtn.addEventListener('click',function(){submitSim(q,picked);});
             }
-            function answerQ(btn,q){
-              var picked=+btn.getAttribute('data-i');
+            function submitSim(q,picked){
+              if(picked<0){showToast('Hãy chọn một hành động trước nhé!');return;}
               var ok=picked===q.a;
-              activityBody.querySelectorAll('.stage-options .option').forEach(function(b){
+              activityBody.querySelectorAll('.sim-act').forEach(function(b){
                 b.disabled=true;
                 var i=+b.getAttribute('data-i');
-                if(i===q.a)b.classList.add('correct');
-                else if(b===btn)b.classList.add('wrong');
+                if(i===q.a)b.classList.add('good');
+                else if(i===picked)b.classList.add('bad');
               });
-              if(ok){correct++;var cc=document.getElementById('stCorrect');if(cc)cc.textContent=correct;}
+              if(ok){correct++;var sc=document.getElementById('simScore');if(sc)sc.textContent=correct;}
               var moreQ=qi+1<STAGES[si].qs.length, moreS=si+1<STAGES.length;
-              document.getElementById('stFb').innerHTML='<div class="stage-result '+(ok?'ok':'bad')+'">'+(ok?'✅ Chính xác! +10 XP':'❌ Chưa đúng rồi')+'</div><p class="stage-why">💡 '+q.why+'</p><button class="primary" id="stNext" type="button">'+(moreQ?'Tình huống tiếp theo':(moreS?'Qua ải tiếp theo →':'Nhận huy hiệu 🏅'))+'</button>';
-              document.getElementById('stNext').addEventListener('click',function(){
-                if(moreQ){qi++;showQ();}
+              var submitBtn=document.getElementById('simSubmit');if(submitBtn)submitBtn.style.display='none';
+              document.getElementById('simFb').innerHTML=
+                '<div class="stage-result '+(ok?'ok':'bad')+'">'+(ok?'✅ Chính xác! +10 XP':'❌ Chưa đúng rồi')+'</div>'+
+                '<p class="stage-why">💡 '+q.why+'</p>'+
+                '<button class="primary sim-submit" id="simNext" type="button">'+(moreQ?'Tình huống tiếp theo':(moreS?'Qua ải tiếp theo →':'Nhận huy hiệu 🏅'))+'</button>';
+              document.getElementById('simNext').addEventListener('click',function(){
+                if(moreQ){qi++;showSimQ();}
                 else if(moreS){showStageDone();}
                 else{showFinal();}
               });
@@ -1035,13 +1214,14 @@
             function showStageDone(){
               var s=STAGES[si];
               activityTitle.textContent='Mini-game · Qua ải!';
-              activityBody.innerHTML='<div class="success-card show"><img src="assets/fastie-celebrate.webp" alt="Sóc Fastie ăn mừng"><div><h3>Vượt '+s.name+'!</h3><p>'+s.icon+' Làm tốt lắm! Còn '+(STAGES.length-si-1)+' ải nữa thôi.</p><button class="primary" id="stNextStage" type="button">Vào ải tiếp theo →</button></div></div>';
+              activityBody.innerHTML='<div class="success-card show"><img src="assets/fastie-celebrate.webp" alt="Sóc Fastie ăn mừng"><div><h3>Vượt ải '+(si+1)+' · '+s.name+'!</h3><p>'+s.icon+' Làm tốt lắm chiến binh! Còn '+(STAGES.length-si-1)+' ải nữa thôi.</p><button class="primary" id="stNextStage" type="button">Vào ải tiếp theo →</button></div></div>';
               document.getElementById('stNextStage').addEventListener('click',function(){si++;showStageHead();});
             }
             async function showFinal(){
+              var card=document.querySelector('.activity-card');if(card)card.classList.remove('wide');
               activityTitle.textContent='Mini-game · Huy hiệu 4C';
               var xp=correct*10;
-              var msg=correct===totalQ?'Hoàn hảo! Bạn xử lý đúng cả '+totalQ+' tình huống như một nhân viên 4C thực thụ!':'Bạn xử lý đúng '+correct+'/'+totalQ+' tình huống — luyện thêm để đạt điểm tuyệt đối nhé!';
+              var msg=correct===totalQ?'Hoàn hảo! Bạn xử lý đúng cả '+totalQ+' tình huống như một chiến binh FASTCARE thực thụ!':'Bạn xử lý đúng '+correct+'/'+totalQ+' tình huống — luyện thêm để đạt điểm tuyệt đối nhé!';
               activityBody.innerHTML='<div class="badge-win"><div class="badge-medal">🏅</div><h3>Huy hiệu Nhân viên 4C</h3><p>'+msg+'</p><p class="badge-xp">+'+xp+' XP</p><div style="display:flex;gap:10px;justify-content:center;margin-top:8px;flex-wrap:wrap"><button class="primary" id="stReplay" type="button">Chơi lại</button><button class="secondary" id="stMenu" type="button">Chọn game khác</button></div></div>';
               showToast('Nhận Huy hiệu 4C! +'+xp+' XP');
               if(currentUser&&sb){
