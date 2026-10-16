@@ -190,6 +190,34 @@
     .lesson-intro{display:grid;grid-template-columns:minmax(0,1fr) 142px;gap:20px;align-items:center}.lesson-fastie{width:142px;height:130px;object-fit:contain;filter:drop-shadow(0 7px 0 rgba(244,91,24,.12))}
     .success-card{display:none;grid-template-columns:150px minmax(0,1fr);align-items:center;gap:18px;margin:20px 0 0;padding:18px;background:var(--gold-soft);border:2px solid #f4c65a;border-bottom-width:5px;border-radius:18px}.success-card.show{display:grid}.success-card img{width:150px;height:138px;object-fit:contain;border-radius:14px}.success-card h3{margin:0 0 4px;color:#774b00}.success-card p{margin:0;color:#704f18;font-size:12px}
     .activity-modal{position:fixed;inset:0;background:rgba(38,25,19,.72);z-index:60;display:none;align-items:center;justify-content:center;padding:20px}.activity-modal.open{display:flex}.activity-card{width:min(560px,100%);background:var(--bg);border-radius:22px;border:2px solid var(--line);padding:24px;box-shadow:0 8px 0 rgba(0,0,0,.16)}.activity-top{display:flex;justify-content:space-between;align-items:center;gap:14px}.activity-top h2{font-size:22px;margin:0}.activity-card textarea{width:100%;min-height:120px;margin:16px 0;padding:14px;border:2px solid var(--line);border-radius:14px;background:var(--surface);font:inherit;color:var(--ink);resize:vertical}.survey-options{display:grid;gap:9px;margin:16px 0}.survey-options button{border:2px solid var(--line);border-bottom-width:4px;border-radius:13px;background:var(--surface);padding:12px;text-align:left;cursor:pointer}.survey-options button.selected{border-color:var(--brand);background:var(--brand-soft)}
+    .linklike{background:none;border:0;color:var(--brand);cursor:pointer;font-size:13px;font-weight:700;padding:0;margin-bottom:10px}
+    .game-menu{display:grid;gap:10px;margin:14px 0}
+    .game-pick{display:flex;gap:12px;align-items:center;border:2px solid var(--line);border-bottom-width:4px;border-radius:14px;background:var(--surface);padding:14px;cursor:pointer;text-align:left;width:100%}
+    .game-pick:hover{border-color:var(--brand)}
+    .game-pick-icon{font-size:32px}
+    .game-pick strong{display:block;font-size:15px}
+    .game-pick small{color:var(--muted);font-size:12px}
+    .stage-map{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:14px 0}
+    .stage-chip{background:var(--ps,#fff);border:2px solid var(--pc,#e84924);border-radius:12px;padding:10px;display:flex;gap:8px;align-items:center;font-size:13px;font-weight:700}
+    .stage-chip span{font-size:22px}
+    .stage-banner{display:flex;gap:14px;align-items:center;background:var(--ps,#fff);border:2px solid var(--pc,#e84924);border-radius:16px;padding:16px;margin-bottom:14px}
+    .stage-big-icon{font-size:44px}
+    .stage-banner h3{margin:0;font-size:18px}
+    .stage-banner p{margin:4px 0 0;color:var(--muted);font-size:13px}
+    .stage-progress{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:10px}
+    .stage-scenario{background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+    .stage-scenario p{margin:0;font-weight:600}
+    .stage-options{margin:0 0 4px}
+    .stage-options .option:disabled{cursor:default}
+    .stage-result{font-weight:800;margin:12px 0 6px}
+    .stage-result.ok{color:var(--teal)}
+    .stage-result.bad{color:var(--brand-strong)}
+    .stage-why{background:var(--gold-soft);border-radius:10px;padding:10px 12px;font-size:13px;margin:0 0 14px}
+    .badge-win{text-align:center;padding:8px 0}
+    .badge-medal{font-size:64px;line-height:1}
+    .badge-win h3{font-size:22px;margin:10px 0 6px}
+    .badge-win p{color:var(--muted);margin:0 0 6px}
+    .badge-xp{font-size:20px;font-weight:800;color:var(--brand)!important}
     .mem-intro{margin:0 0 12px}.mem-stats{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}.mem-stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:13px}.mem-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.mem-card{aspect-ratio:3/4;border:0;background:none;padding:0;cursor:pointer;perspective:700px}.mem-inner{position:relative;display:block;width:100%;height:100%;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.3,1.3,.5,1)}.mem-card.flipped .mem-inner{transform:rotateY(180deg)}.mem-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:6px}.mem-front{background:var(--brand);color:#fff;font-size:32px;font-weight:800;box-shadow:0 4px 0 rgba(0,0,0,.18)}.mem-back{background:var(--ps,#fff);border:2px solid var(--pc,#e84924);transform:rotateY(180deg)}.mem-icon{font-size:26px;line-height:1}.mem-letter{font-size:30px;font-weight:800;color:var(--pc,#e84924);line-height:1}.mem-word{font-size:12.5px;font-weight:800;color:var(--pc,#e84924);text-align:center;line-height:1.25}.mem-card.matched{cursor:default}.mem-card.matched .mem-back{box-shadow:0 0 0 3px var(--pc,#e84924),0 6px 14px rgba(0,0,0,.12)}#memWin{margin-top:16px}#memWin .primary{margin-top:10px}
     .mobile-logo{display:none;width:128px;height:auto}
     @media(max-width:980px){.brand-lockup{display:none}.mobile-logo{display:block}.topline{flex-wrap:wrap}.topline>p{order:3;width:100%;margin-top:-4px}.skill-grid{grid-template-columns:repeat(3,1fr)}}
@@ -867,6 +895,14 @@
           activityBody.innerHTML='<p>Nội dung vừa học giúp bạn tự tin đến mức nào khi xử lý tình huống với khách hàng?</p><div class="survey-options"><button>Rất tự tin</button><button>Khá tự tin</button><button>Cần luyện thêm</button></div><button class="primary" id="activityDone">Gửi phản hồi</button>';
           activityBody.querySelectorAll('.survey-options button').forEach(function(o){o.addEventListener('click',function(){activityBody.querySelectorAll('.survey-options button').forEach(function(x){x.classList.remove('selected')});o.classList.add('selected')})});
         }else{
+          activityTitle.textContent='Mini-game · Thử thách vui';
+          function showGameMenu(){
+            activityTitle.textContent='Mini-game · Thử thách vui';
+            activityBody.innerHTML='<p>Chọn một thử thách để chơi và cộng XP:</p><div class="game-menu"><button class="game-pick" id="pickMem" type="button"><span class="game-pick-icon">🎴</span><span><strong>Lật thẻ 4C</strong><small>Game trí nhớ 8 thẻ · tối đa 100 XP</small></span></button><button class="game-pick" id="pickStage" type="button"><span class="game-pick-icon">🏪</span><span><strong>Vượt ải 4C</strong><small>Mô phỏng cửa hàng · 4 ải · tối đa 120 XP</small></span></button></div>';
+            document.getElementById('pickMem').addEventListener('click',startMemGame);
+            document.getElementById('pickStage').addEventListener('click',startStageGame);
+          }
+          function startMemGame(){
           activityTitle.textContent='Mini-game · Lật thẻ 4C';
           var PAIRS=[
             {icon:'⚡',label:'Chủ động',color:'#e84924',soft:'#ffe7df'},
@@ -874,7 +910,7 @@
             {icon:'👋',label:'Chào',color:'#b97f10',soft:'#faecc9'},
             {icon:'🙏',label:'Cảm ơn',color:'#7c5cbf',soft:'#ece5f9'}
           ];
-          activityBody.innerHTML='<p class="mem-intro">Tìm 2 thẻ cùng cặp: chữ <b>C</b> đi với đúng ý nghĩa của nó. Lật càng ít lượt, XP càng cao!</p><div class="mem-stats"><span class="mem-stat">🔄 Lượt lật: <b id="memTurns">0</b></span><span class="mem-stat">🎯 Cặp đã tìm: <b><span id="memFound">0</span>/4</b></span></div><div class="mem-grid" id="memGrid" role="grid" aria-label="Bàn thẻ 4C"></div><div class="success-card" id="memWin" role="status"><img src="assets/fastie-celebrate.webp" alt="Sóc Fastie ăn mừng chiến thắng"><div><h3>Tuyệt vời!</h3><p id="memWinText"></p><button class="primary" id="memReplay" type="button">Chơi lại</button></div></div>';
+          activityBody.innerHTML='<button class="linklike" id="backMenu" type="button">‹ Chọn game khác</button><p class="mem-intro">Tìm 2 thẻ cùng cặp: chữ <b>C</b> đi với đúng ý nghĩa của nó. Lật càng ít lượt, XP càng cao!</p><div class="mem-stats"><span class="mem-stat">🔄 Lượt lật: <b id="memTurns">0</b></span><span class="mem-stat">🎯 Cặp đã tìm: <b><span id="memFound">0</span>/4</b></span></div><div class="mem-grid" id="memGrid" role="grid" aria-label="Bàn thẻ 4C"></div><div class="success-card" id="memWin" role="status"><img src="assets/fastie-celebrate.webp" alt="Sóc Fastie ăn mừng chiến thắng"><div><h3>Tuyệt vời!</h3><p id="memWinText"></p><button class="primary" id="memReplay" type="button">Chơi lại</button></div></div>';
           var memGrid=document.getElementById('memGrid'),memFirst=null,memLock=false,memTurns=0,memFound=0,memDone=false;
           function memBuild(){
             var deck=[];
@@ -926,7 +962,101 @@
             }
           }
           document.getElementById('memReplay').addEventListener('click',memBuild);
+          document.getElementById('backMenu').addEventListener('click',showGameMenu);
           memBuild();
+          }
+          function startStageGame(){
+            var STAGES=[
+              {icon:'⚡',name:'Ải 1 · Chủ động',desc:'Ghi nhận và tiếp đón khách đúng lúc',color:'#e84924',soft:'#ffe7df',qs:[
+                {s:'Khách vừa bước vào cửa hàng, bạn đang sắp xếp quầy. Việc đầu tiên nên làm là gì?',opts:['Ngẩng lên, mỉm cười và chào đón khách ngay','Làm nốt việc đang dở rồi mới ra chào','Đợi khách lên tiếng trước'],a:0,why:'Chủ động tiếp đón ngay từ giây đầu tiên — đừng để khách phải chờ hay phải lên tiếng trước.'},
+                {s:'Thấy khách đứng nhìn quanh có vẻ đang tìm kiếm, bạn sẽ làm gì?',opts:['Đứng quan sát thêm xem khách cần gì','Chủ động tiến lại: “Dạ anh/chị cần em hỗ trợ gì ạ?”','Tiếp tục công việc của mình, khách cần sẽ gọi'],a:1,why:'Đừng đợi khách mở lời — chủ động hỏi thăm thể hiện sự quan tâm.'},
+                {s:'Khách hỏi về một lỗi mà bạn chưa chắc chắn nguyên nhân. Cách xử lý đúng tinh thần Chủ động?',opts:['Đoán nhanh một nguyên nhân để khách yên tâm','Thừa nhận cần kiểm tra kỹ và hẹn mốc thời gian cụ thể để cập nhật','Chuyển khách sang nhân viên khác ngay'],a:1,why:'Chủ động không có nghĩa là đoán mò — minh bạch và hẹn mốc cập nhật cụ thể mới là chuyên nghiệp.'}
+              ]},
+              {icon:'😊',name:'Ải 2 · Cười',desc:'Tạo thiện cảm khi khách phải chờ',color:'#0f766e',soft:'#dceee9',qs:[
+                {s:'Khách phải chờ 15 phút vì cửa hàng đang đông. Khi mang nước ra mời, bạn nên?',opts:['Mỉm cười, nhìn vào mắt khách: “Dạ em mời anh/chị dùng nước ạ!”','Đặt nước xuống rồi quay đi làm việc tiếp','Nhắn khách thông cảm rồi đi ngay'],a:0,why:'Nụ cười + giao tiếp bằng mắt biến thời gian chờ thành trải nghiệm dễ chịu.'},
+                {s:'Khách tỏ vẻ khó chịu vì chờ lâu. Cách xoa dịu hiệu quả nhất?',opts:['Giải thích dài dòng vì sao hôm nay đông','Im lặng, cố làm nhanh hơn','Giữ nụ cười thân thiện và chủ động cập nhật tiến độ cho khách'],a:2,why:'Khách cần biết thiết bị của mình đang ở đâu — cập nhật chủ động với nụ cười xoa dịu tốt nhất.'},
+                {s:'Khi trao đổi về chi phí sửa chữa — chủ đề dễ căng thẳng — thái độ nào đúng?',opts:['Giữ nụ cười nhẹ, trao đổi rõ ràng từng khoản chi phí','Nghiêm mặt để thể hiện sự chuyên nghiệp','Cười thật tươi để không khí vui vẻ'],a:0,why:'Chuyên nghiệp không có nghĩa là nghiêm nghị — nụ cười nhẹ + minh bạch chi phí tạo niềm tin.'}
+              ]},
+              {icon:'👋',name:'Ải 3 · Chào',desc:'Chào khách đúng thời điểm',color:'#b97f10',soft:'#faecc9',qs:[
+                {s:'Khách nhận máy xong và chuẩn bị ra về. Bạn nên?',opts:['Quay lại quầy làm việc tiếp','Chỉ gật đầu nhẹ','Vẫy tay chào: “Dạ em chào anh/chị ạ!”'],a:2,why:'Chào khi đưa khách về — khép lại trải nghiệm một cách trọn vẹn.'},
+                {s:'Đang tư vấn cho khách A thì bắt gặp ánh mắt khách B vừa bước vào. Bạn xử lý thế nào?',opts:['Mỉm cười, gật đầu chào khách B bằng ánh mắt rồi tiếp tục với khách A','Làm ngơ, tư vấn xong khách A đã','Dừng ngay để ra chào khách B'],a:0,why:'Chào bằng ánh mắt khi bắt gặp ánh mắt khách — ghi nhận mà không làm gián đoạn.'},
+                {s:'Khách quen quay lại lần thứ 3 trong tháng. Cách chào đúng tinh thần 4C nhất?',opts:['Chào như khách mới cho đúng quy trình','Không cần chào vì đã quen mặt nhau','Chào thân mật có ghi nhận: “Dạ em chào anh! Máy mình dùng ổn không anh?”'],a:2,why:'Chào đúng thời điểm + ghi nhận khách quen — sự quan tâm chân thành.'}
+              ]},
+              {icon:'🙏',name:'Ải 4 · Cảm ơn',desc:'Khép lại trải nghiệm bằng sự trân trọng',color:'#7c5cbf',soft:'#ece5f9',qs:[
+                {s:'Sau khi khách thanh toán xong, câu nói đúng là?',opts:['“Xong rồi ạ!” rồi đưa hóa đơn','Không nói gì, đưa hóa đơn là đủ','“Dạ em cảm ơn anh/chị ạ!” kèm nụ cười'],a:2,why:'Luôn cảm ơn và cười với khách hàng — câu nói nhỏ, ấn tượng lớn.'},
+                {s:'Khách góp ý: “Lần trước em chờ hơi lâu.” Phản ứng đúng?',opts:['Giải thích hôm đó đông khách nên thông cảm','Im lặng cho qua chuyện','“Dạ em cảm ơn góp ý của anh/chị, bên em sẽ cải thiện ạ!”'],a:2,why:'Cảm ơn khách khi nhận được góp ý — biến phàn nàn thành cơ hội.'},
+                {s:'Khách tham khảo xong nhưng quyết định chưa sửa và ra về. Bạn nên?',opts:['Vẫn cảm ơn khách đã ghé và mời quay lại khi cần','Không nói gì vì khách không dùng dịch vụ','Hỏi dồn vì sao khách không sửa'],a:0,why:'Trân trọng cả khi khách chưa mua — hôm nay chưa sửa, mai họ sẽ nhớ thái độ của bạn.'}
+              ]}
+            ];
+            var si=0,qi=0,correct=0;
+            var totalQ=STAGES.reduce(function(n,s){return n+s.qs.length;},0);
+            function stageIntro(){
+              activityTitle.textContent='Mini-game · Vượt ải 4C';
+              var map=STAGES.map(function(s){
+                return '<div class="stage-chip" style="--pc:'+s.color+';--ps:'+s.soft+'"><span>'+s.icon+'</span><b>'+s.name+'</b></div>';
+              }).join('');
+              activityBody.innerHTML='<button class="linklike" id="backMenu2" type="button">‹ Chọn game khác</button><p class="mem-intro">Một ngày làm việc tại cửa hàng FASTCARE! Vượt qua <b>4 cửa ải</b> — mỗi ải 3 tình huống thực tế — để nhận <b>🏅 Huy hiệu Nhân viên 4C</b>.</p><div class="stage-map">'+map+'</div><button class="primary" id="stageStart" type="button">Bắt đầu ca làm việc</button>';
+              document.getElementById('backMenu2').addEventListener('click',showGameMenu);
+              document.getElementById('stageStart').addEventListener('click',function(){si=0;showStageHead();});
+            }
+            function showStageHead(){
+              var s=STAGES[si];
+              activityTitle.textContent='Mini-game · '+s.name;
+              activityBody.innerHTML='<div class="stage-banner" style="--pc:'+s.color+';--ps:'+s.soft+'"><span class="stage-big-icon">'+s.icon+'</span><div><h3>'+s.name+'</h3><p>'+s.desc+'</p></div></div><p class="mem-intro">Ải này có <b>'+s.qs.length+' tình huống</b>. Chọn cách xử lý đúng nhất nhé!</p><button class="primary" id="stageGo" type="button">Vào ải</button>';
+              document.getElementById('stageGo').addEventListener('click',function(){qi=0;showQ();});
+            }
+            function showQ(){
+              var s=STAGES[si],q=s.qs[qi];
+              activityTitle.textContent='Mini-game · '+s.name+' ('+(qi+1)+'/'+s.qs.length+')';
+              var opts=q.opts.map(function(o,i){return '<button class="option" data-i="'+i+'" type="button"><b>'+'ABC'[i]+'.</b> '+o+'</button>';}).join('');
+              activityBody.innerHTML='<div class="stage-progress"><span>Ải '+(si+1)+'/4</span><span>✅ Đúng: <b id="stCorrect">'+correct+'</b>/'+totalQ+'</span></div><div class="stage-scenario"><p>'+q.s+'</p></div><div class="options stage-options">'+opts+'</div><div id="stFb"></div>';
+              activityBody.querySelectorAll('.stage-options .option').forEach(function(b){
+                b.addEventListener('click',function(){answerQ(b,q);});
+              });
+            }
+            function answerQ(btn,q){
+              var picked=+btn.getAttribute('data-i');
+              var ok=picked===q.a;
+              activityBody.querySelectorAll('.stage-options .option').forEach(function(b){
+                b.disabled=true;
+                var i=+b.getAttribute('data-i');
+                if(i===q.a)b.classList.add('correct');
+                else if(b===btn)b.classList.add('wrong');
+              });
+              if(ok){correct++;var cc=document.getElementById('stCorrect');if(cc)cc.textContent=correct;}
+              var moreQ=qi+1<STAGES[si].qs.length, moreS=si+1<STAGES.length;
+              document.getElementById('stFb').innerHTML='<div class="stage-result '+(ok?'ok':'bad')+'">'+(ok?'✅ Chính xác! +10 XP':'❌ Chưa đúng rồi')+'</div><p class="stage-why">💡 '+q.why+'</p><button class="primary" id="stNext" type="button">'+(moreQ?'Tình huống tiếp theo':(moreS?'Qua ải tiếp theo →':'Nhận huy hiệu 🏅'))+'</button>';
+              document.getElementById('stNext').addEventListener('click',function(){
+                if(moreQ){qi++;showQ();}
+                else if(moreS){showStageDone();}
+                else{showFinal();}
+              });
+            }
+            function showStageDone(){
+              var s=STAGES[si];
+              activityTitle.textContent='Mini-game · Qua ải!';
+              activityBody.innerHTML='<div class="success-card show"><img src="assets/fastie-celebrate.webp" alt="Sóc Fastie ăn mừng"><div><h3>Vượt '+s.name+'!</h3><p>'+s.icon+' Làm tốt lắm! Còn '+(STAGES.length-si-1)+' ải nữa thôi.</p><button class="primary" id="stNextStage" type="button">Vào ải tiếp theo →</button></div></div>';
+              document.getElementById('stNextStage').addEventListener('click',function(){si++;showStageHead();});
+            }
+            async function showFinal(){
+              activityTitle.textContent='Mini-game · Huy hiệu 4C';
+              var xp=correct*10;
+              var msg=correct===totalQ?'Hoàn hảo! Bạn xử lý đúng cả '+totalQ+' tình huống như một nhân viên 4C thực thụ!':'Bạn xử lý đúng '+correct+'/'+totalQ+' tình huống — luyện thêm để đạt điểm tuyệt đối nhé!';
+              activityBody.innerHTML='<div class="badge-win"><div class="badge-medal">🏅</div><h3>Huy hiệu Nhân viên 4C</h3><p>'+msg+'</p><p class="badge-xp">+'+xp+' XP</p><div style="display:flex;gap:10px;justify-content:center;margin-top:8px;flex-wrap:wrap"><button class="primary" id="stReplay" type="button">Chơi lại</button><button class="secondary" id="stMenu" type="button">Chọn game khác</button></div></div>';
+              showToast('Nhận Huy hiệu 4C! +'+xp+' XP');
+              if(currentUser&&sb){
+                try{
+                  var r=await sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:'mini-game-vuot-ai-4c',score:correct,total:totalQ,xp_earned:xp});
+                  if(r.error)throw r.error;
+                  refreshMyStats();renderRanking('individual');
+                }catch(e){}
+              }
+              document.getElementById('stReplay').addEventListener('click',function(){si=0;qi=0;correct=0;stageIntro();});
+              document.getElementById('stMenu').addEventListener('click',showGameMenu);
+            }
+            stageIntro();
+          }
+          showGameMenu();
         }
         var done=document.getElementById('activityDone');if(done)done.addEventListener('click',function(){closeActivity();showToast('Đã hoàn thành hoạt động trong phiên demo')});
       })});
