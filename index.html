@@ -111,6 +111,7 @@
     .role-select{padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:12px;font-weight:700;background:#fff;cursor:pointer}
     .role-select:disabled{opacity:.55;cursor:not-allowed}
     .status-chip{display:inline-block;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:800}
+    .dir-summary{font-size:13px;color:var(--muted);margin:0 0 12px;font-weight:600}
     .st-ok{background:#dcfce7;color:#166534}
     .st-pending{background:#fef3c7;color:#92400e}
     .st-rejected{background:#fee2e2;color:#991b1b}
@@ -430,6 +431,13 @@
           <p class="perm-sub">Set quyền trực tiếp cho từng tài khoản. Chỉ Quản trị viên mới đổi được quyền; Quản lý xem được danh sách và duyệt/từ chối tài khoản.</p>
           <div class="perm-controls"><input id="permSearch" type="search" placeholder="Tìm theo tên hoặc email…"><select id="permUnit"><option value="">Tất cả đơn vị</option></select></div>
           <div class="leaderboard" id="permTable" aria-live="polite"><p class="muted-center">Đang tải danh sách…</p></div>
+        </div>
+        <div id="dirSection" hidden>
+          <h2 class="perm-h">Danh bạ nhân sự</h2>
+          <p class="perm-sub">Toàn bộ danh bạ công ty (nạp từ Sheet "Data E-Learning") — chỉ Quản trị viên xem được, Quản lý và nhân viên không thấy mục này. Cột trạng thái cho biết ai đã có tài khoản trên web.</p>
+          <div class="perm-controls"><input id="dirSearch" type="search" placeholder="Tìm theo tên, email hoặc mã NS…"><select id="dirUnit"><option value="">Tất cả đơn vị</option></select></div>
+          <p class="dir-summary" id="dirSummary"></p>
+          <div class="leaderboard" id="dirTable" aria-live="polite"><p class="muted-center">Đang tải danh bạ…</p></div>
         </div>
         <div class="leaderboard" id="adminTable" aria-live="polite">
           <p class="muted-center">Đang tải danh sách…</p>
