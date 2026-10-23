@@ -492,7 +492,7 @@
         navButtons.forEach(function(b){b.classList.toggle('active',b.getAttribute('data-view')===id)});
         window.scrollTo({top:0,behavior:'smooth'});
       }
-      navButtons.forEach(function(btn){btn.addEventListener('click',function(){var v=btn.getAttribute('data-view');switchView(v);if(v==='admin'&&canModerate()){renderPendingApprovals();if(userRole==='admin'){renderPermissions();renderDirectory()}})});
+      navButtons.forEach(function(btn){btn.addEventListener('click',function(){var v=btn.getAttribute('data-view');switchView(v);if(v==='admin'&&canModerate()){renderPendingApprovals();if(userRole==='admin'){renderPermissions();renderDirectory()}}})});
       document.querySelectorAll('[data-goto]').forEach(function(btn){btn.addEventListener('click',function(){switchView(btn.getAttribute('data-goto'))})});
 
       var overlay=document.getElementById('lessonOverlay');
