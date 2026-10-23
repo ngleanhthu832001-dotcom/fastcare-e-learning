@@ -56,9 +56,17 @@
     button:focus-visible,[tabindex]:focus-visible{outline:3px solid color-mix(in srgb,var(--brand) 45%,transparent);outline-offset:3px}
     .app{min-height:100dvh;display:grid;grid-template-columns:var(--sidebar) minmax(0,1fr)}
     .sidebar{position:sticky;top:0;height:100dvh;padding:24px 18px;border-right:1px solid var(--line);background:var(--surface);display:flex;flex-direction:column;z-index:10}
-    .profile{display:flex;align-items:center;gap:12px;padding:2px 8px 22px;border-bottom:1px solid var(--line)}
+    .profile{display:flex;flex-direction:column;gap:12px;padding:2px 8px 22px;border-bottom:1px solid var(--line)}
     .avatar{width:42px;height:42px;border-radius:14px;background:var(--ink);color:var(--surface);display:grid;place-items:center;font-weight:800;letter-spacing:-.03em}
     .profile strong{display:block;font-size:14px}.profile span{font-size:12px;color:var(--muted)}
+    .profile-main{display:flex;align-items:center;gap:12px}
+    .profile-head{min-width:0}
+    .profile-head strong{word-break:break-word;line-height:1.35}
+    .u-email{font-size:11px;color:var(--muted);font-weight:500}
+    .profile-meta{display:grid;gap:6px;border-top:1px dashed var(--line);padding-top:11px}
+    .pm-row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:12px}
+    .pm-row span{color:var(--muted);white-space:nowrap}
+    .pm-row b{font-weight:700;text-align:right}
     .profile[role="button"]{cursor:pointer;border-radius:14px;transition:background .15s}
     .profile[role="button"]:hover{background:var(--surface-2)}
     .profile[role="button"]:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
@@ -327,7 +335,15 @@
   <div class="app">
     <aside class="sidebar" aria-label="Điều hướng chính">
       <div class="brand-lockup"><img src="assets/fastie-logo.png" alt="FASTCARE"></div>
-      <div class="profile" id="profileBlock" role="button" tabindex="0" title="Xem và sửa thông tin cá nhân" aria-label="Mở thông tin cá nhân"><div class="avatar" id="userAvatar">MN</div><div><strong id="userName">Minh Nguyễn</strong><span id="userRole">Nhân viên mới</span></div><span class="demo-tag" id="demoTag">DEMO</span></div>
+      <div class="profile" id="profileBlock" role="button" tabindex="0" title="Xem và sửa thông tin cá nhân" aria-label="Mở thông tin cá nhân">
+        <div class="profile-main"><div class="avatar" id="userAvatar">MN</div><div class="profile-head"><strong id="userName">Minh Nguyễn</strong><span id="userRole">Nhân viên mới</span></div><span class="demo-tag" id="demoTag">DEMO</span></div>
+        <div class="profile-meta">
+          <div class="pm-row"><span>Mã NS</span><b id="userCode">—</b></div>
+          <div class="pm-row"><span>Vị trí</span><b id="userPosition">—</b></div>
+          <div class="pm-row"><span>Phòng ban</span><b id="userDept">—</b></div>
+          <div class="pm-row"><span>Ngày vào</span><b id="userStart">—</b></div>
+        </div>
+      </div>
       <nav class="nav">
         <button class="active" data-view="home"><svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5V21h-6v-6H9v6H3z"/></svg>Trang học</button>
         <button data-view="route"><svg viewBox="0 0 24 24"><path d="M5 3v18M5 6h10l-2 3 2 3H5M5 17h13l-2 3"/></svg>Lộ trình</button>
