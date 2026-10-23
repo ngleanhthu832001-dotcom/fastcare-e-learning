@@ -76,7 +76,7 @@
           atts.forEach(function(a){totalXp+=a.xp_earned||0;if(a.created_at&&new Date(a.created_at).getTime()>weekAgo)weekXp+=a.xp_earned||0});
           document.getElementById('xpTotal').textContent=fmt(totalXp);
           document.getElementById('xpDelta').textContent='+'+fmt(weekXp)+' tuần này';
-          document.getElementById('completedTotal').textContent=String(completed);
+          document.getElementById('completedTotal').textContent=completed+'/12';
           document.getElementById('progressNote').textContent='Dữ liệu mới nhất';
           var qT=0,qS=0;atts.forEach(function(a){qT+=a.total||0;qS+=a.score||0});
           var qAvg=document.getElementById('quizAvg'),qNote=document.getElementById('quizAvgNote');
@@ -85,6 +85,7 @@
           var done=false;
           rows.forEach(function(r){if(r.lesson_id===LESSON_ID&&r.completed)done=true});
           if(done&&!lessonCompleted)completeCurrentLesson();
+          if(!done){var _cp=document.getElementById('currentProgress');if(_cp)_cp.style.width='0%'}
         }catch(e){/* giữ số liệu hiện tại, không crash */}
       }
       async function saveLessonProgress(){
@@ -365,7 +366,11 @@
           return '<div class="rank-row"><b>•</b><div class="person"><div class="person-dot">'+dotAvatar(null,p.full_name)+'</div><div><strong>'+escapeHtml(p.full_name||'Nhân sự')+'</strong><span>'+escapeHtml(p.email||'')+(meta?' · '+escapeHtml(meta):'')+'</span></div></div><span class="dept">'+escapeHtml(p.department||'—')+'</span><span class="xp">'+(has?'<span class="status-chip st-ok">Đã có tài khoản</span>':'<span class="status-chip st-pending">Chưa đăng ký</span>')+'</span></div>';
         }).join('');
       }
+      var lastUid=null;
       async function handleSession(session){
+        var _uid=session&&session.user?session.user.id:null;
+        if(lastUid!==null&&_uid!==lastUid){location.reload();return}
+        if(_uid)lastUid=_uid;
         if(session&&session.user){
           currentUser=session.user;
           unlockApp();
