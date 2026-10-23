@@ -54,6 +54,7 @@
         else if(profile&&profile.role==='manager'){userRole='manager';roleEl.textContent='Quản lý';document.getElementById('adminNav').style.display=''}
         else{userRole='staff';roleEl.textContent=(profile&&profile.position)||'Nhân sự FASTCARE'}
         var ps=document.getElementById('permSection');if(ps)ps.hidden=!(profile&&profile.role==='admin');
+        var ds=document.getElementById('dirSection');if(ds)ds.hidden=!(profile&&profile.role==='admin');
         var p=profile||{};
         document.getElementById('userCode').textContent=p.employee_code||'—';
         document.getElementById('userPosition').textContent=p.position||'—';
@@ -208,7 +209,7 @@
           if(r.error)throw r.error;
           showToast('Đã từ chối tài khoản');
           renderPendingApprovals();renderAdmin();
-          if(userRole==='admin')renderPermissions();
+          if(userRole==='admin'){renderPermissions();renderDirectory()}
         }catch(e){showToast('Không từ chối được, vui lòng thử lại');if(btn)btn.disabled=false}
       }
       async function renderRejectedList(){
@@ -240,7 +241,7 @@
           if(r.error)throw r.error;
           showToast(approve?'Đã duyệt tài khoản':'Đã hoàn tác từ chối — tài khoản quay lại danh sách chờ duyệt');
           renderPendingApprovals();renderAdmin();
-          if(userRole==='admin')renderPermissions();
+          if(userRole==='admin'){renderPermissions();renderDirectory()}
         }catch(e){showToast('Không thực hiện được, vui lòng thử lại');if(btn)btn.disabled=false}
       }
       async function approveUser(id,btn){
@@ -250,7 +251,7 @@
           if(r.error)throw r.error;
           showToast('Đã duyệt tài khoản');
           renderPendingApprovals();renderAdmin();
-          if(userRole==='admin')renderPermissions();
+          if(userRole==='admin'){renderPermissions();renderDirectory()}
         }catch(e){showToast('Không duyệt được, vui lòng thử lại');if(btn)btn.disabled=false}
       }
       var permRows=[],permWired=false;
@@ -320,6 +321,50 @@
         }catch(e){sel.value=oldRole;showToast('Không đổi quyền được, vui lòng thử lại')}
         sel.disabled=false;
       }
+      var dirRows=[],dirWired=false,dirRegEmails={};
+      async function renderDirectory(){
+        var box=document.getElementById('dirTable');
+        if(!box||userRole!=='admin')return;
+        try{
+          var res=await sb.rpc('get_staff_directory');
+          if(res.error)throw res.error;
+          dirRows=res.data||[];
+          var pr=await sb.from('profiles').select('email');
+          if(!pr.error){dirRegEmails={};(pr.data||[]).forEach(function(x){if(x.email)dirRegEmails[x.email.toLowerCase()]=true})}
+          var unitSel=document.getElementById('dirUnit');
+          var cur=unitSel.value;
+          var units=[];
+          dirRows.forEach(function(p){if(p.department&&units.indexOf(p.department)<0)units.push(p.department)});
+          units.sort();
+          unitSel.innerHTML='<option value="">Tất cả đơn vị</option>'+units.map(function(u){return '<option'+(u===cur?' selected':'')+'>'+escapeHtml(u)+'</option>'}).join('');
+          if(!dirWired){
+            dirWired=true;
+            document.getElementById('dirSearch').addEventListener('input',renderDirRows);
+            unitSel.addEventListener('change',renderDirRows);
+          }
+          renderDirRows();
+        }catch(e){box.innerHTML='<p class="muted-center">Chưa tải được danh bạ. Nếu đây là lần đầu dùng mục này, hãy chạy bản cập nhật database mới nhất (file SQL Luke gửi) rồi tải lại trang.</p>'}
+      }
+      function renderDirRows(){
+        var box=document.getElementById('dirTable');
+        if(!box)return;
+        var q=(document.getElementById('dirSearch').value||'').toLowerCase();
+        var u=document.getElementById('dirUnit').value;
+        var rows=dirRows.filter(function(p){
+          if(u&&p.department!==u)return false;
+          if(q&&(p.full_name||'').toLowerCase().indexOf(q)<0&&(p.email||'').toLowerCase().indexOf(q)<0&&(p.employee_code||'').toLowerCase().indexOf(q)<0)return false;
+          return true;
+        });
+        var reg=0;dirRows.forEach(function(p){if(dirRegEmails[(p.email||'').toLowerCase()])reg++});
+        document.getElementById('dirSummary').textContent='Tổng '+dirRows.length+' người trong danh bạ · '+reg+' đã có tài khoản · '+(dirRows.length-reg)+' chưa đăng ký';
+        if(!rows.length){box.innerHTML='<p class="muted-center">Không có ai khớp.</p>';return}
+        box.innerHTML='<div class="rank-row rank-head"><span>•</span><span>Nhân sự ('+rows.length+')</span><span class="dept">Đơn vị</span><span class="xp">Trạng thái</span></div>'+rows.map(function(p){
+          var has=!!dirRegEmails[(p.email||'').toLowerCase()];
+          var sdp=p.start_date?String(p.start_date).slice(0,10).split('-'):null;
+          var meta=(p.employee_code?p.employee_code+' · ':'')+(p.position||'')+(sdp?' · Vào '+sdp[2]+'/'+sdp[1]+'/'+sdp[0]:'');
+          return '<div class="rank-row"><b>•</b><div class="person"><div class="person-dot">'+dotAvatar(null,p.full_name)+'</div><div><strong>'+escapeHtml(p.full_name||'Nhân sự')+'</strong><span>'+escapeHtml(p.email||'')+(meta?' · '+escapeHtml(meta):'')+'</span></div></div><span class="dept">'+escapeHtml(p.department||'—')+'</span><span class="xp">'+(has?'<span class="status-chip st-ok">Đã có tài khoản</span>':'<span class="status-chip st-pending">Chưa đăng ký</span>')+'</span></div>';
+        }).join('');
+      }
       async function handleSession(session){
         if(session&&session.user){
           currentUser=session.user;
@@ -336,7 +381,7 @@
           hidePending();
           refreshMyStats();
           renderRanking('individual');
-          if(canModerate()){renderAdmin();var _n=await renderPendingApprovals();if(_n>0)showToast('Có '+_n+' tài khoản đang chờ bạn duyệt');if(userRole==='admin')renderPermissions()}
+          if(canModerate()){renderAdmin();var _n=await renderPendingApprovals();if(_n>0)showToast('Có '+_n+' tài khoản đang chờ bạn duyệt');if(userRole==='admin'){renderPermissions();renderDirectory()}}
         }else{
           hideRejected();hidePending();lockApp();
         }
@@ -447,7 +492,7 @@
         navButtons.forEach(function(b){b.classList.toggle('active',b.getAttribute('data-view')===id)});
         window.scrollTo({top:0,behavior:'smooth'});
       }
-      navButtons.forEach(function(btn){btn.addEventListener('click',function(){var v=btn.getAttribute('data-view');switchView(v);if(v==='admin'&&canModerate()){renderPendingApprovals();if(userRole==='admin')renderPermissions()}})});
+      navButtons.forEach(function(btn){btn.addEventListener('click',function(){var v=btn.getAttribute('data-view');switchView(v);if(v==='admin'&&canModerate()){renderPendingApprovals();if(userRole==='admin'){renderPermissions();renderDirectory()}})});
       document.querySelectorAll('[data-goto]').forEach(function(btn){btn.addEventListener('click',function(){switchView(btn.getAttribute('data-goto'))})});
 
       var overlay=document.getElementById('lessonOverlay');
