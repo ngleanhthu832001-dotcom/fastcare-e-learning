@@ -46,14 +46,20 @@
         var avEl=document.getElementById('userAvatar');
         if(profile&&profile.avatar_url){avEl.innerHTML='<img src="'+escapeHtml(profile.avatar_url)+'" alt="Ảnh đại diện của '+escapeHtml(name)+'">'}
         else{avEl.textContent=initials(name)}
-        document.getElementById('userName').textContent=name;
+        document.getElementById('userName').innerHTML=escapeHtml(name)+(currentUser.email?' <span class="u-email">('+escapeHtml(currentUser.email)+')</span>':'');
         document.getElementById('greetingName').textContent='Xin chào, '+first+'!';
         var dt=document.getElementById('demoTag');if(dt)dt.style.display='none';
         var roleEl=document.getElementById('userRole');
         if(profile&&profile.role==='admin'){userRole='admin';roleEl.textContent='Quản trị viên';document.getElementById('adminNav').style.display=''}
         else if(profile&&profile.role==='manager'){userRole='manager';roleEl.textContent='Quản lý';document.getElementById('adminNav').style.display=''}
-        else{userRole='staff';roleEl.textContent=(profile&&profile.department)||'Nhân sự FASTCARE'}
+        else{userRole='staff';roleEl.textContent=(profile&&profile.position)||'Nhân sự FASTCARE'}
         var ps=document.getElementById('permSection');if(ps)ps.hidden=!(profile&&profile.role==='admin');
+        var p=profile||{};
+        document.getElementById('userCode').textContent=p.employee_code||'—';
+        document.getElementById('userPosition').textContent=p.position||'—';
+        document.getElementById('userDept').textContent=p.department||'—';
+        var sd=p.start_date?String(p.start_date).slice(0,10).split('-'):null;
+        document.getElementById('userStart').textContent=sd?(sd[2]+'/'+sd[1]+'/'+sd[0]):'—';
       }
       async function refreshMyStats(){
         if(!currentUser)return;
