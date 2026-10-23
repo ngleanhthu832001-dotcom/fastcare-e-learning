@@ -302,6 +302,7 @@
         <div><label for="signupName">Họ và tên</label><input id="signupName" type="text" required autocomplete="name" placeholder="Nguyễn Văn A"></div>
         <div><label for="signupEmail">Email</label><input id="signupEmail" type="email" required autocomplete="email" placeholder="ban@fastcare.vn"></div>
         <div><label for="signupPassword">Mật khẩu</label><input id="signupPassword" type="password" required minlength="6" autocomplete="new-password" placeholder="Ít nhất 6 ký tự"></div>
+        <p class="auth-hint">Hãy dùng email cá nhân đã đăng ký với công ty — hệ thống sẽ tự điền họ tên, vị trí và phòng ban cho bạn.</p>
         <button class="primary" type="submit" id="signupBtn">Tạo tài khoản</button>
       </form>
       <p class="auth-error" id="authError" role="alert"></p>
@@ -453,6 +454,10 @@
             <option>Ban kiểm soát/Quản lý Khu vực</option>
           </optgroup>
         </select></div>
+        <p class="pf-hint" id="pfDirHint" hidden>Phòng ban, vị trí, mã nhân viên và ngày vào làm được lấy theo danh bạ công ty nên không tự sửa được — cần chỉnh thì nhắn Truyền thông nội bộ nhé.</p>
+        <div class="pf-field"><label for="pfCode">Mã nhân viên</label><input id="pfCode" type="text" readonly placeholder="—"></div>
+        <div class="pf-field"><label for="pfPosition">Vị trí</label><input id="pfPosition" type="text" readonly placeholder="—"></div>
+        <div class="pf-field"><label for="pfStart">Ngày vào làm</label><input id="pfStart" type="text" readonly placeholder="—"></div>
         <div class="pf-field"><label for="pfEmail">Email đăng nhập</label><input id="pfEmail" type="text" readonly></div>
         <div class="pf-actions"><button class="btn-secondary" id="profileCancel" type="button">Huỷ</button><button class="primary" id="profileSave" type="button">Lưu thay đổi</button></div>
       </div>
@@ -527,7 +532,7 @@
       function lockApp(){document.body.classList.add('locked');currentUser=null;userRole='staff';var an=document.getElementById('adminNav');if(an)an.style.display='none'}
       async function fetchMyProfile(){
         var fields=[
-          'full_name,role,department,employee_code,avatar_url,is_approved',
+          'full_name,role,department,employee_code,position,start_date,avatar_url,is_approved',
           'full_name,role,department,employee_code,is_approved',
           'full_name,role,department,employee_code'
         ];
@@ -758,6 +763,13 @@
           document.getElementById('pfName').value=p.full_name||metaName||'';
           document.getElementById('pfDept').value=p.department||'';
           document.getElementById('pfEmail').value=currentUser.email||'';
+          document.getElementById('pfCode').value=p.employee_code||'';
+          document.getElementById('pfPosition').value=p.position||'';
+          var sd=p.start_date?String(p.start_date).slice(0,10).split('-'):null;
+          document.getElementById('pfStart').value=sd?(sd[2]+'/'+sd[1]+'/'+sd[0]):'';
+          var matched=!!p.employee_code;
+          document.getElementById('pfDept').disabled=matched;
+          document.getElementById('pfDirHint').hidden=!matched;
           renderPfAvatar(p.avatar_url,p.full_name||metaName);
           document.getElementById('profileModal').classList.add('open');
         }
@@ -771,7 +783,10 @@
           if(!currentUser)return;
           var btn=this;btn.disabled=true;btn.textContent='Đang lưu…';
           try{
-            var r=await sb.from('profiles').update({full_name:document.getElementById('pfName').value.trim(),department:document.getElementById('pfDept').value||null}).eq('id',currentUser.id);
+            var upd={full_name:document.getElementById('pfName').value.trim()};
+            var deptEl=document.getElementById('pfDept');
+            if(!deptEl.disabled)upd.department=deptEl.value||null;
+            var r=await sb.from('profiles').update(upd).eq('id',currentUser.id);
             if(r.error)throw r.error;
             applyProfileToUI(await fetchMyProfile());
             closeProfile();showToast('Đã lưu thông tin cá nhân');
