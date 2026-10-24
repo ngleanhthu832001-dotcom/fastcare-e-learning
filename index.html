@@ -113,6 +113,7 @@
     .role-select{padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:12px;font-weight:700;background:#fff;cursor:pointer;max-width:100%;box-sizing:border-box}
     .role-select:disabled{opacity:.55;cursor:not-allowed}
     .row-actions{display:inline-flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:nowrap;white-space:nowrap}
+    .perm-row{grid-template-columns:48px minmax(0,1fr) minmax(90px,auto) minmax(96px,auto) minmax(108px,auto)}
     .status-chip{display:inline-block;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:800}
     .dir-summary{font-size:13px;color:var(--muted);margin:0 0 12px;font-weight:600}
     .st-ok{background:#dcfce7;color:#166534}
@@ -170,7 +171,7 @@
       .app{display:block}.sidebar{display:none}.content{padding:22px 20px 95px}.mobile-nav{position:fixed;display:grid;grid-template-columns:repeat(3,1fr);left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom));z-index:30;background:var(--ink);color:#b9beb5;border-radius:15px;padding:6px;box-shadow:0 12px 35px rgba(0,0,0,.28)}.mobile-nav button{display:grid;place-items:center;gap:2px;font-size:9px;padding:6px;border-radius:10px}.mobile-nav button.active{background:var(--surface);color:var(--ink)}.mobile-nav svg{width:18px}.dashboard-grid{grid-template-columns:1fr}.side-card{display:none}.stat-grid{grid-template-columns:repeat(2,1fr)}
     }
     @media(max-width:700px){
-      .topline{margin-bottom:18px}.topline p{font-size:12px}.hero{grid-template-columns:1fr;padding:26px 22px}.hero-score{width:130px;height:130px;justify-self:start}.hero-score:before{width:100px;height:100px}.hero-score b{font-size:35px}.hero h1{font-size:39px}.course{grid-template-columns:58px minmax(0,1fr) auto;padding:12px;gap:12px}.thumb{width:58px;height:64px}.thumb svg{width:27px}.stat-grid{gap:8px}.stat{padding:13px}.stat b{font-size:21px}.route-hero{display:block}.module{grid-template-columns:46px 1fr;gap:12px}.route-track:before{left:22px}.module-num{width:46px;height:46px;font-size:12px}.module-card{display:block;padding:15px}.status-chip{display:inline-block;margin-top:10px}.podium{gap:6px}.podium-card{padding:13px 5px}.podium-card strong{font-size:11px}.rank-row{grid-template-columns:34px minmax(0,1fr) minmax(66px,auto);padding:12px;gap:8px}.rank-row .dept,.rank-head .dept{display:none}.rank-head{font-size:9px}.person-dot{width:30px;height:30px}.person strong{font-size:11px}.xp{font-size:12px}.keypoints{grid-template-columns:1fr}.lesson-overlay{padding:0}.lesson{height:100dvh;max-height:none;border-radius:0}.video-mock{aspect-ratio:16/9}.lesson-body{padding:20px}.lesson-body h2{font-size:28px}.quiz-footer{align-items:stretch;flex-direction:column}.quiz-footer .primary{justify-content:center}.lesson-split{grid-template-columns:1fr}.lesson-video-col{position:static}
+      .topline{margin-bottom:18px}.topline p{font-size:12px}.hero{grid-template-columns:1fr;padding:26px 22px}.hero-score{width:130px;height:130px;justify-self:start}.hero-score:before{width:100px;height:100px}.hero-score b{font-size:35px}.hero h1{font-size:39px}.course{grid-template-columns:58px minmax(0,1fr) auto;padding:12px;gap:12px}.thumb{width:58px;height:64px}.thumb svg{width:27px}.stat-grid{gap:8px}.stat{padding:13px}.stat b{font-size:21px}.route-hero{display:block}.module{grid-template-columns:46px 1fr;gap:12px}.route-track:before{left:22px}.module-num{width:46px;height:46px;font-size:12px}.module-card{display:block;padding:15px}.status-chip{display:inline-block;margin-top:10px}.podium{gap:6px}.podium-card{padding:13px 5px}.podium-card strong{font-size:11px}.rank-row{grid-template-columns:34px minmax(0,1fr) minmax(66px,auto);padding:12px;gap:8px}.perm-row{grid-template-columns:34px minmax(0,1fr) minmax(66px,auto) minmax(66px,auto)}.rank-row .dept,.rank-head .dept{display:none}.rank-head{font-size:9px}.person-dot{width:30px;height:30px}.person strong{font-size:11px}.xp{font-size:12px}.keypoints{grid-template-columns:1fr}.lesson-overlay{padding:0}.lesson{height:100dvh;max-height:none;border-radius:0}.video-mock{aspect-ratio:16/9}.lesson-body{padding:20px}.lesson-body h2{font-size:28px}.quiz-footer{align-items:stretch;flex-direction:column}.quiz-footer .primary{justify-content:center}.lesson-split{grid-template-columns:1fr}.lesson-video-col{position:static}
     }
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.toast{transition:none}}
 
@@ -353,7 +354,6 @@
         <button data-view="route"><svg viewBox="0 0 24 24"><path d="M5 3v18M5 6h10l-2 3 2 3H5M5 17h13l-2 3"/></svg>Lộ trình</button>
         <button data-view="rank"><svg viewBox="0 0 24 24"><path d="M8 21v-8H3v8M14.5 21V3h-5v18M21 21V8h-5v13"/></svg>Xếp hạng</button>
         <button data-view="admin" id="adminNav" style="display:none"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></svg>Quản trị<span class="nav-badge" id="adminBadge" style="display:none">0</span></button>
-        <button data-view="accounts" id="accountsNav" style="display:none"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M15.5 3.13a4 4 0 0 1 0 7.75"/></svg>Nhân sự</button>
       </nav>
       <div class="streak"><div class="streak-top"><div class="streak-mark">4</div><strong>Chuỗi học 4 ngày</strong></div><p>Thêm 1 bài hôm nay để giữ nhịp học.</p></div>
       <button class="logout-btn" id="logoutBtn">Đăng xuất</button>
@@ -432,7 +432,7 @@
         <div id="rejectedList" style="margin-bottom:18px"></div>
         <div id="permSection" hidden>
           <h2 class="perm-h">Quản lý quyền</h2>
-          <p class="perm-sub">Set quyền trực tiếp cho từng tài khoản. Chỉ Quản trị viên mới đổi được quyền; Quản lý xem được danh sách và duyệt/từ chối tài khoản.</p>
+          <p class="perm-sub">Set quyền trực tiếp cho từng tài khoản, hoặc xoá tài khoản khi cần. Chỉ Quản trị viên mới đổi được quyền và xoá tài khoản; Quản lý xem được danh sách và duyệt/từ chối tài khoản.</p>
           <div class="perm-controls"><input id="permSearch" type="search" placeholder="Tìm theo tên hoặc email…"><select id="permUnit"><option value="">Tất cả đơn vị</option></select></div>
           <div class="leaderboard" id="permTable" aria-live="polite"><p class="muted-center">Đang tải danh sách…</p></div>
         </div>
@@ -448,12 +448,6 @@
         </div>
       </section>
 
-      <section id="accounts" class="view">
-        <div class="rank-hero"><p class="eyebrow" style="color:var(--brand)">Quản trị viên</p><h1>Danh sách<br>tài khoản nhân sự.</h1><p>Toàn bộ tài khoản đã đăng ký trên web. Chỉ Quản trị viên thấy mục này và xoá được tài khoản — tài khoản bị xoá sẽ mất toàn bộ tiến trình học và phải đăng ký lại từ đầu.</p></div>
-        <div class="perm-controls"><input id="accSearch" type="search" placeholder="Tìm theo tên, email hoặc mã NS…"></div>
-        <p class="dir-summary" id="accSummary"></p>
-        <div class="leaderboard" id="accountsTable" aria-live="polite"><p class="muted-center">Đang tải danh sách…</p></div>
-      </section>
     </main>
   </div>
 
