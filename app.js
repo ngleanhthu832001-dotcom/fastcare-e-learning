@@ -2,6 +2,7 @@
       /* ===== Supabase: đăng nhập thật + dữ liệu chung ===== */
       var SUPABASE_URL='https://lmcqcdpzgbdxntwodjed.supabase.co';
       var SUPABASE_KEY='sb_publishable_Hvwz9IQza278-z6j1NAxnQ_Qo1yEkuD';
+      var TECH_PWD='FcElearning@2026';
       var LESSON_ID='bai-3-4-van-hoa-phuc-vu';
       var LESSON_XP=120;
       var sb=null,currentUser=null,userRole='staff',myProfile=null;
@@ -55,6 +56,7 @@
         else{userRole='staff';roleEl.textContent=(profile&&profile.position)||'Nhân sự FASTCARE'}
         var ps=document.getElementById('permSection');if(ps)ps.hidden=!(profile&&profile.role==='admin');
         var ds=document.getElementById('dirSection');if(ds)ds.hidden=!(profile&&profile.role==='admin');
+        var cs=document.getElementById('createSection');if(cs)cs.hidden=!(profile&&profile.role==='admin');
         var p=profile||{};
         document.getElementById('userCode').textContent=p.employee_code||'—';
         document.getElementById('userPosition').textContent=p.position||'—';
@@ -135,6 +137,132 @@
           table.innerHTML='<div class="rank-row rank-head"><span>Hạng</span><span>'+head[0]+'</span><span class="dept">'+head[1]+'</span><span class="xp">'+head[2]+'</span></div>'+body;
           table.setAttribute('aria-label',scope==='unit'?'Bảng xếp hạng đơn vị theo tổng XP':'Bảng xếp hạng cá nhân theo điểm XP');
         }catch(e){podium.innerHTML=emptyRankHTML()}
+      }
+      var createWired=false,impRows=[],impRunning=false;
+      function tmpClient(){return window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}})}
+      async function createAccountOne(row){
+        var tc=tmpClient();
+        var r=await tc.auth.signUp({email:row.email,password:TECH_PWD,options:{data:{full_name:row.name}}});
+        if(r.error)throw r.error;
+        var user=r.data&&r.data.user;
+        if(!user||!user.id)throw new Error('Không tạo được tài khoản, thử lại sau.');
+        if(user.identities&&user.identities.length===0){try{await tc.auth.signOut()}catch(e){}return{existed:true}}
+        var unconfirmed=!user.email_confirmed_at&&!(r.data&&r.data.session);
+        var upd={full_name:row.name,is_approved:true,is_rejected:false};
+        if(row.unit)upd.department=row.unit;
+        if(row.position)upd.position=row.position;
+        if(row.code)upd.staff_code=row.code;
+        if(row.start)upd.start_date=row.start;
+        var u=await sb.from('profiles').update(upd).eq('id',user.id);
+        try{await tc.auth.signOut()}catch(e){}
+        if(u.error)throw new Error('Đã tạo tài khoản nhưng chưa lưu được hồ sơ ('+u.error.message+')');
+        return{unconfirmed:unconfirmed};
+      }
+      function stripVn(s){return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\u0111/g,'d').replace(/\u0110/g,'D').toLowerCase().trim()}
+      function parseDateCell(v){
+        if(v===null||v===undefined||v==='')return'';
+        if(v instanceof Date){if(isNaN(v.getTime()))return null;return v.getFullYear()+'-'+String(v.getMonth()+1).padStart(2,'0')+'-'+String(v.getDate()).padStart(2,'0')}
+        var str=String(v).trim();
+        var m=str.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})$/);if(m)return m[3]+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0');
+        m=str.match(/^(\d{4})-(\d{2})-(\d{2})/);if(m)return m[1]+'-'+m[2]+'-'+m[3];
+        return null;
+      }
+      function wireCreateSection(){
+        if(createWired)return;createWired=true;
+        var dl=document.getElementById('unitList');var pf=document.getElementById('pfDept');
+        if(dl&&pf){dl.innerHTML='';Array.prototype.forEach.call(pf.options,function(o){if(o.value){var op=document.createElement('option');op.value=o.value;dl.appendChild(op)}})}
+        document.getElementById('createForm').addEventListener('submit',async function(e){
+          e.preventDefault();
+          var msg=document.getElementById('crMsg');var btn=document.getElementById('crBtn');
+          var row={name:document.getElementById('crName').value.trim(),email:document.getElementById('crEmail').value.trim().toLowerCase(),unit:document.getElementById('crUnit').value.trim(),position:document.getElementById('crPosition').value.trim(),code:document.getElementById('crCode').value.trim(),start:document.getElementById('crStart').value||''};
+          msg.textContent='';btn.disabled=true;btn.textContent='Đang tạo…';
+          try{
+            var ex=await sb.from('profiles').select('id').eq('email',row.email).maybeSingle();
+            if(ex.data){msg.textContent='Email này đã có tài khoản trên web rồi.';msg.style.color='#dc2626'}
+            else{
+              var res=await createAccountOne(row);
+              if(res.existed){msg.textContent='Email này đã có tài khoản trên web rồi.';msg.style.color='#dc2626'}
+              else{
+                msg.textContent='Đã tạo tài khoản cho '+row.name+' ('+row.email+'). Nhân sự mở web và nhập email này là vào học được ngay.'+(res.unconfirmed?' Lưu ý: tài khoản chưa được xác nhận email — nếu nhân sự không vào được, báo Luke kiểm tra cài đặt Confirm email trong Supabase.':'');
+                msg.style.color='#15803d';
+                document.getElementById('createForm').reset();
+                renderAdmin();
+              }
+            }
+          }catch(err){msg.textContent=authMsg(err);msg.style.color='#dc2626'}
+          btn.disabled=false;btn.textContent='Tạo tài khoản';
+        });
+        document.getElementById('impFile').addEventListener('change',function(){handleImportFile(this.files&&this.files[0])});
+      }
+      async function handleImportFile(file){
+        var box=document.getElementById('impPreview');impRows=[];
+        if(!file)return;
+        if(!window.XLSX){box.innerHTML='<p class="st-err-t">Chưa tải được thư viện đọc Excel — kiểm tra mạng rồi tải lại trang.</p>';return}
+        box.innerHTML='<p class="muted-center">Đang đọc file…</p>';
+        try{
+          var buf=await file.arrayBuffer();
+          var wb=XLSX.read(buf,{type:'array',cellDates:true});
+          var ws=wb.Sheets[wb.SheetNames[0]];
+          var arr=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:''});
+          if(!arr.length)throw new Error('File trống.');
+          var head=arr[0].map(stripVn);
+          function col(){for(var i=0;i<head.length;i++){for(var j=0;j<arguments.length;j++){if(head[i].indexOf(arguments[j])>-1)return i}}return -1}
+          var ci={name:col('ho va ten','ho ten'),email:col('email','e-mail','mail'),unit:col('phong ban','don vi','chi nhanh'),position:col('vi tri','chuc vu','chuc danh'),code:col('ma ns','ma nhan su','ma nv'),start:col('ngay vao')};
+          if(ci.name<0||ci.email<0){box.innerHTML='<p class="st-err-t">Không tìm thấy cột "Họ và tên" hoặc "Email" trong file. Kiểm tra lại hàng tiêu đề của file nhé.</p>';return}
+          var existing={};
+          var pr=await sb.from('profiles').select('email');
+          if(!pr.error&&pr.data)pr.data.forEach(function(x){if(x.email)existing[x.email.toLowerCase()]=1});
+          var seen={};
+          for(var r=1;r<arr.length;r++){
+            var rowArr=arr[r];if(!rowArr)continue;
+            var name=String(rowArr[ci.name]||'').trim();
+            var email=String(rowArr[ci.email]||'').trim().toLowerCase();
+            if(!name&&!email)continue;
+            var start=ci.start>-1?parseDateCell(rowArr[ci.start]):'';
+            var row={name:name,email:email,unit:ci.unit>-1?String(rowArr[ci.unit]||'').trim():'',position:ci.position>-1?String(rowArr[ci.position]||'').trim():'',code:ci.code>-1?String(rowArr[ci.code]||'').trim():'',start:start,status:'ok',msg:''};
+            if(!row.name){row.status='err';row.msg='Thiếu họ tên'}
+            else if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(row.email)){row.status='err';row.msg='Email không hợp lệ'}
+            else if(start===null){row.status='err';row.msg='Ngày vào không đúng định dạng (dd/mm/yyyy)'}
+            else if(seen[row.email]){row.status='dup';row.msg='Trùng email trong file'}
+            else if(existing[row.email]){row.status='dup';row.msg='Đã có tài khoản trên web'}
+            seen[row.email]=1;
+            impRows.push(row);
+          }
+          renderImpPreview();
+        }catch(err){box.innerHTML='<p class="st-err-t">Không đọc được file: '+escapeHtml(err.message||String(err))+'</p>'}
+      }
+      function renderImpPreview(){
+        var box=document.getElementById('impPreview');
+        if(!impRows.length){box.innerHTML='<p class="muted-center">Không có dòng dữ liệu nào trong file.</p>';return}
+        var ok=impRows.filter(function(x){return x.status==='ok'}).length;
+        var fmtD=function(iso){if(!iso)return'—';var pt=iso.split('-');return pt[2]+'/'+pt[1]+'/'+pt[0]};
+        var html='<div style="overflow:auto"><table class="imp-table"><thead><tr><th>#</th><th>Họ và tên</th><th>Email</th><th>Đơn vị</th><th>Vị trí</th><th>Mã NS</th><th>Ngày vào</th><th>Trạng thái</th></tr></thead><tbody>';
+        impRows.forEach(function(x,i){
+          html+='<tr><td>'+(i+1)+'</td><td>'+escapeHtml(x.name||'—')+'</td><td>'+escapeHtml(x.email||'—')+'</td><td>'+escapeHtml(x.unit||'—')+'</td><td>'+escapeHtml(x.position||'—')+'</td><td>'+escapeHtml(x.code||'—')+'</td><td>'+fmtD(x.start)+'</td><td id="impSt'+i+'">'+(x.status==='ok'?'<span class="st-ok-t">Hợp lệ</span>':'<span class="st-err-t">'+escapeHtml(x.msg)+'</span>')+'</td></tr>';
+        });
+        html+='</tbody></table></div><div class="imp-actions"><button class="primary" type="button" id="impRun"'+(ok?'':' disabled')+'>Tạo '+ok+' tài khoản hợp lệ</button><span id="impProgress" style="font-size:13px;color:var(--muted)"></span></div>';
+        box.innerHTML=html;
+        document.getElementById('impRun').addEventListener('click',runImport);
+      }
+      async function runImport(){
+        if(impRunning)return;impRunning=true;
+        var btn=document.getElementById('impRun');if(btn)btn.disabled=true;
+        var prog=document.getElementById('impProgress');
+        var targets=[];impRows.forEach(function(x,i){if(x.status==='ok')targets.push({x:x,i:i})});
+        var done=0,okCount=0;
+        for(var k=0;k<targets.length;k++){
+          var t=targets[k];var cell=document.getElementById('impSt'+t.i);
+          if(cell)cell.innerHTML='<span>Đang tạo…</span>';
+          try{
+            var res=await createAccountOne(t.x);
+            if(res.existed){if(cell)cell.innerHTML='<span class="st-err-t">Đã có tài khoản — bỏ qua</span>'}
+            else{okCount++;if(cell)cell.innerHTML='<span class="st-ok-t">✓ Đã tạo</span>'+(res.unconfirmed?'<span class="st-err-t"> (chưa xác nhận email)</span>':'')}
+          }catch(err){if(cell)cell.innerHTML='<span class="st-err-t">✗ '+escapeHtml(authMsg(err))+'</span>'}
+          done++;if(prog)prog.textContent='Đã xử lý '+done+'/'+targets.length+' — tạo thành công '+okCount;
+        }
+        if(prog)prog.textContent='Hoàn tất: tạo thành công '+okCount+'/'+targets.length+' tài khoản. Nhân sự dùng email đã cấp để vào học ngay.';
+        impRunning=false;
+        renderAdmin();
       }
       async function renderAdmin(){
         var box=document.getElementById('adminTable');
@@ -330,7 +458,7 @@
         }catch(e){sel.value=oldRole;showToast('Không đổi quyền được, vui lòng thử lại')}
         sel.disabled=false;
       }
-      var dirRows=[],dirWired=false,dirRegEmails={};
+      var dirRows=[],dirWired=false,dirRegEmails={},dirWebOnly=[];
       async function renderDirectory(){
         var box=document.getElementById('dirTable');
         if(!box||userRole!=='admin')return;
@@ -338,8 +466,11 @@
           var res=await sb.rpc('get_staff_directory');
           if(res.error)throw res.error;
           dirRows=res.data||[];
-          var pr=await sb.from('profiles').select('email');
-          if(!pr.error){dirRegEmails={};(pr.data||[]).forEach(function(x){if(x.email)dirRegEmails[x.email.toLowerCase()]=true})}
+          var pr=await sb.from('profiles').select('email,full_name,staff_code,position,department,start_date');
+          if(!pr.error){dirRegEmails={};(pr.data||[]).forEach(function(x){if(x.email)dirRegEmails[x.email.toLowerCase()]=true});
+            var dirEmails={};dirRows.forEach(function(d){if(d.email)dirEmails[d.email.toLowerCase()]=1});
+            dirWebOnly=(pr.data||[]).filter(function(x){return x.email&&!dirEmails[x.email.toLowerCase()]}).map(function(x){return{full_name:x.full_name,email:x.email,employee_code:x.staff_code,position:x.position,department:x.department,start_date:x.start_date,web:true}});
+          }
           var unitSel=document.getElementById('dirUnit');
           var cur=unitSel.value;
           var units=[];
@@ -352,6 +483,7 @@
             unitSel.addEventListener('change',renderDirRows);
             document.getElementById('dirReload').addEventListener('click',async function(){await renderDirectory();showToast('Đã tải lại danh bạ từ database')});
           }
+          wireCreateSection();
           renderDirRows();
         }catch(e){box.innerHTML='<p class="muted-center">Chưa tải được danh bạ. Nếu đây là lần đầu dùng mục này, hãy chạy bản cập nhật database mới nhất (file SQL Luke gửi) rồi tải lại trang.</p>'}
       }
@@ -360,18 +492,18 @@
         if(!box)return;
         var q=(document.getElementById('dirSearch').value||'').toLowerCase();
         var u=document.getElementById('dirUnit').value;
-        var rows=dirRows.filter(function(p){
+        var rows=dirRows.concat(dirWebOnly).filter(function(p){
           if(u&&p.department!==u)return false;
           if(q&&(p.full_name||'').toLowerCase().indexOf(q)<0&&(p.email||'').toLowerCase().indexOf(q)<0&&(p.employee_code||'').toLowerCase().indexOf(q)<0)return false;
           return true;
         });
         var reg=0;dirRows.forEach(function(p){if(dirRegEmails[(p.email||'').toLowerCase()])reg++});
-        document.getElementById('dirSummary').textContent='Tổng '+dirRows.length+' người trong danh bạ · '+reg+' đã có tài khoản · '+(dirRows.length-reg)+' chưa đăng ký';
+        document.getElementById('dirSummary').textContent='Tổng '+dirRows.length+' người trong danh bạ · '+reg+' đã có tài khoản · '+(dirRows.length-reg)+' chưa đăng ký'+(dirWebOnly.length?' · cộng '+dirWebOnly.length+' tài khoản tạo trực tiếp trên web':'');
         if(!rows.length){box.innerHTML='<p class="muted-center">Không có ai khớp.</p>';return}
         box.innerHTML='<div class="rank-row rank-head"><span>•</span><span>Nhân sự ('+rows.length+')</span><span class="dept">Đơn vị</span><span class="xp">Trạng thái</span></div>'+rows.map(function(p){
-          var has=!!dirRegEmails[(p.email||'').toLowerCase()];
+          var has=p.web?true:!!dirRegEmails[(p.email||'').toLowerCase()];
           var sdp=p.start_date?String(p.start_date).slice(0,10).split('-'):null;
-          var meta=(p.employee_code?p.employee_code+' · ':'')+(p.position||'')+(sdp?' · Vào '+sdp[2]+'/'+sdp[1]+'/'+sdp[0]:'');
+          var meta=(p.employee_code?p.employee_code+' · ':'')+(p.position||'')+(sdp?' · Vào '+sdp[2]+'/'+sdp[1]+'/'+sdp[0]:'')+(p.web?' · Tạo trên web':'');
           return '<div class="rank-row"><b>•</b><div class="person"><div class="person-dot">'+dotAvatar(null,p.full_name)+'</div><div><strong>'+escapeHtml(p.full_name||'Nhân sự')+'</strong><span>'+escapeHtml(p.email||'')+(meta?' · '+escapeHtml(meta):'')+'</span></div></div><span class="dept">'+escapeHtml(p.department||'—')+'</span><span class="xp">'+(has?'<span class="status-chip st-ok">Đã có tài khoản</span>':'<span class="status-chip st-pending">Chưa đăng ký</span>')+'</span></div>';
         }).join('');
       }
@@ -430,14 +562,33 @@
           document.getElementById('signupForm').hidden=mode!=='signup';
           setAuthError('');
         })});
+        var loginEmailEl=document.getElementById('loginEmail');
+        loginEmailEl.addEventListener('input',function(){
+          var w=document.getElementById('loginPassWrap');
+          if(w&&!w.hidden){w.hidden=true;document.getElementById('loginPassword').value='';document.getElementById('loginHint').textContent='Tài khoản do FASTCARE cấp: chỉ cần nhập email là vào học ngay, không cần mật khẩu.';document.getElementById('loginBtn').textContent='Vào học ngay'}
+        });
         document.getElementById('loginForm').addEventListener('submit',async function(e){
           e.preventDefault();setAuthError('');
-          var btn=document.getElementById('loginBtn');btn.disabled=true;btn.textContent='Đang đăng nhập…';
+          var btn=document.getElementById('loginBtn');var wrap=document.getElementById('loginPassWrap');
+          var email=loginEmailEl.value.trim();btn.disabled=true;
           try{
-            var r=await sb.auth.signInWithPassword({email:document.getElementById('loginEmail').value.trim(),password:document.getElementById('loginPassword').value});
-            if(r.error)throw r.error;
+            if(wrap.hidden){
+              btn.textContent='Đang vào…';
+              var r=await sb.auth.signInWithPassword({email:email,password:TECH_PWD});
+              if(r.error){
+                wrap.hidden=false;
+                document.getElementById('loginHint').textContent='Tài khoản này dùng mật khẩu riêng — nhập mật khẩu của bạn để tiếp tục.';
+                btn.disabled=false;btn.textContent='Đăng nhập';
+                document.getElementById('loginPassword').focus();
+                return;
+              }
+            }else{
+              btn.textContent='Đang đăng nhập…';
+              var r2=await sb.auth.signInWithPassword({email:email,password:document.getElementById('loginPassword').value});
+              if(r2.error)throw r2.error;
+            }
           }catch(err){setAuthError(authMsg(err))}
-          btn.disabled=false;btn.textContent='Đăng nhập';
+          btn.disabled=false;btn.textContent=wrap.hidden?'Vào học ngay':'Đăng nhập';
         });
         document.getElementById('signupForm').addEventListener('submit',async function(e){
           e.preventDefault();setAuthError('');
