@@ -21,7 +21,7 @@
       }
       function setAuthError(t){var el=document.getElementById('authError');if(el)el.textContent=t||''}
       function unlockApp(){document.body.classList.remove('locked')}
-      function lockApp(){document.body.classList.add('locked');currentUser=null;userRole='staff';var an=document.getElementById('adminNav');if(an)an.style.display='none';var acn=document.getElementById('accountsNav');if(acn)acn.style.display='none'}
+      function lockApp(){document.body.classList.add('locked');currentUser=null;userRole='staff';var an=document.getElementById('adminNav');if(an)an.style.display='none'}
       async function fetchMyProfile(){
         var fields=[
           'full_name,role,department,employee_code,position,start_date,avatar_url,is_approved,is_rejected',
@@ -55,7 +55,6 @@
         else{userRole='staff';roleEl.textContent=(profile&&profile.position)||'Nhân sự FASTCARE'}
         var ps=document.getElementById('permSection');if(ps)ps.hidden=!(profile&&profile.role==='admin');
         var ds=document.getElementById('dirSection');if(ds)ds.hidden=!(profile&&profile.role==='admin');
-        var acn=document.getElementById('accountsNav');if(acn)acn.style.display=(profile&&profile.role==='admin')?'':'none';
         var p=profile||{};
         document.getElementById('userCode').textContent=p.employee_code||'—';
         document.getElementById('userPosition').textContent=p.position||'—';
@@ -280,6 +279,12 @@
               if(!s)return;
               changeUserRole(s.getAttribute('data-role-for'),s.value,s);
             });
+            box.addEventListener('click',function(e){
+              var b=e.target&&e.target.closest?e.target.closest('[data-delperm]'):null;
+              if(!b)return;
+              var p=null;permRows.forEach(function(x){if(x.id===b.getAttribute('data-delperm'))p=x});
+              if(p)deleteAccount(p,b);
+            });
           }
           renderPermRows();
         }catch(e){box.innerHTML='<p class="muted-center">Chưa tải được danh sách tài khoản.</p>'}
@@ -300,12 +305,12 @@
           return true;
         });
         if(!rows.length){box.innerHTML='<p class="muted-center">Không có tài khoản nào khớp.</p>';return}
-        box.innerHTML='<div class="rank-row rank-head"><span>•</span><span>Tài khoản ('+rows.length+')</span><span class="dept">Trạng thái</span><span class="xp">Quyền</span></div>'+rows.map(function(p){
+        box.innerHTML='<div class="rank-row rank-head perm-row"><span>•</span><span>Tài khoản ('+rows.length+')</span><span class="dept">Trạng thái</span><span class="xp">Quyền</span><span class="xp">Thao tác</span></div>'+rows.map(function(p){
           var self=p.id===currentUser.id;
           var opts=[['staff','Nhân viên'],['manager','Quản lý'],['admin','Quản trị viên']].map(function(o){
             return '<option value="'+o[0]+'"'+(p.role===o[0]?' selected':'')+'>'+o[1]+'</option>';
           }).join('');
-          return '<div class="rank-row"><b>•</b><div class="person"><div class="person-dot">'+dotAvatar(null,p.full_name)+'</div><div><strong>'+escapeHtml(p.full_name||'Học viên')+(self?' (bạn)':'')+'</strong><span>'+escapeHtml(p.email||'')+(p.department?' · '+escapeHtml(p.department):'')+'</span></div></div><span class="dept">'+permStatus(p)+'</span><span class="xp"><select class="role-select" data-role-for="'+p.id+'"'+(self?' disabled title="Không thể đổi quyền của chính bạn"':'')+'>'+opts+'</select></span></div>';
+          return '<div class="rank-row perm-row"><b>•</b><div class="person"><div class="person-dot">'+dotAvatar(null,p.full_name)+'</div><div><strong>'+escapeHtml(p.full_name||'Học viên')+(self?' (bạn)':'')+'</strong><span>'+escapeHtml(p.email||'')+(p.department?' · '+escapeHtml(p.department):'')+'</span></div></div><span class="dept">'+permStatus(p)+'</span><span class="xp"><select class="role-select" data-role-for="'+p.id+'"'+(self?' disabled title="Không thể đổi quyền của chính bạn"':'')+'>'+opts+'</select></span><span class="xp">'+(self?'<span style="font-size:12px;color:var(--muted);font-weight:600">Bạn</span>':'<button class="del-btn" data-delperm="'+p.id+'">Xoá tài khoản</button>')+'</span></div>';
         }).join('');
       }
       async function changeUserRole(id,newRole,sel){
@@ -368,47 +373,6 @@
         }).join('');
       }
       var lastUid=null;
-      var accRows=[],accWired=false;
-      async function renderAccounts(){
-        var box=document.getElementById('accountsTable');
-        if(!box||userRole!=='admin')return;
-        try{
-          var res=await sb.from('profiles').select('id,full_name,email,department,employee_code,role,is_approved,is_rejected,created_at').order('full_name',{ascending:true});
-          if(res.error){res=await sb.from('profiles').select('id,full_name,email,department,employee_code,role,is_approved,created_at').order('full_name',{ascending:true})}
-          if(res.error)throw res.error;
-          accRows=res.data||[];
-          if(!accWired){
-            accWired=true;
-            document.getElementById('accSearch').addEventListener('input',renderAccRows);
-          }
-          renderAccRows();
-        }catch(e){box.innerHTML='<p class="muted-center">Chưa tải được danh sách tài khoản.</p>'}
-      }
-      function accRoleLabel(r){return r==='admin'?'Quản trị viên':(r==='manager'?'Quản lý':'Nhân viên')}
-      function renderAccRows(){
-        var box=document.getElementById('accountsTable');
-        if(!box)return;
-        var q=(document.getElementById('accSearch').value||'').toLowerCase();
-        var rows=accRows.filter(function(p){
-          if(q&&(p.full_name||'').toLowerCase().indexOf(q)<0&&(p.email||'').toLowerCase().indexOf(q)<0&&(p.employee_code||'').toLowerCase().indexOf(q)<0)return false;
-          return true;
-        });
-        var sum=document.getElementById('accSummary');
-        if(sum)sum.textContent='Tổng '+accRows.length+' tài khoản đã đăng ký';
-        if(!rows.length){box.innerHTML='<p class="muted-center">Không có tài khoản nào khớp.</p>';return}
-        box.innerHTML='<div class="rank-row rank-head"><span>•</span><span>Tài khoản ('+rows.length+')</span><span class="dept">Trạng thái · Quyền</span><span class="xp">Thao tác</span></div>'+rows.map(function(p){
-          var self=p.id===currentUser.id;
-          var meta=(p.employee_code?p.employee_code+' · ':'')+accRoleLabel(p.role);
-          var act=self?'<span style="font-size:12px;color:var(--muted)">Bạn</span>':'<button class="del-btn" data-del="'+p.id+'">Xoá tài khoản</button>';
-          return '<div class="rank-row"><b>•</b><div class="person"><div class="person-dot">'+dotAvatar(p.avatar_url,p.full_name)+'</div><div><strong>'+escapeHtml(p.full_name||'Học viên')+(self?' (bạn)':'')+'</strong><span>'+escapeHtml(p.email||'')+' · '+escapeHtml(meta)+'</span></div></div><span class="dept">'+permStatus(p)+'</span><span class="xp">'+act+'</span></div>';
-        }).join('');
-        box.querySelectorAll('[data-del]').forEach(function(b){
-          b.addEventListener('click',function(){
-            var p=null;accRows.forEach(function(x){if(x.id===b.getAttribute('data-del'))p=x});
-            if(p)deleteAccount(p,b);
-          });
-        });
-      }
       async function deleteAccount(p,btn){
         var label=(p.full_name||'tài khoản này')+' ('+(p.email||'')+')';
         if(!confirm('Xoá tài khoản '+label+'?\n\nToàn bộ tiến trình học, điểm XP và lượt làm bài của người này sẽ bị xoá vĩnh viễn. Người này muốn dùng lại phải ĐĂNG KÝ LẠI từ đầu bằng email.'))return;
@@ -418,7 +382,7 @@
           var r=await sb.rpc('admin_delete_user',{target_id:p.id});
           if(r.error)throw r.error;
           showToast('Đã xoá tài khoản '+label);
-          renderAccounts();renderAdmin();
+          renderAdmin();
           renderPendingApprovals();
           if(userRole==='admin'){renderPermissions();renderDirectory()}
         }catch(e){
@@ -558,7 +522,7 @@
         navButtons.forEach(function(b){b.classList.toggle('active',b.getAttribute('data-view')===id)});
         window.scrollTo({top:0,behavior:'smooth'});
       }
-      navButtons.forEach(function(btn){btn.addEventListener('click',function(){var v=btn.getAttribute('data-view');switchView(v);if(v==='admin'&&canModerate()){renderPendingApprovals();if(userRole==='admin'){renderPermissions();renderDirectory()}}if(v==='accounts'&&userRole==='admin')renderAccounts()})});
+      navButtons.forEach(function(btn){btn.addEventListener('click',function(){var v=btn.getAttribute('data-view');switchView(v);if(v==='admin'&&canModerate()){renderPendingApprovals();if(userRole==='admin'){renderPermissions();renderDirectory()}}})});
       document.querySelectorAll('[data-goto]').forEach(function(btn){btn.addEventListener('click',function(){switchView(btn.getAttribute('data-goto'))})});
 
       var overlay=document.getElementById('lessonOverlay');
