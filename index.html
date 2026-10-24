@@ -177,13 +177,13 @@
 
     /* Playful FASTCARE learning layer */
     :root{
-      --bg:#fffaf7;--surface:#ffffff;--surface-2:#fff0e8;--ink:#2f2926;--muted:#756b66;
+      --bg:#ffffff;--surface:#ffffff;--surface-2:#fafafa;--ink:#2f2926;--muted:#756b66;
       --line:#eadfd9;--brand:#f45b18;--brand-strong:#d84608;--brand-soft:#fff0e8;
       --lime:#b8dc37;--teal:#22a699;--teal-soft:#e1f6f2;--gold:#f2b632;--gold-soft:#fff3d4;
       --shadow:0 8px 0 rgba(73,49,37,.08);
     }
     @media(prefers-color-scheme:dark){:root{
-      --bg:#fff8f4;--surface:#ffffff;--surface-2:#ffede3;--ink:#2f2926;--muted:#6f625c;
+      --bg:#ffffff;--surface:#ffffff;--surface-2:#fafafa;--ink:#2f2926;--muted:#6f625c;
       --line:#ead8cf;--brand:#f45b18;--brand-strong:#c94008;--brand-soft:#fff0e8;
       --lime:#b8dc37;--teal:#188f84;--teal-soft:#e1f6f2;--gold:#e8a51d;--gold-soft:#fff3d4;
     }}
@@ -191,7 +191,8 @@
     .brand-lockup{display:block;padding:5px 10px 21px;border-bottom:1px solid var(--line)}
     .brand-lockup img{display:block;width:168px;height:auto;object-fit:contain}
     .profile{border-bottom:0;padding-top:20px}
-    .avatar{background:var(--brand);border-radius:50%;box-shadow:0 4px 0 var(--brand-strong)}
+    .avatar{background:var(--brand);border-radius:50%;box-shadow:0 4px 0 var(--brand-strong);width:44px;height:44px;min-width:44px;aspect-ratio:1/1;flex:none;align-self:center;overflow:hidden}
+    .avatar img{width:100%;height:100%;object-fit:cover;display:block}
     .nav button{border-radius:13px;border:2px solid transparent;text-transform:uppercase;letter-spacing:.045em;font-size:12px;font-weight:800}
     .nav button.active{background:var(--brand-soft);color:var(--brand-strong);border-color:#ffc4a8}
     .streak{border:2px solid #ffd0ba;background:var(--brand-soft);box-shadow:0 4px 0 rgba(244,91,24,.12)}
