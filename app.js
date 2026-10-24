@@ -192,7 +192,7 @@
           box.innerHTML='<div class="leaderboard"><div class="rank-row rank-head"><span>⏳</span><span>Tài khoản chờ duyệt ('+rows.length+')</span><span class="dept">Ngày đăng ký</span><span class="xp"></span></div>'+
             rows.map(function(it){
               var d=it.created_at?new Date(it.created_at).toLocaleDateString('vi-VN'):'—';
-              return '<div class="rank-row"><b>•</b><div class="person"><div class="person-dot">'+dotAvatar(null,it.full_name)+'</div><div><strong>'+escapeHtml(it.full_name||'Học viên')+'</strong><span>'+escapeHtml(it.email||'')+(it.department?' · '+escapeHtml(it.department):'')+'</span></div></div><span class="dept">'+d+'</span><span class="xp"><button class="approve-btn" data-approve="'+it.id+'">Duyệt</button> <button class="reject-btn" data-reject="'+it.id+'">Từ chối</button></span></div>';
+              return '<div class="rank-row"><b>•</b><div class="person"><div class="person-dot">'+dotAvatar(null,it.full_name)+'</div><div><strong>'+escapeHtml(it.full_name||'Học viên')+'</strong><span>'+escapeHtml(it.email||'')+(it.department?' · '+escapeHtml(it.department):'')+'</span></div></div><span class="dept">'+d+'</span><span class="xp row-actions"><button class="approve-btn" data-approve="'+it.id+'">Duyệt</button> <button class="reject-btn" data-reject="'+it.id+'">Từ chối</button></span></div>';
             }).join('')+'</div>';
           box.querySelectorAll('[data-approve]').forEach(function(b){
             b.addEventListener('click',function(){approveUser(b.getAttribute('data-approve'),b)});
@@ -225,7 +225,7 @@
           box.innerHTML='<div class="leaderboard"><div class="rank-row rank-head"><span>🚫</span><span>Tài khoản đã từ chối ('+rows.length+')</span><span class="dept">Ngày đăng ký</span><span class="xp"></span></div>'+
             rows.map(function(it){
               var d=it.created_at?new Date(it.created_at).toLocaleDateString('vi-VN'):'—';
-              return '<div class="rank-row"><b>•</b><div class="person"><div class="person-dot">'+dotAvatar(null,it.full_name)+'</div><div><strong>'+escapeHtml(it.full_name||'Học viên')+'</strong><span>'+escapeHtml(it.email||'')+(it.department?' · '+escapeHtml(it.department):'')+'</span></div></div><span class="dept">'+d+'</span><span class="xp"><button class="approve-btn" data-approve2="'+it.id+'">Duyệt</button> <button class="restore-btn" data-restore="'+it.id+'">Hoàn tác</button></span></div>';
+              return '<div class="rank-row"><b>•</b><div class="person"><div class="person-dot">'+dotAvatar(null,it.full_name)+'</div><div><strong>'+escapeHtml(it.full_name||'Học viên')+'</strong><span>'+escapeHtml(it.email||'')+(it.department?' · '+escapeHtml(it.department):'')+'</span></div></div><span class="dept">'+d+'</span><span class="xp row-actions"><button class="approve-btn" data-approve2="'+it.id+'">Duyệt</button> <button class="restore-btn" data-restore="'+it.id+'">Hoàn tác</button></span></div>';
             }).join('')+'</div>';
           box.querySelectorAll('[data-approve2]').forEach(function(b){
             b.addEventListener('click',function(){restoreUser(b.getAttribute('data-approve2'),b,true)});
