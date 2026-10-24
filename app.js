@@ -287,6 +287,8 @@
             });
           }
           renderPermRows();
+          var prb=document.getElementById('permReload');
+          if(prb&&!prb.dataset.wired){prb.dataset.wired='1';prb.addEventListener('click',async function(){await renderPermissions();showToast('Đã tải lại danh sách tài khoản')})}
         }catch(e){box.innerHTML='<p class="muted-center">Chưa tải được danh sách tài khoản.</p>'}
       }
       function permStatus(p){
@@ -348,6 +350,7 @@
             dirWired=true;
             document.getElementById('dirSearch').addEventListener('input',renderDirRows);
             unitSel.addEventListener('change',renderDirRows);
+            document.getElementById('dirReload').addEventListener('click',async function(){await renderDirectory();showToast('Đã tải lại danh bạ từ database')});
           }
           renderDirRows();
         }catch(e){box.innerHTML='<p class="muted-center">Chưa tải được danh bạ. Nếu đây là lần đầu dùng mục này, hãy chạy bản cập nhật database mới nhất (file SQL Luke gửi) rồi tải lại trang.</p>'}
