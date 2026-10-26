@@ -717,13 +717,20 @@
       document.getElementById('closeLesson').addEventListener('click',closeLesson);
       var welcomeOverlay=document.getElementById('welcomeOverlay');
       var m1=document.getElementById('module1Card');
-      function openWelcome(){if(!welcomeOverlay)return;welcomeOverlay.classList.add('open');document.body.style.overflow='hidden';var c=document.getElementById('closeWelcome');if(c)c.focus()}
+      function openWelcome(){if(!welcomeOverlay)return;welcomeOverlay.classList.add('open');showSlide(0);document.body.style.overflow='hidden';var c=document.getElementById('closeWelcome');if(c)c.focus()}
       function closeWelcome(){if(!welcomeOverlay)return;welcomeOverlay.classList.remove('open');document.body.style.overflow='';if(m1)m1.focus()}
       if(m1){m1.addEventListener('click',openWelcome);m1.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();openWelcome()}})}
       var cw=document.getElementById('closeWelcome');if(cw)cw.addEventListener('click',closeWelcome);
       var wd=document.getElementById('welcomeDone');if(wd)wd.addEventListener('click',closeWelcome);
       if(welcomeOverlay)welcomeOverlay.addEventListener('click',function(e){if(e.target===welcomeOverlay)closeWelcome()});
       document.addEventListener('keydown',function(e){if(e.key==='Escape'&&welcomeOverlay&&welcomeOverlay.classList.contains('open'))closeWelcome()});
+      var deckSlides=welcomeOverlay?welcomeOverlay.querySelectorAll('.deck-slide'):[];var deckDots=welcomeOverlay?welcomeOverlay.querySelectorAll('.deck-dot'):[];var deckCount=document.getElementById('deckCount');var deckIdx=0;
+      function showSlide(i){if(!deckSlides.length)return;deckIdx=Math.max(0,Math.min(deckSlides.length-1,i));deckSlides.forEach(function(sl,j){sl.classList.toggle('active',j===deckIdx)});deckDots.forEach(function(d,j){d.classList.toggle('active',j===deckIdx)});if(deckCount)deckCount.textContent=(deckIdx+1)+' / '+deckSlides.length;var pv=document.getElementById('deckPrev');var nx=document.getElementById('deckNext');if(pv)pv.disabled=deckIdx===0;if(nx)nx.disabled=deckIdx===deckSlides.length-1}
+      var dp=document.getElementById('deckPrev');if(dp)dp.addEventListener('click',function(){showSlide(deckIdx-1)});
+      var dn=document.getElementById('deckNext');if(dn)dn.addEventListener('click',function(){showSlide(deckIdx+1)});
+      deckDots.forEach(function(d,j){d.addEventListener('click',function(){showSlide(j)})});
+      if(welcomeOverlay){var tx=null;welcomeOverlay.addEventListener('touchstart',function(e){tx=e.changedTouches[0].clientX},{passive:true});welcomeOverlay.addEventListener('touchend',function(e){if(tx===null)return;var dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>40){showSlide(deckIdx+(dx<0?1:-1))}tx=null},{passive:true})}
+      document.addEventListener('keydown',function(e){if(welcomeOverlay&&welcomeOverlay.classList.contains('open')){if(e.key==='ArrowRight')showSlide(deckIdx+1);if(e.key==='ArrowLeft')showSlide(deckIdx-1)}});
       overlay.addEventListener('click',function(e){if(e.target===overlay)closeLesson()});
       document.addEventListener('keydown',function(e){if(e.key==='Escape'&&overlay.classList.contains('open'))closeLesson()});
       document.querySelectorAll('.question').forEach(function(q){q.querySelectorAll('.option').forEach(function(opt,idx){opt.addEventListener('click',function(){q.querySelectorAll('.option').forEach(function(o){o.classList.remove('selected')});opt.classList.add('selected');q.dataset.selected=idx})})});
