@@ -115,6 +115,19 @@
     .row-actions{display:inline-flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:nowrap;white-space:nowrap}
     .status-chip{display:inline-block;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:800}
     .dir-summary{font-size:13px;color:var(--muted);margin:0 0 12px;font-weight:600}
+    .create-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:8px}
+    .create-grid label{display:block;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em}
+    .create-grid input{width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:14px;box-sizing:border-box;background:#fff}
+    .create-grid .primary{grid-column:1/-1;justify-self:start}
+    .create-msg{grid-column:1/-1;font-size:13px;margin:0}
+    .imp-box{margin-top:22px;border-top:1px solid var(--line);padding-top:18px}
+    .imp-box h3{font-size:15px;margin:0 0 6px}
+    .imp-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:12px}
+    .imp-table th,.imp-table td{padding:7px 9px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+    .imp-table th{color:var(--muted);text-transform:uppercase;font-size:10px;letter-spacing:.05em}
+    .st-ok-t{color:#15803d;font-weight:700}.st-err-t{color:#dc2626;font-weight:700}
+    .imp-actions{margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    @media(max-width:700px){.create-grid{grid-template-columns:1fr}}
     .st-ok{background:#dcfce7;color:#166534}
     .st-pending{background:#fef3c7;color:#92400e}
     .st-rejected{background:#fee2e2;color:#991b1b}
@@ -162,7 +175,7 @@
     .leaderboard{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden}.rank-row{display:grid;grid-template-columns:48px minmax(0,1fr) minmax(90px,auto) minmax(96px,auto);gap:14px;align-items:center;padding:14px 18px;border-bottom:1px solid var(--line)}.rank-row:last-child{border:0}.rank-head{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.07em;font-weight:800;background:var(--surface-2)}.person{display:flex;gap:10px;align-items:center}.person-dot{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--brand-soft);color:var(--brand-strong);font-size:11px;font-weight:800}.person strong{display:block;font-size:13px}.person span,.dept{font-size:11px;color:var(--muted)}.xp{text-align:right;font-weight:800}
     .perm-row{grid-template-columns:40px minmax(0,2fr) minmax(0,1fr) minmax(0,1.15fr) minmax(0,1fr)}
     .lesson-overlay{position:fixed;inset:0;background:var(--bg);z-index:50;display:none;align-items:center;justify-content:center;padding:0}.lesson-overlay.open{display:flex}.lesson{width:100%;height:100dvh;max-height:none;overflow:auto;background:var(--bg)}
-    .lesson-top{padding:18px 22px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:2}.lesson-top strong{font-size:13px}.close-btn{border:1px solid var(--line);background:var(--surface);width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:20px;line-height:1}.video-mock{aspect-ratio:16/8;background:#171915;color:white;display:none;place-items:center;text-align:center;position:relative;overflow:hidden}.video-mock:before{content:"";width:360px;height:360px;border-radius:50%;border:70px solid var(--brand);position:absolute;right:-130px;top:-230px}.play{position:relative;width:66px;height:66px;border-radius:50%;border:0;background:white;color:#171915;display:grid;place-items:center;cursor:pointer}.play svg{width:24px;fill:currentColor;margin-left:3px}.playing{position:relative;font-weight:700;display:none}.video-mock.is-playing .play{display:none}.video-mock.is-playing .playing{display:block}.video-embed{display:block;aspect-ratio:16/9;background:#171915}.video-embed iframe{display:block;width:100%;height:100%;border:0}.lesson-split{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:26px;align-items:start}.lesson-video-col{position:sticky;top:86px;min-width:0}.lesson-main{min-width:0}.lesson.next-mode .video-mock,.lesson.next-mode .video-embed{display:none}.lesson.next-mode .lesson-video-col{display:none}.lesson.next-mode .lesson-split{grid-template-columns:1fr}.lesson-body{padding:26px}.lesson-body h2{font-family:"Newsreader",serif;font-size:34px;line-height:1.05;margin-bottom:10px}.lesson-body>p{color:var(--muted);max-width:700px}.keypoints{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:20px 0}.point{padding:14px;background:var(--surface);border:1px solid var(--line);border-radius:12px}.point b{display:block;font-size:12px}.point span{font-size:11px;color:var(--muted)}
+    .lesson-top{padding:18px 22px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:2}.lesson-top strong{font-size:13px}.close-btn{border:1px solid var(--line);background:var(--surface);width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:20px;line-height:1}.video-mock{aspect-ratio:16/8;background:#171915;color:white;display:none;place-items:center;text-align:center;position:relative;overflow:hidden}.video-mock:before{content:"";width:360px;height:360px;border-radius:50%;border:70px solid var(--brand);position:absolute;right:-130px;top:-230px}.play{position:relative;width:66px;height:66px;border-radius:50%;border:0;background:white;color:#171915;display:grid;place-items:center;cursor:pointer}.play svg{width:24px;fill:currentColor;margin-left:3px}.playing{position:relative;font-weight:700;display:none}.video-mock.is-playing .play{display:none}.video-mock.is-playing .playing{display:block}.video-embed{display:block;aspect-ratio:16/9;background:#171915}.video-slot{border:2px dashed var(--line);border-radius:16px;padding:30px 22px;text-align:center;color:var(--muted);background:var(--surface-2);margin-top:6px}.video-slot strong{color:var(--ink)}.video-embed iframe{display:block;width:100%;height:100%;border:0}.lesson-split{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:26px;align-items:start}.lesson-video-col{position:sticky;top:86px;min-width:0}.lesson-main{min-width:0}.lesson.next-mode .video-mock,.lesson.next-mode .video-embed{display:none}.lesson.next-mode .lesson-video-col{display:none}.lesson.next-mode .lesson-split{grid-template-columns:1fr}.lesson-body{padding:26px}.lesson-body h2{font-family:"Newsreader",serif;font-size:34px;line-height:1.05;margin-bottom:10px}.lesson-body>p{color:var(--muted);max-width:700px}.keypoints{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:20px 0}.point{padding:14px;background:var(--surface);border:1px solid var(--line);border-radius:12px}.point b{display:block;font-size:12px}.point span{font-size:11px;color:var(--muted)}
     .quiz{border-top:1px solid var(--line);padding-top:22px}.quiz h3{font-size:18px}.question{margin-bottom:20px}.question>p{font-weight:700;margin-bottom:9px}.options{display:grid;gap:8px}.option{border:1px solid var(--line);background:var(--surface);text-align:left;padding:11px 13px;border-radius:10px;cursor:pointer}.option:hover{border-color:var(--brand)}.option.selected{border-color:var(--brand);background:var(--brand-soft)}.option.correct{border-color:var(--teal);background:var(--teal-soft)}.option.wrong{border-color:var(--brand);background:var(--brand-soft)}.quiz-footer{display:flex;align-items:center;justify-content:space-between;gap:15px}.quiz-result{font-weight:800}.quiz-result:empty{display:none}
     .completion-actions{display:none;align-items:center;justify-content:flex-end;gap:10px;margin-top:16px}.completion-actions.show{display:flex}.secondary{border:2px solid var(--line);border-bottom-width:4px;background:var(--surface);color:var(--ink);padding:11px 16px;border-radius:14px;font-weight:800;cursor:pointer}.secondary:hover{border-color:#ffb18c}.course.completed{border-color:color-mix(in srgb,var(--teal) 55%,var(--line));background:var(--teal-soft)}.course.completed .progress span{background:var(--teal)}.course.completed .course-action{background:var(--teal);border-color:var(--teal);color:#fff;cursor:default;box-shadow:0 3px 0 color-mix(in srgb,var(--teal) 72%,#06463e)}.complete-label{display:none;color:var(--teal);font-size:11px;font-weight:800}.course.completed .complete-label{display:inline}.course.completed .lesson-count{display:none}.module.unlocked .module-num{background:var(--brand);border-color:var(--brand);color:#fff;box-shadow:0 0 0 6px var(--brand-soft)}.module.unlocked .status-chip{background:var(--brand-soft);color:var(--brand-strong)}.next-lesson-panel{display:none;border-top:1px solid var(--line);padding:22px 26px 28px}.next-lesson-panel.show{display:block}.next-lesson-panel h3{margin:0 0 7px;font-size:18px}.next-lesson-panel p{color:var(--muted);margin-bottom:16px}
     .toast{position:fixed;right:24px;bottom:24px;background:var(--ink);color:var(--surface);padding:12px 16px;border-radius:11px;box-shadow:var(--shadow);z-index:70;transform:translateY(25px);opacity:0;pointer-events:none;transition:.2s}.toast.show{transform:none;opacity:1}
@@ -324,8 +337,9 @@
       </div>
       <form class="auth-form" id="loginForm">
         <div><label for="loginEmail">Email</label><input id="loginEmail" type="email" required autocomplete="email" placeholder="ban@fastcare.vn"></div>
-        <div><label for="loginPassword">Mật khẩu</label><input id="loginPassword" type="password" required autocomplete="current-password" placeholder="••••••••"></div>
-        <button class="primary" type="submit" id="loginBtn">Đăng nhập</button>
+        <div id="loginPassWrap" hidden><label for="loginPassword">Mật khẩu</label><input id="loginPassword" type="password" autocomplete="current-password" placeholder="••••••••"></div>
+        <p class="auth-hint" id="loginHint">Tài khoản do FASTCARE cấp: chỉ cần nhập email là vào học ngay, không cần mật khẩu.</p>
+        <button class="primary" type="submit" id="loginBtn">Vào học ngay</button>
       </form>
       <form class="auth-form" id="signupForm" hidden>
         <div><label for="signupName">Họ và tên</label><input id="signupName" type="text" required autocomplete="name" placeholder="Nguyễn Văn A"></div>
@@ -406,7 +420,7 @@
       <section id="route" class="view">
         <div class="route-hero"><div><p class="eyebrow" style="color:var(--brand)">Lộ trình nhân sự mới</p><h1>30 ngày hiểu việc,<br>vững văn hoá.</h1><p>Từng mô-đun mở theo tiến độ, kết hợp clip ngắn, tình huống thực tế và bài kiểm tra cuối chặng.</p></div><button class="primary open-lesson" id="routeContinue">Bắt đầu mô-đun 2</button></div>
         <div class="route-track">
-          <article class="module"><div class="module-num">01</div><div class="module-card"><div><h3>01 · Chào mừng đến FASTCARE</h3><p>Câu chuyện thương hiệu, hệ thống và những người bạn sẽ đồng hành.</p></div><span class="status-chip">CHƯA MỞ</span></div></article>
+          <article class="module" id="module1Card" role="button" tabindex="0" title="Mở mô-đun 1" style="cursor:pointer"><div class="module-num">01</div><div class="module-card"><div><h3>01 · Chào mừng đến FASTCARE</h3><p>Câu chuyện thương hiệu, hệ thống và những người bạn sẽ đồng hành.</p></div><span class="status-chip" id="module1Status">ĐÃ MỞ</span></div></article>
           <article class="module current" id="currentModule"><div class="module-num">02</div><div class="module-card"><div><h3>Văn hoá phục vụ khách hàng</h3><p>4 bài · Lắng nghe, chủ động, minh bạch và theo sát đến cùng.</p></div><span class="status-chip" id="currentModuleStatus">0/4 BÀI</span></div></article>
           <article class="module" id="nextModule"><div class="module-num">03</div><div class="module-card"><div><h3>Chính sách & quy định chung</h3><p>3 bài · Tác phong, bảo mật thông tin và quy trình nội bộ.</p></div><span class="status-chip" id="nextModuleStatus">CHƯA MỞ</span></div></article>
           <article class="module"><div class="module-num">04</div><div class="module-card"><div><h3>Nghiệp vụ theo vị trí</h3><p>5 bài · Lộ trình riêng cho khối cửa hàng hoặc từng phòng ban văn phòng.</p></div><span class="status-chip">CHƯA MỞ</span></div></article>
@@ -431,6 +445,26 @@
         <div class="rank-hero"><p class="eyebrow" style="color:var(--brand)">Khu vực quản trị</p><h1>Quản lý<br>học viên.</h1><p>Danh sách học viên và tổng điểm XP — chỉ hiển thị với tài khoản quản trị.</p></div>
         <div id="pendingApprovals" style="margin-bottom:18px"></div>
         <div id="rejectedList" style="margin-bottom:18px"></div>
+        <div id="createSection" hidden>
+          <h2 class="perm-h">Tạo tài khoản</h2>
+          <p class="perm-sub">Tạo tài khoản cho nhân sự — tạo xong dùng được ngay, không cần chờ duyệt. Nhân sự chỉ cần nhập đúng email đã được cấp để vào học, không cần mật khẩu.</p>
+          <form class="create-grid" id="createForm">
+            <div><label for="crName">Họ và tên *</label><input id="crName" type="text" required placeholder="Nguyễn Văn A"></div>
+            <div><label for="crEmail">Email *</label><input id="crEmail" type="email" required placeholder="vana@fastcare.vn"></div>
+            <div><label for="crUnit">Phòng ban / Chi nhánh</label><input id="crUnit" type="text" list="unitList" placeholder="Chi nhánh Tô Ký"><datalist id="unitList"></datalist></div>
+            <div><label for="crPosition">Vị trí</label><input id="crPosition" type="text" placeholder="Nhân viên kỹ thuật"></div>
+            <div><label for="crCode">Mã NS</label><input id="crCode" type="text" placeholder="FC123"></div>
+            <div><label for="crStart">Ngày vào</label><input id="crStart" type="date"></div>
+            <button class="primary" type="submit" id="crBtn">Tạo tài khoản</button>
+            <p class="create-msg" id="crMsg" role="status"></p>
+          </form>
+          <div class="imp-box">
+            <h3>Tạo hàng loạt từ file Excel</h3>
+            <p class="perm-sub">File .xlsx hoặc .csv với các cột: Họ và tên · Phòng ban · Vị trí · Ngày vào (dd/mm/yyyy) · Mã NS · Email. Web sẽ hiện bảng xem trước để kiểm tra trước khi tạo thật.</p>
+            <input type="file" id="impFile" accept=".xlsx,.xls,.csv">
+            <div id="impPreview"></div>
+          </div>
+        </div>
         <div id="permSection" hidden>
           <h2 class="perm-h">Quản lý quyền</h2>
           <p class="perm-sub">Set quyền trực tiếp cho từng tài khoản, hoặc xoá tài khoản khi cần. Chỉ Quản trị viên mới đổi được quyền và xoá tài khoản; Quản lý xem được danh sách và duyệt/từ chối tài khoản.</p>
@@ -452,6 +486,22 @@
     </main>
   </div>
 
+  <div class="lesson-overlay" id="welcomeOverlay" role="dialog" aria-modal="true" aria-label="Mô-đun 1 · Chào mừng đến FASTCARE">
+    <div class="lesson">
+      <div class="lesson-top"><strong>Mô-đun 1 · Chào mừng đến FASTCARE</strong><button class="close-btn" id="closeWelcome" aria-label="Đóng">×</button></div>
+      <div class="lesson-body">
+        <h2>Chào mừng đến FASTCARE</h2>
+        <p>Câu chuyện thương hiệu, hệ thống và những người bạn sẽ đồng hành cùng bạn trong 30 ngày đầu tiên.</p>
+        <div class="keypoints">
+          <div class="point"><b>01 · Thương hiệu</b><span>FASTCARE — hệ thống sửa chữa điện thoại, laptop với phương châm phục vụ tận tâm.</span></div>
+          <div class="point"><b>02 · Hệ thống</b><span>12 cửa hàng cùng khối văn phòng: Kho Tổng, Thu mua, Kế toán, CSKH, Nhân sự, Ngành hàng, Ban kiểm soát, Marketing.</span></div>
+          <div class="point"><b>03 · Đồng hành</b><span>Bạn không học một mình — quản lý trực tiếp và đồng nghiệp luôn sẵn sàng hỗ trợ.</span></div>
+        </div>
+        <div id="welcomeVideoSlot" class="video-slot"><p><strong>Video văn hoá FASTCARE sẽ hiển thị tại đây.</strong><br>Kem gửi clip (link YouTube) hoặc file slide là mình gắn vào ngay cho nhân sự xem.</p></div>
+        <div style="margin-top:18px"><button class="primary" type="button" id="welcomeDone">Đã xem xong</button></div>
+      </div>
+    </div>
+  </div>
   <nav class="mobile-nav" aria-label="Điều hướng di động">
     <button class="active" data-view="home"><svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5V21h-6v-6H9v6H3z"/></svg>Trang học</button>
     <button data-view="route"><svg viewBox="0 0 24 24"><path d="M5 3v18M5 6h10l-2 3 2 3H5M5 17h13l-2 3"/></svg>Lộ trình</button>
@@ -566,6 +616,7 @@
   </div>
   <div class="toast" id="toast" role="status"></div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
