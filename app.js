@@ -168,7 +168,9 @@
         return null;
       }
       function wireCreateSection(){
-        if(createWired)return;createWired=true;
+        if(createWired)return;
+        if(!document.getElementById('createForm'))return;
+        createWired=true;
         var dl=document.getElementById('unitList');var pf=document.getElementById('pfDept');
         if(dl&&pf){dl.innerHTML='';Array.prototype.forEach.call(pf.options,function(o){if(o.value){var op=document.createElement('option');op.value=o.value;dl.appendChild(op)}})}
         document.getElementById('createForm').addEventListener('submit',async function(e){
@@ -571,6 +573,15 @@
           e.preventDefault();setAuthError('');
           var btn=document.getElementById('loginBtn');var wrap=document.getElementById('loginPassWrap');
           var email=loginEmailEl.value.trim();btn.disabled=true;
+          if(!wrap){
+            btn.textContent='Đang đăng nhập…';
+            try{
+              var ro=await sb.auth.signInWithPassword({email:email,password:document.getElementById('loginPassword').value});
+              if(ro.error)throw ro.error;
+            }catch(err){setAuthError(authMsg(err))}
+            btn.disabled=false;btn.textContent='Đăng nhập';
+            return;
+          }
           try{
             if(wrap.hidden){
               btn.textContent='Đang vào…';
@@ -704,6 +715,15 @@
       document.querySelectorAll('.open-lesson').forEach(function(btn){btn.addEventListener('click',function(){openLesson(btn,false)})});
       function closeLesson(){overlay.classList.remove('open');document.body.style.overflow='';if(lastFocus&&!lastFocus.disabled)lastFocus.focus()}
       document.getElementById('closeLesson').addEventListener('click',closeLesson);
+      var welcomeOverlay=document.getElementById('welcomeOverlay');
+      var m1=document.getElementById('module1Card');
+      function openWelcome(){if(!welcomeOverlay)return;welcomeOverlay.classList.add('open');document.body.style.overflow='hidden';var c=document.getElementById('closeWelcome');if(c)c.focus()}
+      function closeWelcome(){if(!welcomeOverlay)return;welcomeOverlay.classList.remove('open');document.body.style.overflow='';if(m1)m1.focus()}
+      if(m1){m1.addEventListener('click',openWelcome);m1.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();openWelcome()}})}
+      var cw=document.getElementById('closeWelcome');if(cw)cw.addEventListener('click',closeWelcome);
+      var wd=document.getElementById('welcomeDone');if(wd)wd.addEventListener('click',closeWelcome);
+      if(welcomeOverlay)welcomeOverlay.addEventListener('click',function(e){if(e.target===welcomeOverlay)closeWelcome()});
+      document.addEventListener('keydown',function(e){if(e.key==='Escape'&&welcomeOverlay&&welcomeOverlay.classList.contains('open'))closeWelcome()});
       overlay.addEventListener('click',function(e){if(e.target===overlay)closeLesson()});
       document.addEventListener('keydown',function(e){if(e.key==='Escape'&&overlay.classList.contains('open'))closeLesson()});
       document.querySelectorAll('.question').forEach(function(q){q.querySelectorAll('.option').forEach(function(opt,idx){opt.addEventListener('click',function(){q.querySelectorAll('.option').forEach(function(o){o.classList.remove('selected')});opt.classList.add('selected');q.dataset.selected=idx})})});
