@@ -870,7 +870,7 @@
           function showGameMenu(){
             var card0=document.querySelector('.activity-card');if(card0)card0.classList.remove('wide');
             activityTitle.textContent='Mini-game · Thử thách vui';
-            activityBody.innerHTML='<p>Chọn một thử thách để chơi và cộng XP:</p><div class="game-menu"><button class="game-pick" id="pickMem" type="button"><span class="game-pick-icon">🎴</span><span><strong>Lật thẻ 4C</strong><small>Game trí nhớ 8 thẻ · tối đa 100 XP</small></span></button><button class="game-pick" id="pickStage" type="button"><span class="game-pick-icon">🏪</span><span><strong>Vượt ải 4C</strong><small>Mô phỏng cửa hàng · 4 ải · tối đa 120 XP</small></span></button></div>';
+            activityBody.innerHTML='<p>Chọn một thử thách để chơi và cộng XP:</p><div class="game-menu"><button class="game-pick" id="pickMem" type="button"><span class="game-pick-icon">🎴</span><span><strong>Lật thẻ 4C</strong><small>Game trí nhớ 8 thẻ · tối đa 100 XP</small></span></button><button class="game-pick" id="pickStage" type="button"><span class="game-pick-icon">🏪</span><span><strong>Vượt ải 4C</strong><small>Mô phỏng cửa hàng · 3 ải · tối đa 100 XP</small></span></button></div>';
             document.getElementById('pickMem').addEventListener('click',startMemGame);
             document.getElementById('pickStage').addEventListener('click',startStageGame);
           }
@@ -939,122 +939,9 @@
           }
           function startStageGame(){
             var STAGES=[
-              {icon:'⚡',code:'C1',name:'Chủ động',color:'#e84924',soft:'#ffe7df',qs:[
-                {scene:'Khách vừa đến!',cust:'🧑',line:'Xin chào, mình cần hỗ trợ ạ!',mission:'Đón khách đúng lúc',
-                 s:'Một vị khách vừa bước vào cửa hàng. Bạn đang hỗ trợ khách khác tại quầy.',
-                 tip:'Chủ động ghi nhận khách mới, đồng thời không bỏ dở trách nhiệm với khách đang phục vụ.',
-                 opts:[
-                   {icon:'🙋',t:'Chủ động ghi nhận khách',d:'Chào khách và báo sẽ hỗ trợ ngay'},
-                   {icon:'📱',t:'Chờ khách tự lên tiếng',d:'Tiếp tục làm việc, không phản hồi'},
-                   {icon:'🏃',t:'Bỏ khách đang phục vụ',d:'Chạy ngay sang khách mới'}
-                 ],a:0,
-                 why:'Chủ động tiếp đón ngay từ giây đầu — đồng thời khéo léo hẹn khách mới chờ một chút thay vì bỏ dở khách đang phục vụ.'},
-                {scene:'Khách đang ngó nghiêng!',cust:'👩',line:'Hmm, không biết hỏi ai đây…',mission:'Đừng để khách phải mở lời',
-                 s:'Một chị khách đứng nhìn quanh cửa hàng, có vẻ đang tìm kiếm sự giúp đỡ.',
-                 tip:'Quan sát và chủ động hỏi thăm trước khi khách phải lên tiếng.',
-                 opts:[
-                   {icon:'👀',t:'Đứng quan sát thêm',d:'Xem khách cần gì rồi tính'},
-                   {icon:'💬',t:'Chủ động hỏi thăm',d:'“Dạ chị cần em hỗ trợ gì ạ?”'},
-                   {icon:'💼',t:'Tiếp tục việc của mình',d:'Khách cần sẽ tự gọi'}
-                 ],a:1,
-                 why:'Đừng đợi khách mở lời — chủ động hỏi thăm thể hiện sự quan tâm chân thành.'},
-                {scene:'Câu hỏi khó!',cust:'🧔',line:'Lỗi này do đâu vậy em?',mission:'Trung thực khi chưa chắc chắn',
-                 s:'Khách hỏi về một lỗi mà bạn chưa chắc chắn nguyên nhân.',
-                 tip:'Chủ động không có nghĩa là đoán mò — minh bạch và hẹn mốc cập nhật cụ thể.',
-                 opts:[
-                   {icon:'🎲',t:'Đoán nhanh nguyên nhân',d:'Để khách yên tâm trước đã'},
-                   {icon:'📋',t:'Hẹn mốc cập nhật cụ thể',d:'“Để em kiểm tra kỹ, 10h em báo anh nhé!”'},
-                   {icon:'🔀',t:'Chuyển cho người khác',d:'Nhờ đồng nghiệp xử lý ngay'}
-                 ],a:1,
-                 why:'Đoán mò nghe có vẻ “chủ động” nhưng rất nguy hiểm — minh bạch và hẹn mốc cập nhật cụ thể mới là chuyên nghiệp.'}
-              ]},
-              {icon:'😊',code:'C2',name:'Cười',color:'#0f766e',soft:'#dceee9',qs:[
-                {scene:'Khách phải chờ!',cust:'👵',line:'Chờ lâu quá…',mission:'Nụ cười xoa dịu thời gian chờ',
-                 s:'Cửa hàng đang đông, một bác khách phải chờ 15 phút. Bạn mang nước ra mời.',
-                 tip:'Nụ cười + giao tiếp bằng mắt biến thời gian chờ thành trải nghiệm dễ chịu.',
-                 opts:[
-                   {icon:'😊',t:'Cười tươi mời nước',d:'“Dạ con mời bác dùng nước ạ!”'},
-                   {icon:'🥤',t:'Đặt nước rồi đi',d:'Không nói gì thêm'},
-                   {icon:'⏳',t:'Nhắn khách thông cảm',d:'Rồi quay lại quầy ngay'}
-                 ],a:0,
-                 why:'Ly nước kèm nụ cười và ánh mắt chân thành — khách sẽ thấy 15 phút chờ đợi nhẹ nhàng hơn nhiều.'},
-                {scene:'Khách khó chịu!',cust:'😠',line:'Sao lâu thế?!',mission:'Giữ bình tĩnh, chủ động cập nhật',
-                 s:'Khách tỏ vẻ khó chịu vì chờ đợi quá lâu.',
-                 tip:'Khách cần biết thiết bị của mình đang ở đâu — cập nhật chủ động với nụ cười.',
-                 opts:[
-                   {icon:'🗣️',t:'Giải thích dài dòng',d:'Kể vì sao hôm nay đông khách'},
-                   {icon:'🤫',t:'Im lặng làm nhanh hơn',d:'Không nói gì, cố tăng tốc'},
-                   {icon:'😊',t:'Cười và cập nhật tiến độ',d:'“Máy mình đang ở bước kiểm tra cuối ạ!”'}
-                 ],a:2,
-                 why:'Giải thích dài dòng nghe như biện minh — nụ cười thân thiện + cập nhật tiến độ cụ thể mới xoa dịu được.'},
-                {scene:'Báo giá căng thẳng!',cust:'🧐',line:'Sao mắc vậy?',mission:'Nụ cười + minh bạch chi phí',
-                 s:'Khách nhăn mặt khi nghe báo giá sửa chữa.',
-                 tip:'Chuyên nghiệp không có nghĩa là nghiêm nghị — nụ cười nhẹ + minh bạch từng khoản.',
-                 opts:[
-                   {icon:'😊',t:'Cười nhẹ, giải thích rõ',d:'Phân tích từng khoản chi phí'},
-                   {icon:'😐',t:'Nghiêm mặt cho chuyên nghiệp',d:'Giữ vẻ mặt nghiêm túc'},
-                   {icon:'😂',t:'Cười lớn cho vui',d:'Pha trò để không khí nhẹ nhàng'}
-                 ],a:0,
-                 why:'Nghiêm mặt dễ khiến khách thêm căng thẳng — nụ cười nhẹ kèm giải thích minh bạch từng khoản mới tạo niềm tin.'}
-              ]},
-              {icon:'👋',code:'C3',name:'Chào',color:'#b97f10',soft:'#faecc9',qs:[
-                {scene:'Khách ra về!',cust:'👋',line:'Cảm ơn nhé!',mission:'Chào khi tiễn khách',
-                 s:'Khách đã nhận máy xong và chuẩn bị ra về.',
-                 tip:'Chào khi đưa khách về — khép lại trải nghiệm một cách trọn vẹn.',
-                 opts:[
-                   {icon:'💼',t:'Quay lại quầy việc',d:'Tiếp tục công việc dang dở'},
-                   {icon:'🙂',t:'Gật đầu nhẹ',d:'Không nói gì thêm'},
-                   {icon:'👋',t:'Vẫy tay chào tạm biệt',d:'“Dạ em chào anh/chị ạ!”'}
-                 ],a:2,
-                 why:'Đừng để khách ra về trong im lặng — lời chào tạm biệt ấm áp là dấu chấm đẹp cho trải nghiệm.'},
-                {scene:'Hai khách cùng lúc!',cust:'🧑‍💼',line:'(vừa bước vào cửa hàng)',mission:'Chào bằng ánh mắt',
-                 s:'Bạn đang tư vấn cho khách A thì bắt gặp ánh mắt khách B vừa bước vào.',
-                 tip:'Chào bằng ánh mắt khi bắt gặp ánh mắt khách — ghi nhận mà không làm gián đoạn.',
-                 opts:[
-                   {icon:'😊',t:'Cười, gật đầu chào',d:'Rồi tiếp tục với khách A'},
-                   {icon:'🙈',t:'Làm ngơ',d:'Tư vấn xong khách A đã'},
-                   {icon:'🏃',t:'Chạy ra chào ngay',d:'Bỏ dở khách A'}
-                 ],a:0,
-                 why:'Làm ngơ khiến khách B thấy bị bỏ rơi, bỏ dở khách A thì thiếu tôn trọng — chào bằng ánh mắt là cách vẹn cả đôi đường.'},
-                {scene:'Khách quen trở lại!',cust:'😎',line:'Lại gặp nhau rồi!',mission:'Chào có ghi nhận',
-                 s:'Anh khách quen quay lại cửa hàng lần thứ 3 trong tháng.',
-                 tip:'Chào đúng thời điểm + ghi nhận khách quen — sự quan tâm chân thành.',
-                 opts:[
-                   {icon:'📋',t:'Chào đúng quy trình',d:'Như với khách mới'},
-                   {icon:'🤝',t:'Chào thân mật',d:'“Máy mình dùng ổn không anh?”'},
-                   {icon:'👋',t:'Không cần chào',d:'Đã quen mặt nhau rồi'}
-                 ],a:1,
-                 why:'Khách quen được ghi nhận sẽ thấy mình đặc biệt — một câu hỏi thăm chân thành hơn vạn lời chào xã giao.'}
-              ]},
-              {icon:'🙏',code:'C4',name:'Cảm ơn',color:'#7c5cbf',soft:'#ece5f9',qs:[
-                {scene:'Thanh toán xong!',cust:'💳',line:'Anh gửi tiền nhé!',mission:'Cảm ơn sau giao dịch',
-                 s:'Khách vừa thanh toán xong chi phí sửa chữa.',
-                 tip:'Luôn cảm ơn và cười với khách hàng — câu nói nhỏ, ấn tượng lớn.',
-                 opts:[
-                   {icon:'🧾',t:'Đưa hóa đơn',d:'“Xong rồi ạ!”'},
-                   {icon:'🤫',t:'Im lặng đưa hóa đơn',d:'Không nói gì thêm'},
-                   {icon:'🙏',t:'Cảm ơn kèm nụ cười',d:'“Dạ em cảm ơn anh/chị ạ!”'}
-                 ],a:2,
-                 why:'Đừng để giao dịch kết thúc khô khan — lời cảm ơn kèm nụ cười khiến khách nhớ mãi.'},
-                {scene:'Khách góp ý!',cust:'😐',line:'Lần trước chờ hơi lâu đó.',mission:'Cảm ơn cả lời chê',
-                 s:'Khách góp ý về trải nghiệm chưa tốt lần trước.',
-                 tip:'Cảm ơn khách khi nhận được góp ý — biến phàn nàn thành cơ hội.',
-                 opts:[
-                   {icon:'🗣️',t:'Giải thích lý do',d:'Hôm đó đông khách mà'},
-                   {icon:'🙏',t:'Cảm ơn và ghi nhận',d:'“Bên em sẽ cải thiện ạ!”'},
-                   {icon:'🤐',t:'Im lặng cho qua',d:'Không phản hồi'}
-                 ],a:1,
-                 why:'Biện minh khiến khách thêm bực — cảm ơn góp ý và cam kết cải thiện mới giữ được lòng tin.'},
-                {scene:'Khách chưa mua!',cust:'🚶',line:'Để anh về suy nghĩ đã.',mission:'Trân trọng đến phút cuối',
-                 s:'Khách tham khảo xong nhưng quyết định chưa sửa và ra về.',
-                 tip:'Trân trọng cả khi khách chưa mua — hôm nay chưa sửa, mai họ sẽ nhớ thái độ của bạn.',
-                 opts:[
-                   {icon:'🙏',t:'Cảm ơn và mời quay lại',d:'“Khi nào cần anh ghé em nhé!”'},
-                   {icon:'😶',t:'Không nói gì',d:'Khách không mua thì thôi'},
-                   {icon:'❓',t:'Hỏi dồn lý do',d:'“Sao anh không sửa ạ?”'}
-                 ],a:0,
-                 why:'Thái độ trân trọng ngay cả khi khách chưa mua — đó là cách gieo niềm tin cho lần quay lại sau.'}
-              ]}
+              {icon:'⚡',code:'C1',name:'Chủ động',color:'#e84924',soft:'#ffe7df',qs:[{q:'Một khách hàng vừa bước vào cửa hàng, nhưng bạn đang hỗ trợ một khách khác tại quầy. Bạn sẽ làm gì?',tip:'Chủ động ghi nhận khách mới, đồng thời không bỏ dở trách nhiệm với khách đang phục vụ.',opts:['Chào và hướng dẫn khách mới vào ghế chờ và báo sẽ hỗ trợ ngay, đồng thời tiếp tục phục vụ khách đang sửa máy','Tiếp tục làm việc, chờ khách mới tự lên tiếng','Bỏ khách đang phục vụ để chạy ngay sang khách mới','Hẹn khách mới hôm khác quay lại khi cửa hàng vắng hơn'],a:0,why:'Chủ động tiếp đón ngay từ giây đầu — đồng thời khéo léo hẹn khách mới chờ một chút thay vì bỏ dở khách đang phục vụ.'},{q:'Một chị khách đứng nhìn quanh cửa hàng, có vẻ đang tìm người giúp đỡ mà chưa mở lời. Bạn sẽ làm gì?',tip:'Quan sát và chủ động hỏi thăm trước khi khách phải lên tiếng.',opts:['Đứng quan sát thêm xem chị cần gì rồi tính','Chủ động đến hỏi: “Dạ chị cần em hỗ trợ gì ạ? - Mình đến sửa máy hay lấy máy ạ?”','Tiếp tục việc của mình, khách cần sẽ tự gọi','Chờ chị khách tự đến quầy rồi mới tiếp đón'],a:1,why:'Đừng đợi khách mở lời — chủ động hỏi thăm thể hiện sự quan tâm chân thành.'},{q:'Khách hỏi về một lỗi mà bạn chưa chắc chắn nguyên nhân. Bạn sẽ hành động thế nào?',tip:'Chủ động không có nghĩa là đoán mò — minh bạch và hẹn mốc cập nhật cụ thể.',opts:['Đoán nhanh một nguyên nhân để khách yên tâm trước','Chuyển ngay cho đồng nghiệp xử lý','Nhận máy và bảo khi nào xong sẽ gọi, không hẹn thời gian cụ thể','Trực tiếp hỏi thăm thêm và tình trạng máy, xin khách thêm thời gian kiểm tra kỹ máy trước khi đưa ra kết quả cuối'],a:3,why:'Đoán mò nghe có vẻ “chủ động” nhưng rất nguy hiểm — hỏi thêm tình trạng máy và xin thời gian kiểm tra kỹ trước khi kết luận mới là chuyên nghiệp.'},{q:'Trong lúc sửa máy, bạn phát hiện thêm một lỗi khác ngoài lỗi khách đã báo. Bạn sẽ làm gì?',tip:'Chủ động báo khách trước khi phát sinh thêm chi phí — minh bạch tạo niềm tin.',opts:['Tự sửa luôn lỗi đó rồi cộng tiền vào hóa đơn lúc giao máy','Bỏ qua lỗi đó, chỉ sửa đúng lỗi khách đã báo','Đợi đến lúc giao máy mới nói về lỗi phát sinh thêm','Liên hệ khách ngay, nói rõ lỗi phát sinh và chi phí, chỉ sửa tiếp khi khách đồng ý'],a:3,why:'Tự sửa rồi tính tiền sau khiến khách bị động và mất niềm tin — báo trước, được khách đồng ý rồi mới sửa thêm.'}]},
+              {icon:'😊',code:'C2',name:'Cười',color:'#0f766e',soft:'#dceee9',qs:[{q:'Khách tỏ vẻ khó chịu vì chờ đợi quá lâu. Bạn sẽ làm gì?',tip:'Khách cần biết thiết bị của mình đang ở đâu — cập nhật chủ động với nụ cười.',opts:['Giải thích dài dòng vì sao hôm nay đông khách','Tươi cười và cập nhật tiến độ: “Máy mình đang ở bước kiểm tra cuối ạ!”','Im lặng, cố làm nhanh hơn mà không nói gì','Hẹn khách quay lại lấy máy vào hôm sau để khỏi phải chờ'],a:1,why:'Giải thích dài dòng nghe như biện minh — nụ cười thân thiện + cập nhật tiến độ cụ thể mới xoa dịu được.'},{q:'Khách nhăn mặt khi nghe báo giá sửa chữa. Bạn sẽ phản ứng thế nào?',tip:'Chuyên nghiệp không có nghĩa là nghiêm nghị — nụ cười nhẹ + minh bạch từng khoản.',opts:['Giữ vẻ mặt nghiêm túc cho chuyên nghiệp','Cười lớn, pha trò cho không khí nhẹ nhàng','Giảm giá ngay để khách đỡ khó chịu','Cười nhẹ và giải thích rõ từng khoản chi phí khi sửa'],a:3,why:'Nghiêm mặt dễ khiến khách thêm căng thẳng — nụ cười nhẹ kèm giải thích minh bạch từng khoản mới tạo niềm tin.'},{q:'Một khách lớn tuổi đến sửa máy, nghe không rõ và hỏi đi hỏi lại nhiều lần. Bạn sẽ làm gì?',tip:'Nụ cười và sự kiên nhẫn khiến khách lớn tuổi cảm thấy được tôn trọng.',opts:['Trả lời nhanh cho xong vì còn nhiều khách đang chờ','Nhờ khách khác đang chờ giải thích hộ cho nhanh','Mỉm cười, nói chậm và rõ, nhắc lại từng ý cho đến khi khách hiểu','Bảo khách để máy lại, hôm sau quay lại nghe kết quả'],a:2,why:'Vội vàng hay nhờ người khác giải thích đều khiến khách thấy mình làm phiền — cười, nói chậm và nhắc lại đến khi khách hiểu mới là chăm sóc thật sự.'}]},
+              {icon:'👋',code:'C3',name:'Chào',color:'#b97f10',soft:'#faecc9',qs:[{q:'Khách đã nhận máy xong và chuẩn bị ra về. Bạn sẽ làm gì?',tip:'Chào khi đưa khách về — khép lại trải nghiệm một cách trọn vẹn.',opts:['Mở cửa và chào tạm biệt khách: “Dạ em chào anh/chị ạ!”','Cứ để khách tự ra về, tiếp tục công việc dang dở','Gật đầu nhẹ, không nói gì thêm','Tiễn khách ra cửa trong im lặng'],a:0,why:'Đừng để khách ra về trong im lặng — lời chào tạm biệt ấm áp là dấu chấm đẹp cho trải nghiệm.'},{q:'Khách tham khảo xong nhưng quyết định chưa sửa và ra về. Bạn sẽ làm gì?',tip:'Trân trọng cả khi khách chưa mua — hôm nay chưa sửa, mai họ sẽ nhớ thái độ của bạn.',opts:['Không nói gì, khách không mua thì thôi','Hỏi dồn: “Sao anh không sửa ạ?”','Cảm ơn và mời quay lại: “Khi nào cần anh ghé em nhé! Hoặc liên hệ với tổng đài bên em để được hỗ trợ nhanh nhất ạ”','Nhấn mạnh giá hôm nay đang ưu đãi để khách đổi ý'],a:2,why:'Thái độ trân trọng ngay cả khi khách chưa mua — đó là cách gieo niềm tin cho lần quay lại sau.'},{q:'Khách quay lại cửa hàng lấy máy sau thời gian gửi sửa. Bạn sẽ chào đón thế nào?',tip:'Chào đúng thời điểm + hỏi rõ nhu cầu — khách quay lại cũng cần được đón tiếp như khách mới.',opts:['Chào và hỏi thăm: “Dạ anh/chị đến lấy máy phải không ạ? Mình cho em xin phiếu sửa máy để em tìm máy giúp mình nhé!”','Hỏi thẳng mã phiếu rồi quay vào tìm, không chào hỏi gì thêm','Bảo khách tự đọc số thứ tự rồi ngồi chờ gọi tên','Để khách tự ra khu vực máy đã sửa xong để tự tìm máy của mình'],a:0,why:'Khách quay lại lấy máy vẫn cần một lời chào ấm áp và sự hướng dẫn rõ ràng — để khách tự loay hoay là thiếu tôn trọng.'}]}
             ];
             var si=0,qi=0,correct=0;
             var totalQ=STAGES.reduce(function(n,s){return n+s.qs.length;},0);
@@ -1064,7 +951,7 @@
               var map=STAGES.map(function(s){
                 return '<div class="stage-chip" style="--pc:'+s.color+';--ps:'+s.soft+'"><span>'+s.icon+'</span><b>Ải · '+s.name+'</b></div>';
               }).join('');
-              activityBody.innerHTML='<button class="linklike" id="backMenu2" type="button">‹ Chọn game khác</button><p class="mem-intro">Hóa thân thành <b>Chiến binh FASTCARE</b>! Vượt qua <b>4 cửa ải</b> — mỗi ải 3 tình huống thực tế tại cửa hàng — để nhận <b>🏅 Huy hiệu Nhân viên 4C</b>.</p><div class="stage-map">'+map+'</div><button class="primary" id="stageStart" type="button">Bắt đầu ca làm việc</button>';
+              activityBody.innerHTML='<button class="linklike" id="backMenu2" type="button">‹ Chọn game khác</button><p class="mem-intro">Hóa thân thành <b>Chiến binh FASTCARE</b>! Vượt qua <b>3 cửa ải</b> — 10 tình huống thực tế tại cửa hàng — để nhận <b>🏅 Huy hiệu Nhân viên 4C</b>.</p><div class="stage-map">'+map+'</div><button class="primary" id="stageStart" type="button">Bắt đầu ca làm việc</button>';
               document.getElementById('backMenu2').addEventListener('click',showGameMenu);
               document.getElementById('stageStart').addEventListener('click',function(){si=0;showStageHead();});
             }
@@ -1077,28 +964,18 @@
             function showSimQ(){
               var s=STAGES[si],q=s.qs[qi];
               activityTitle.textContent='FASTCARE – Chiến binh FASTCARE';
-              var letters=['A','B','C'];
+              var letters=['A','B','C','D'];
+              var qNum=0;STAGES.slice(0,si).forEach(function(s){qNum+=s.qs.length});qNum+=qi+1;
               var opts=q.opts.map(function(o,i){
-                return '<button class="sim-act" data-i="'+i+'" type="button"><span class="sim-act-letter">'+letters[i]+'</span><span class="sim-act-icon">'+o.icon+'</span><span class="sim-act-text"><strong>'+o.t+'</strong><small>'+o.d+'</small></span></button>';
+                return '<button class="sim-act" data-i="'+i+'" type="button"><span class="sim-act-letter">'+letters[i]+'</span><span class="sim-act-text">'+o+'</span></button>';
               }).join('');
               activityBody.innerHTML=
               '<div class="sim-game" style="--pc:'+s.color+';--ps:'+s.soft+'">'+
-                '<div class="sim-scene-top"><span class="sim-store">CỬA HÀNG FASTCARE</span><span class="sim-stage-badge">CỬA ẢI '+(si+1)+'/4 · ✅ <span id="simScore">'+correct+'</span>/'+totalQ+'</span></div>'+
+                '<div class="sim-top-line"><span class="sim-stage-line">Ải '+(si+1)+'/'+STAGES.length+' · '+s.name+'</span><span class="sim-stage-badge">✅ <span id="simScore">'+correct+'</span>/'+totalQ+'</span></div>'+
                 '<div class="sim-qcard">'+
-                  '<div class="sim-eyebrow" style="color:'+s.color+'">'+s.code+' · '+s.name.toUpperCase()+' · Tình huống '+(qi+1)+'/'+s.qs.length+'</div>'+
-                  '<h3 class="sim-q-title">'+q.mission+'</h3>'+
-                  '<p class="sim-desc">'+q.s+'</p>'+
-                  '<div class="sim-cust-line"><span>'+q.cust+'</span><span class="sim-bubble-inline">'+q.line+'</span></div>'+
-                  '<div class="sim-tip"><b>💡 Mẹo văn hoá:</b> '+q.tip+'</div>'+
+                  '<span class="sim-q-pill">Câu hỏi '+qNum+'</span>'+
+                  '<p class="sim-q-text">'+q.q+'</p>'+
                 '</div>'+
-                '<div class="sim-scene sim-scene-compact">'+
-                  '<div class="sim-awning"><span>FASTCARE</span></div>'+
-                  '<div class="sim-chars">'+
-                    '<div class="sim-char"><div class="sim-avatar staff"><img src="assets/fastie-wave.webp" alt="Sóc Fastie - Chiến binh FASTCARE"></div><span class="sim-name">CHIẾN BINH FASTCARE</span></div>'+
-                    '<div class="sim-char"><div class="sim-avatar cust"><span>'+q.cust+'</span></div><span class="sim-name">KHÁCH HÀNG</span></div>'+
-                  '</div>'+
-                '</div>'+
-                '<div class="sim-act-label">✨ Chọn hành động để giúp khách hàng</div>'+
                 '<div class="sim-actions">'+opts+'</div>'+
                 '<button class="primary sim-submit" id="simSubmit" type="button" disabled>HOÀN THÀNH NHIỆM VỤ →</button>'+
                 '<div id="simFb"></div>'+
@@ -1117,7 +994,7 @@
               submitBtn.addEventListener('click',function(){submitSim(q,picked);});
             }
             function submitSim(q,picked){
-              if(picked<0){showToast('Hãy chọn một hành động trước nhé!');return;}
+              if(picked<0){showToast('Hãy chọn một đáp án trước nhé!');return;}
               var ok=picked===q.a;
               activityBody.querySelectorAll('.sim-act').forEach(function(b){
                 b.disabled=true;
@@ -1130,8 +1007,8 @@
               var submitBtn=document.getElementById('simSubmit');if(submitBtn)submitBtn.style.display='none';
               document.getElementById('simFb').innerHTML=
                 '<div class="stage-result '+(ok?'ok':'bad')+'">'+(ok?'✅ Chính xác! +10 XP':'❌ Chưa đúng rồi')+'</div>'+
-                '<p class="stage-why">💡 '+q.why+'</p>'+
-                '<button class="primary sim-submit" id="simNext" type="button">'+(moreQ?'Tình huống tiếp theo':(moreS?'Qua ải tiếp theo →':'Nhận huy hiệu 🏅'))+'</button>';
+                '<p class="stage-why">💡 '+q.why+'</p>'+'<div class="sim-tip"><b>Mẹo văn hoá:</b> '+q.tip+'</div>'+
+                '<button class="primary sim-submit" id="simNext" type="button">'+(moreQ?'Câu tiếp theo':(moreS?'Qua ải tiếp theo →':'Nhận huy hiệu 🏅'))+'</button>';
               document.getElementById('simNext').addEventListener('click',function(){
                 if(moreQ){qi++;showSimQ();}
                 else if(moreS){showStageDone();}

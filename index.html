@@ -280,8 +280,20 @@
     .sim-bubble{position:relative;background:#fff;border:2px solid var(--line);border-radius:14px;padding:10px 12px;font-size:13px;font-weight:600;max-width:230px;align-self:flex-start;margin-top:4px}
     .sim-bubble:after{content:'';position:absolute;bottom:-9px;left:30px;width:14px;height:14px;background:#fff;border-right:2px solid var(--line);border-bottom:2px solid var(--line);transform:rotate(45deg)}
     .sim-act-label{margin:14px 0 10px;font-weight:800;font-size:13px;color:var(--brand-strong);border:2px dashed var(--brand);border-radius:12px;padding:10px;text-align:center;background:var(--brand-soft)}
-    .sim-actions{display:grid;gap:10px}
-    .sim-act{display:flex;gap:12px;align-items:center;background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:12px;cursor:pointer;text-align:left;width:100%}
+    .sim-actions{display:grid;grid-template-columns:1fr 1fr;gap:16px 24px;margin:4px 0 6px}
+    @media (max-width:640px){.sim-actions{grid-template-columns:1fr}}
+    .sim-top-line{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px}
+    .sim-stage-line{font-size:12px;font-weight:800;color:var(--brand);letter-spacing:.06em}
+    .sim-qcard{background:var(--surface);border:2px solid var(--line);border-radius:20px;padding:24px 22px 20px;text-align:center;margin:12px 0 20px}
+    .sim-q-pill{display:inline-block;background:var(--pc,#e84924);color:#fff;font-size:19px;font-weight:800;padding:8px 30px;border-radius:999px}
+    .sim-q-text{font-size:21px;font-weight:700;line-height:1.55;margin:16px 0 0}
+    .sim-act{position:relative;border-radius:999px;padding:16px 18px 16px 30px;justify-content:center;text-align:center}
+    .sim-act-letter{position:absolute;left:-13px;top:50%;transform:translateY(-50%);width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:var(--brand-soft);color:var(--brand-strong);font-weight:800;font-size:16px;border:2px solid var(--surface)}
+    .sim-act.sel .sim-act-letter{background:var(--pc);color:#fff}
+    .sim-act.good .sim-act-letter{background:var(--teal);color:#fff}
+    .sim-act.bad .sim-act-letter{background:var(--brand-strong);color:#fff}
+    .sim-act-text{font-weight:600;font-size:15px;line-height:1.45}
+    .sim-act{display:flex;gap:12px;align-items:center;background:var(--surface);border:2px solid var(--line);cursor:pointer;width:100%}
     .sim-act:hover{border-color:var(--pc)}
     .sim-act.sel{border-color:var(--pc);background:var(--ps);box-shadow:0 0 0 2px var(--pc)}
     .sim-act.good{border-color:var(--teal);background:var(--teal-soft)}
@@ -294,7 +306,7 @@
     .sim-desc{margin:0 0 12px;font-size:15px;line-height:1.6}
     .sim-cust-line{display:flex;gap:10px;align-items:center;margin:0 0 12px;font-size:22px}
     .sim-bubble-inline{background:#fff;border:2px solid var(--line);border-radius:12px;padding:8px 12px;font-size:13px;font-weight:600;line-height:1.5}
-    .sim-tip{background:var(--gold-soft);border-radius:10px;padding:10px 12px;font-size:13px;line-height:1.5}
+    .sim-tip{background:var(--gold-soft);border-radius:10px;padding:10px 12px;font-size:13px;line-height:1.5;margin:0 0 14px}
     .sim-scene-compact{margin:12px 0}
     .sim-scene-compact .sim-avatar{width:56px;height:68px;font-size:30px;border-radius:28px}
     .sim-act-letter{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--brand-soft);color:var(--brand-strong);font-weight:800;font-size:14px}
