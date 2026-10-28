@@ -945,15 +945,38 @@
             ];
             var si=0,qi=0,correct=0;
             var totalQ=STAGES.reduce(function(n,s){return n+s.qs.length;},0);
-            function stageIntro(){
-              var card=document.querySelector('.activity-card');if(card)card.classList.add('wide');
-              activityTitle.textContent='Mini-game · Vượt ải 4C';
-              var map=STAGES.map(function(s){
-                return '<div class="stage-chip" style="--pc:'+s.color+';--ps:'+s.soft+'"><span>'+s.icon+'</span><b>Ải · '+s.name+'</b></div>';
+            function stageMapHTML(curIdx,fastieIdx){
+              var nodes=STAGES.map(function(s,i){
+                var st=i<curIdx?'done':(i===curIdx?'current':'locked');
+                return '<div class="j-node '+st+'" style="--pc:'+s.color+';--ps:'+s.soft+'"><span class="j-node-icon">'+s.icon+'</span><span class="j-node-name">\u1ea2i '+(i+1)+'</span><span class="j-node-sub">'+s.name+'</span></div>';
               }).join('');
-              activityBody.innerHTML='<button class="linklike" id="backMenu2" type="button">‹ Chọn game khác</button><p class="mem-intro">Hóa thân thành <b>Chiến binh FASTCARE</b>! Vượt qua <b>3 cửa ải</b> — 10 tình huống thực tế tại cửa hàng — để nhận <b>🏅 Huy hiệu Nhân viên 4C</b>.</p><div class="stage-map">'+map+'</div><button class="primary" id="stageStart" type="button">Bắt đầu ca làm việc</button>';
+              nodes+='<div class="j-node goal '+(curIdx>=STAGES.length?'current':'locked')+'" style="--pc:#b97f10;--ps:#faecc9"><span class="j-node-icon">\ud83c\udfc5</span><span class="j-node-name">\u0110\u00edch</span><span class="j-node-sub">Huy hi\u1ec7u 4C</span></div>';
+              var fi=fastieIdx==null?curIdx:fastieIdx;
+              var left=(12.5+25*fi);
+              return '<div class="journey"><div class="journey-path"></div><div class="j-nodes">'+nodes+'</div><div class="j-fastie" id="jFastie" style="left:calc('+left+'% - 27px)"><img src="assets/fastie-wave.webp" alt="S\u00f3c Fastie"></div></div>';
+            }
+            async function loadStageProgress(){
+              var done=new Set();
+              if(!currentUser||!sb)return done;
+              try{
+                var r=await sb.from('quiz_attempts').select('lesson_id,score,total').eq('user_id',currentUser.id);
+                (r.data||[]).forEach(function(at){
+                  var m=/^mini-game-vuot-ai-4c-ai-(\d)$/.exec(at.lesson_id||'');
+                  if(m)done.add(+m[1]-1);
+                  if(at.lesson_id==='mini-game-vuot-ai-4c')STAGES.forEach(function(_,i){done.add(i)});
+                });
+              }catch(e){}
+              return done;
+            }
+            async function stageIntro(){
+              var card=document.querySelector('.activity-card');if(card)card.classList.add('wide');
+              activityTitle.textContent='Mini-game · V\u01b0\u1ee3t \u1ea3i 4C';
+              var done=await loadStageProgress();
+              var cur=0;while(cur<STAGES.length&&done.has(cur))cur++;
+              var startLabel=cur>=STAGES.length?'Ch\u01a1i l\u1ea1i t\u1eeb \u0111\u1ea7u':(cur===0?'B\u1eaft \u0111\u1ea7u ca l\u00e0m vi\u1ec7c':'Ti\u1ebfp t\u1ee5c \u1ea3i '+(cur+1)+' \u00b7 '+STAGES[cur].name);
+              activityBody.innerHTML='<button class="linklike" id="backMenu2" type="button">\u2039 Ch\u1ecdn game kh\u00e1c</button><p class="mem-intro">H\u00f3a th\u00e2n th\u00e0nh <b>Chi\u1ebfn binh FASTCARE</b>! V\u01b0\u1ee3t qua <b>3 c\u1eeda \u1ea3i</b> \u2014 10 t\u00ecnh hu\u1ed1ng th\u1ef1c t\u1ebf t\u1ea1i c\u1eeda h\u00e0ng \u2014 \u0111\u1ec3 nh\u1eadn <b>\ud83c\udfc5 Huy hi\u1ec7u Nh\u00e2n vi\u00ean 4C</b>. S\u00f3c Fastie s\u1ebd nh\u1ea3y theo t\u1eebng \u1ea3i b\u1ea1n v\u01b0\u1ee3t qua!</p>'+stageMapHTML(cur,cur)+'<button class="primary" id="stageStart" type="button">'+startLabel+'</button>';
               document.getElementById('backMenu2').addEventListener('click',showGameMenu);
-              document.getElementById('stageStart').addEventListener('click',function(){si=0;showStageHead();});
+              document.getElementById('stageStart').addEventListener('click',function(){si=cur>=STAGES.length?0:cur;showStageHead();});
             }
             function showStageHead(){
               var s=STAGES[si];
@@ -1017,8 +1040,16 @@
             }
             function showStageDone(){
               var s=STAGES[si];
-              activityTitle.textContent='Mini-game · Qua ải!';
-              activityBody.innerHTML='<div class="success-card show"><img src="assets/fastie-celebrate.webp" alt="Sóc Fastie ăn mừng"><div><h3>Vượt ải '+(si+1)+' · '+s.name+'!</h3><p>'+s.icon+' Làm tốt lắm chiến binh! Còn '+(STAGES.length-si-1)+' ải nữa thôi.</p><button class="primary" id="stNextStage" type="button">Vào ải tiếp theo →</button></div></div>';
+              if(currentUser&&sb){sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:'mini-game-vuot-ai-4c-ai-'+(si+1),score:s.qs.length,total:s.qs.length,xp_earned:0}).then(function(){},function(){});}
+              activityTitle.textContent='Mini-game · Qua \u1ea3i!';
+              activityBody.innerHTML='<div class="journey-done"><h3>V\u01b0\u1ee3t \u1ea3i '+(si+1)+' \u00b7 '+s.name+'!</h3><p>'+s.icon+' L\u00e0m t\u1ed1t l\u1eafm chi\u1ebfn binh! Fastie nh\u1ea3y l\u00ean \u1ea3i ti\u1ebfp theo nh\u00e9!</p>'+stageMapHTML(si+1,si)+'<button class="primary sim-submit" id="stNextStage" type="button">V\u00e0o \u1ea3i ti\u1ebfp theo \u2192</button></div>';
+              var jf=document.getElementById('jFastie');
+              setTimeout(function(){
+                if(!jf||!document.body.contains(jf))return;
+                var nl=(12.5+25*(si+1));
+                jf.style.left='calc('+nl+'% - 27px)';jf.classList.add('hop');
+                setTimeout(function(){jf.classList.remove('hop')},750);
+              },160);
               document.getElementById('stNextStage').addEventListener('click',function(){si++;showStageHead();});
             }
             async function showFinal(){

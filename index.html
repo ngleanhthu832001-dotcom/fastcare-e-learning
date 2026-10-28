@@ -313,6 +313,24 @@
     .sim-act-text{display:flex;flex-direction:column;gap:2px;min-width:0}
     .sim-act-text small{color:var(--muted);font-size:12px;line-height:1.4}
     .sim-submit{width:100%;justify-content:center;margin-top:14px}
+    .journey{position:relative;padding:56px 4px 6px;margin:14px 0 18px}
+    .journey-path{position:absolute;left:12.5%;right:12.5%;top:84px;border-top:4px dotted #e8d9c9}
+    .j-nodes{position:relative;display:flex}
+    .j-node{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0}
+    .j-node-icon{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;font-size:26px;background:var(--ps);border:2px solid var(--pc);position:relative;z-index:1}
+    .j-node.locked{opacity:.55}
+    .j-node.locked .j-node-icon{background:var(--surface);border-color:var(--line)}
+    .j-node.current .j-node-icon{box-shadow:0 0 0 4px var(--ps),0 0 0 6px var(--pc);animation:jpulse 1.6s ease-in-out infinite}
+    @keyframes jpulse{50%{box-shadow:0 0 0 7px var(--ps),0 0 0 9px var(--pc)}}
+    .j-node.done .j-node-icon{background:var(--pc);color:#fff}
+    .j-node-name{font-weight:800;font-size:13px;white-space:nowrap}
+    .j-node-sub{font-size:11px;color:var(--muted);white-space:nowrap}
+    .j-fastie{position:absolute;top:0;width:54px;z-index:2;transition:left .7s cubic-bezier(.45,0,.55,1)}
+    .j-fastie img{width:100%;display:block}
+    .j-fastie.hop img{animation:jhop .7s ease}
+    @keyframes jhop{35%{transform:translateY(-26px) scale(1.06)}70%{transform:translateY(3px)}100%{transform:translateY(0)}}
+    .journey-done h3{margin:0 0 4px;font-size:20px}
+    .journey-done p{color:var(--muted);font-size:13px;margin:0}
     .sim-act strong{display:block;font-size:14px}
     .sim-act small{color:var(--muted);font-size:12px}
     .sim-mission-panel{background:var(--surface);border:2px solid var(--line);border-radius:18px;padding:18px;min-width:0}
