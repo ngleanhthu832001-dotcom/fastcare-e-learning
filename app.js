@@ -981,7 +981,7 @@
             function showStageHead(){
               var s=STAGES[si];
               activityTitle.textContent='Mini-game · Ải '+(si+1)+' '+s.name;
-              activityBody.innerHTML='<div class="stage-banner" style="--pc:'+s.color+';--ps:'+s.soft+'"><span class="stage-big-icon">'+s.icon+'</span><div><h3>Ải '+(si+1)+' · '+s.name+'</h3><p>'+s.code+' — '+({ 'Chủ động':'Ghi nhận và tiếp đón khách đúng lúc','Cười':'Tạo thiện cảm khi khách phải chờ','Chào':'Chào khách đúng thời điểm','Cảm ơn':'Khép lại trải nghiệm bằng sự trân trọng' })[s.name]+'</p></div></div><p class="mem-intro">Ải này có <b>'+s.qs.length+' tình huống</b>. Chọn hành động đúng nhất nhé!</p><button class="primary" id="stageGo" type="button">Vào ải</button>';
+              activityBody.innerHTML='<div class="stage-banner" style="--pc:'+s.color+';--ps:'+s.soft+'"><span class="stage-big-icon">'+s.icon+'</span><div><h3>Ải '+(si+1)+' · '+s.name+'</h3><p>'+s.code+' — '+({ 'Chủ động':'Ghi nhận và tiếp đón khách đúng lúc','Cười':'Tạo thiện cảm khi khách phải chờ','Chào':'Chào khách đúng thời điểm','Cảm ơn':'Khép lại trải nghiệm bằng sự trân trọng' })[s.name]+'</p></div></div><p class="mem-intro">Ải này có <b>'+s.qs.length+' tình huống</b>. Chọn đáp án đúng nhất nhé!</p>'+stageMapHTML(si,si)+'<button class="primary" id="stageGo" type="button">Vào ải</button>';
               document.getElementById('stageGo').addEventListener('click',function(){qi=0;showSimQ();});
             }
             function showSimQ(){
