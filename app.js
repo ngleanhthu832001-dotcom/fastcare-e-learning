@@ -1077,36 +1077,31 @@
             function showSimQ(){
               var s=STAGES[si],q=s.qs[qi];
               activityTitle.textContent='FASTCARE – Chiến binh FASTCARE';
+              var letters=['A','B','C'];
               var opts=q.opts.map(function(o,i){
-                return '<button class="sim-act" data-i="'+i+'" type="button"><span class="sim-act-icon">'+o.icon+'</span><span><strong>'+o.t+'</strong><small>'+o.d+'</small></span></button>';
+                return '<button class="sim-act" data-i="'+i+'" type="button"><span class="sim-act-letter">'+letters[i]+'</span><span class="sim-act-icon">'+o.icon+'</span><span class="sim-act-text"><strong>'+o.t+'</strong><small>'+o.d+'</small></span></button>';
               }).join('');
               activityBody.innerHTML=
               '<div class="sim-game" style="--pc:'+s.color+';--ps:'+s.soft+'">'+
-                '<div class="sim-main">'+
-                  '<div class="sim-scene-panel">'+
-                    '<div class="sim-scene-top"><span class="sim-store">CỬA HÀNG FASTCARE</span><span class="sim-stage-badge">CỬA ẢI '+(si+1)+'/4 · ✅ <span id="simScore">'+correct+'</span>/'+totalQ+'</span></div>'+
-                    '<h3 class="sim-scene-title">'+q.scene+'</h3>'+
-                    '<div class="sim-scene">'+
-                      '<div class="sim-awning"><span>FASTCARE</span></div>'+
-                      '<div class="sim-chars">'+
-                        '<div class="sim-char"><div class="sim-avatar staff"><img src="assets/fastie-wave.webp" alt="Sóc Fastie - Chiến binh FASTCARE"></div><span class="sim-name">CHIẾN BINH FASTCARE</span></div>'+
-                        '<div class="sim-bubble">'+q.line+'</div>'+
-                        '<div class="sim-char"><div class="sim-avatar cust"><span>'+q.cust+'</span></div><span class="sim-name">KHÁCH HÀNG</span></div>'+
-                      '</div>'+
-                    '</div>'+
-                    '<div class="sim-act-label">✨ Chọn hành động để giúp khách hàng</div>'+
-                    '<div class="sim-actions">'+opts+'</div>'+
-                  '</div>'+
-                  '<div class="sim-mission-panel">'+
-                    '<div class="sim-eyebrow" style="color:'+s.color+'">'+s.code+' · '+s.name.toUpperCase()+'</div>'+
-                    '<h3>'+q.mission+'</h3>'+
-                    '<p class="sim-desc">'+q.s+'</p>'+
-                    '<div class="sim-tip"><b>💡 Mẹo văn hoá:</b> '+q.tip+'</div>'+
-                    '<p class="sim-hint">Chọn hành động phù hợp để hoàn thành nhiệm vụ nhé!</p>'+
-                    '<button class="primary sim-submit" id="simSubmit" type="button" disabled>HOÀN THÀNH NHIỆM VỤ →</button>'+
-                    '<div id="simFb"></div>'+
+                '<div class="sim-scene-top"><span class="sim-store">CỬA HÀNG FASTCARE</span><span class="sim-stage-badge">CỬA ẢI '+(si+1)+'/4 · ✅ <span id="simScore">'+correct+'</span>/'+totalQ+'</span></div>'+
+                '<div class="sim-qcard">'+
+                  '<div class="sim-eyebrow" style="color:'+s.color+'">'+s.code+' · '+s.name.toUpperCase()+' · Tình huống '+(qi+1)+'/'+s.qs.length+'</div>'+
+                  '<h3 class="sim-q-title">'+q.mission+'</h3>'+
+                  '<p class="sim-desc">'+q.s+'</p>'+
+                  '<div class="sim-cust-line"><span>'+q.cust+'</span><span class="sim-bubble-inline">'+q.line+'</span></div>'+
+                  '<div class="sim-tip"><b>💡 Mẹo văn hoá:</b> '+q.tip+'</div>'+
+                '</div>'+
+                '<div class="sim-scene sim-scene-compact">'+
+                  '<div class="sim-awning"><span>FASTCARE</span></div>'+
+                  '<div class="sim-chars">'+
+                    '<div class="sim-char"><div class="sim-avatar staff"><img src="assets/fastie-wave.webp" alt="Sóc Fastie - Chiến binh FASTCARE"></div><span class="sim-name">CHIẾN BINH FASTCARE</span></div>'+
+                    '<div class="sim-char"><div class="sim-avatar cust"><span>'+q.cust+'</span></div><span class="sim-name">KHÁCH HÀNG</span></div>'+
                   '</div>'+
                 '</div>'+
+                '<div class="sim-act-label">✨ Chọn hành động để giúp khách hàng</div>'+
+                '<div class="sim-actions">'+opts+'</div>'+
+                '<button class="primary sim-submit" id="simSubmit" type="button" disabled>HOÀN THÀNH NHIỆM VỤ →</button>'+
+                '<div id="simFb"></div>'+
               '</div>';
               var picked=-1;
               var submitBtn=document.getElementById('simSubmit');
