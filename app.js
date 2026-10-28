@@ -5,6 +5,9 @@
       var TECH_PWD='FcElearning@2026';
       var LESSON_ID='bai-3-4-van-hoa-phuc-vu';
       var LESSON_XP=120;
+      var SURVEY_ID='khao-sat-module-01';
+      var SURVEY_XP=60;
+      var module1Done=false;
       var sb=null,currentUser=null,userRole='staff',myProfile=null;
       function fmt(n){return Number(n||0).toLocaleString('vi-VN')}
       function initials(name){if(!name)return'?';var p=String(name).trim().split(/\s+/);if(p.length>1){return (p[p.length-2].charAt(0)+p[p.length-1].charAt(0)).toUpperCase()}return p[0].substring(0,2).toUpperCase()}
@@ -69,7 +72,7 @@
         try{
           var lp=await sb.from('lesson_progress').select('lesson_id,completed,xp_earned,updated_at').eq('user_id',currentUser.id);
           if(lp.error)throw lp.error;
-          var qa=await sb.from('quiz_attempts').select('score,total,xp_earned,created_at').eq('user_id',currentUser.id);
+          var qa=await sb.from('quiz_attempts').select('lesson_id,score,total,xp_earned,created_at').eq('user_id',currentUser.id);
           if(qa.error)throw qa.error;
           var rows=lp.data||[],atts=qa.data||[];
           var totalXp=0,completed=0,weekXp=0;
@@ -87,6 +90,7 @@
           var done=false;
           rows.forEach(function(r){if(r.lesson_id===LESSON_ID&&r.completed)done=true});
           if(done&&!lessonCompleted)completeCurrentLesson();
+          atts.forEach(function(a){if(a.lesson_id===SURVEY_ID&&a.score===a.total&&a.total===5)markModule1Done()});
           if(!done){var _cp=document.getElementById('currentProgress');if(_cp)_cp.style.width='0%'}
         }catch(e){/* giữ số liệu hiện tại, không crash */}
       }
@@ -786,6 +790,34 @@
           showToast('Xuất sắc! Đã cộng 120 XP và mở bài tiếp theo');
         }else{
           document.getElementById('submitQuiz').textContent='Nộp lại bài kiểm tra';
+          showToast('Bạn có thể chọn lại đáp án rồi nộp lại');
+        }
+      });
+      function markModule1Done(){
+        if(module1Done)return;module1Done=true;
+        var m1c=document.getElementById('module1Card');
+        if(m1c){m1c.classList.add('done');var mn=m1c.querySelector('.module-num');if(mn)mn.textContent='\u2713'}
+        var st=document.getElementById('module1Status');if(st)st.textContent='HO\u00c0N TH\u00c0NH';
+      }
+      document.querySelectorAll('.sq-question').forEach(function(q){q.querySelectorAll('.sq-option').forEach(function(opt,idx){opt.addEventListener('click',function(){q.querySelectorAll('.sq-option').forEach(function(o){o.classList.remove('selected')});opt.classList.add('selected');q.dataset.selected=idx})})});
+      document.getElementById('submitSurvey').addEventListener('click',async function(){
+        var qs=document.querySelectorAll('.sq-question');var answered=0,score=0;
+        qs.forEach(function(q){
+          var selected=q.dataset.selected;if(selected!==undefined){answered++}
+          q.querySelectorAll('.sq-option').forEach(function(o,i){o.classList.remove('correct','wrong');if(i===Number(q.dataset.answer))o.classList.add('correct');if(selected!==undefined&&i===Number(selected)&&i!==Number(q.dataset.answer))o.classList.add('wrong')});
+          if(Number(selected)===Number(q.dataset.answer))score++;
+        });
+        var result=document.getElementById('surveyResult');
+        if(answered<qs.length){result.textContent='Hãy trả lời đủ '+qs.length+' câu.';return}
+        result.textContent='Kết quả: '+score+'/'+qs.length+' câu đúng';
+        if(currentUser){try{var r=await sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:SURVEY_ID,score:score,total:qs.length,xp_earned:score===qs.length?SURVEY_XP:0});if(r.error)throw r.error}catch(e){dbErrorToast()}}
+        var sBtn=document.getElementById('submitSurvey');
+        if(score===qs.length){
+          markModule1Done();refreshMyStats();
+          sBtn.disabled=true;sBtn.textContent='Đã hoàn thành';
+          showToast('Xuất sắc! Đã cộng 60 XP và hoàn thành mô-đun 1');
+        }else{
+          sBtn.textContent='Nộp lại bài khảo sát';
           showToast('Bạn có thể chọn lại đáp án rồi nộp lại');
         }
       });
