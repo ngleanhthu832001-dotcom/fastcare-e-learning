@@ -1031,18 +1031,18 @@
               document.getElementById('simFb').innerHTML=
                 '<div class="stage-result '+(ok?'ok':'bad')+'">'+(ok?'✅ Chính xác! +10 XP':'❌ Chưa đúng rồi')+'</div>'+
                 '<p class="stage-why">💡 '+q.why+'</p>'+'<div class="sim-tip"><b>Mẹo văn hoá:</b> '+q.tip+'</div>'+
-                '<button class="primary sim-submit" id="simNext" type="button">'+(moreQ?'Câu tiếp theo':(moreS?'Qua ải tiếp theo →':'Nhận huy hiệu 🏅'))+'</button>';
+                '<button class="primary sim-submit" id="simNext" type="button">'+(moreQ?'Câu tiếp theo':(moreS?'Qua ải tiếp theo →':'Xem hành trình 🏅'))+'</button>';
               document.getElementById('simNext').addEventListener('click',function(){
                 if(moreQ){qi++;showSimQ();}
-                else if(moreS){showStageDone();}
-                else{showFinal();}
+                else{showStageDone();}
               });
             }
             function showStageDone(){
               var s=STAGES[si];
+              var moreS=si+1<STAGES.length;
               if(currentUser&&sb){sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:'mini-game-vuot-ai-4c-ai-'+(si+1),score:s.qs.length,total:s.qs.length,xp_earned:0}).then(function(){},function(){});}
               activityTitle.textContent='Mini-game · Qua \u1ea3i!';
-              activityBody.innerHTML='<div class="journey-done"><h3>V\u01b0\u1ee3t \u1ea3i '+(si+1)+' \u00b7 '+s.name+'!</h3><p>'+s.icon+' L\u00e0m t\u1ed1t l\u1eafm chi\u1ebfn binh! Fastie nh\u1ea3y l\u00ean \u1ea3i ti\u1ebfp theo nh\u00e9!</p>'+stageMapHTML(si+1,si)+'<button class="primary sim-submit" id="stNextStage" type="button">V\u00e0o \u1ea3i ti\u1ebfp theo \u2192</button></div>';
+              activityBody.innerHTML='<div class="journey-done"><h3>V\u01b0\u1ee3t \u1ea3i '+(si+1)+' \u00b7 '+s.name+'!</h3><p>'+s.icon+(moreS?' L\u00e0m t\u1ed1t l\u1eafm chi\u1ebfn binh! Fastie nh\u1ea3y l\u00ean \u1ea3i ti\u1ebfp theo nh\u00e9!':' L\u00e0m t\u1ed1t l\u1eafm chi\u1ebfn binh! Fastie nh\u1ea3y v\u1ec1 \u0111\u00edch nh\u1eadn huy hi\u1ec7u nh\u00e9!')+'</p>'+stageMapHTML(si+1,si)+'<button class="primary sim-submit" id="stNextStage" type="button">'+(moreS?'V\u00e0o \u1ea3i ti\u1ebfp theo \u2192':'Xem t\u1ed5ng k\u1ebft \ud83c\udfc5')+'</button></div>';
               var jf=document.getElementById('jFastie');
               setTimeout(function(){
                 if(!jf||!document.body.contains(jf))return;
@@ -1050,7 +1050,7 @@
                 jf.style.left='calc('+nl+'% - 27px)';jf.classList.add('hop');
                 setTimeout(function(){jf.classList.remove('hop')},750);
               },160);
-              document.getElementById('stNextStage').addEventListener('click',function(){si++;showStageHead();});
+              document.getElementById('stNextStage').addEventListener('click',function(){if(moreS){si++;showStageHead();}else{showFinal();}});
             }
             async function showFinal(){
               var card=document.querySelector('.activity-card');if(card)card.classList.remove('wide');
