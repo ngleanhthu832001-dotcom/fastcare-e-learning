@@ -989,15 +989,19 @@
               activityTitle.textContent='FASTCARE – Chiến binh FASTCARE';
               var letters=['A','B','C','D'];
               var qNum=0;STAGES.slice(0,si).forEach(function(s){qNum+=s.qs.length});qNum+=qi+1;
+              var simImg=(typeof SIM_IMGS!=='undefined'&&SIM_IMGS[qNum-1])?SIM_IMGS[qNum-1]:'';
               var opts=q.opts.map(function(o,i){
                 return '<button class="sim-act" data-i="'+i+'" type="button"><span class="sim-act-letter">'+letters[i]+'</span><span class="sim-act-text">'+o+'</span></button>';
               }).join('');
               activityBody.innerHTML=
               '<div class="sim-game" style="--pc:'+s.color+';--ps:'+s.soft+'">'+
                 '<div class="sim-top-line"><span class="sim-stage-line">Ải '+(si+1)+'/'+STAGES.length+' · '+s.name+'</span><span class="sim-stage-badge">✅ <span id="simScore">'+correct+'</span>/'+totalQ+'</span></div>'+
-                '<div class="sim-qcard">'+
-                  '<span class="sim-q-pill">Câu hỏi '+qNum+'</span>'+
-                  '<p class="sim-q-text">'+q.q+'</p>'+
+                '<div class="sim-qa-row">'+
+                  '<div class="sim-qcard">'+
+                    '<div class="sim-q-head">'+(simImg?'<img class="sim-q-thumb" src="'+simImg+'" alt="Hình minh họa tình huống">':'')+'<span class="sim-q-pill">Câu hỏi '+qNum+'</span></div>'+
+                    '<p class="sim-q-text">'+q.q+'</p>'+
+                  '</div>'+
+                  (simImg?'<figure class="sim-q-fig"><img src="'+simImg+'" alt="Hình minh họa tình huống câu hỏi '+qNum+'"><figcaption>Ải '+(si+1)+' · '+s.name+'</figcaption></figure>':'')+
                 '</div>'+
                 '<div class="sim-actions">'+opts+'</div>'+
                 '<button class="primary sim-submit" id="simSubmit" type="button" disabled>HOÀN THÀNH NHIỆM VỤ →</button>'+

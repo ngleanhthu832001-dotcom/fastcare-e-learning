@@ -287,6 +287,14 @@
     .sim-qcard{background:var(--surface);border:2px solid var(--line);border-radius:20px;padding:24px 22px 20px;text-align:center;margin:12px 0 20px}
     .sim-q-pill{display:inline-block;background:var(--pc,#e84924);color:#fff;font-size:19px;font-weight:800;padding:8px 30px;border-radius:999px}
     .sim-q-text{font-size:21px;font-weight:700;line-height:1.55;margin:16px 0 0}
+    .sim-qa-row{display:flex;gap:16px;align-items:stretch;margin:12px 0 20px}
+    .sim-qa-row .sim-qcard{flex:1 1 auto;min-width:0;margin:0}
+    .sim-q-head{display:flex;align-items:center;justify-content:center;gap:10px}
+    .sim-q-thumb{display:none;width:64px;height:64px;object-fit:cover;border-radius:12px;border:2px solid var(--pc,#e84924);flex:none}
+    .sim-q-fig{flex:0 0 36%;margin:0;border:2px solid var(--pc,#e84924);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;background:var(--surface)}
+    .sim-q-fig img{flex:1;min-height:0;width:100%;object-fit:cover;display:block}
+    .sim-q-fig figcaption{padding:8px 10px;font-size:12px;font-weight:800;color:var(--brand-strong);background:var(--ps);text-align:center}
+    @media (max-width:640px){.sim-q-fig{display:none}.sim-q-thumb{display:block}}
     .sim-act{position:relative;border-radius:999px;padding:16px 18px 16px 30px;justify-content:center;text-align:center}
     .sim-act-letter{position:absolute;left:-13px;top:50%;transform:translateY(-50%);width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:var(--brand-soft);color:var(--brand-strong);font-weight:800;font-size:16px;border:2px solid var(--surface)}
     .sim-act.sel .sim-act-letter{background:var(--pc);color:#fff}
@@ -671,6 +679,7 @@
   <div class="toast" id="toast" role="status"></div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="scenes.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
