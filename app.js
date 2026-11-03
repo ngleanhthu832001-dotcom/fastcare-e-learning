@@ -66,6 +66,7 @@
         document.getElementById('userDept').textContent=p.department||'—';
         var sd=p.start_date?String(p.start_date).slice(0,10).split('-'):null;
         document.getElementById('userStart').textContent=sd?(sd[2]+'/'+sd[1]+'/'+sd[0]):'—';
+        renderDevHub();
       }
       async function refreshMyStats(){
         if(!currentUser)return;
@@ -92,6 +93,10 @@
           if(done&&!lessonCompleted)completeCurrentLesson();
           atts.forEach(function(a){if(a.lesson_id===SURVEY_ID&&a.score===a.total&&a.total===5)markModule1Done()});
           if(!done){var _cp=document.getElementById('currentProgress');if(_cp)_cp.style.width='0%'}
+          myXp=totalXp;
+          var _g4=false;atts.forEach(function(a){if(a.lesson_id==='mini-game-vuot-ai-4c')_g4=true});game4cDone=_g4;
+          renderDevHub();
+          if(devScreen==='career'&&devCareerPath)renderDevCareer();
         }catch(e){/* giữ số liệu hiện tại, không crash */}
       }
       async function saveLessonProgress(){
@@ -691,8 +696,8 @@
         navButtons.forEach(function(b){b.classList.toggle('active',b.getAttribute('data-view')===id)});
         window.scrollTo({top:0,behavior:'smooth'});
       }
-      navButtons.forEach(function(btn){btn.addEventListener('click',function(){var v=btn.getAttribute('data-view');switchView(v);if(v==='admin'&&canModerate()){renderPendingApprovals();if(userRole==='admin'){renderPermissions();renderDirectory()}}})});
-      document.querySelectorAll('[data-goto]').forEach(function(btn){btn.addEventListener('click',function(){switchView(btn.getAttribute('data-goto'))})});
+      navButtons.forEach(function(btn){btn.addEventListener('click',function(){var v=btn.getAttribute('data-view');switchView(v);if(v==='route')showDevScreen('hub');if(v==='admin'&&canModerate()){renderPendingApprovals();if(userRole==='admin'){renderPermissions();renderDirectory()}}})});
+      document.querySelectorAll('[data-goto]').forEach(function(btn){btn.addEventListener('click',function(){switchView(btn.getAttribute('data-goto'));if(btn.getAttribute('data-goto')==='route')showDevScreen('hub')})});
 
       var overlay=document.getElementById('lessonOverlay');
       var lastFocus=null;
@@ -822,8 +827,8 @@
         }
       });
       document.getElementById('nextLesson').addEventListener('click',function(){renderNextLesson();document.querySelector('.lesson').scrollTo({top:0,behavior:'smooth'});showToast('Đã mở bài tiếp theo')});
-      document.getElementById('backToRoute').addEventListener('click',function(){closeLesson();switchView('route')});
-      document.getElementById('startNextVideo').addEventListener('click',function(){closeLesson();switchView('route')});
+      document.getElementById('backToRoute').addEventListener('click',function(){closeLesson();switchView('route');showDevScreen('common')});
+      document.getElementById('startNextVideo').addEventListener('click',function(){closeLesson();switchView('route');showDevScreen('common')});
 
       document.querySelectorAll('.segmented').forEach(function(group){group.querySelectorAll('button').forEach(function(btn){btn.addEventListener('click',function(){
         group.querySelectorAll('button').forEach(function(b){b.classList.remove('active');if(group.getAttribute('data-group')==='scope')b.setAttribute('aria-pressed','false')});
@@ -1079,4 +1084,315 @@
         }
         var done=document.getElementById('activityDone');if(done)done.addEventListener('click',function(){closeActivity();showToast('Đã hoàn thành hoạt động trong phiên demo')});
       })});
+
+      /* ===== Lộ trình phát triển · 3 ô chọn nội dung học ===== */
+      var XP_GATE_MID=500;   /* MỐC THỬ NGHIỆM: mở Phó Quản lý / Kỹ thuật Leader */
+      var XP_GATE_TOP=1200;  /* MỐC THỬ NGHIỆM: mở Quản lý chi nhánh / Kỹ thuật Trưởng */
+      var myXp=0,game4cDone=false,devBlock='cuahang';
+      var devScreen='hub',devCareerPath=null,devCareerStage=null;
+      /* Chỉ có cấu trúc giai đoạn + mô tả khung (theo bản nháp Kem đã duyệt). Bài học bên trong
+         hai hướng Quản lý / Kỹ thuật CHƯA có nội dung — hiển thị 'Nội dung đang được chuẩn bị',
+         không tự đặt tên bài học. */
+      var DEV_PATHS={
+        quanly:{title:'Hướng Quản lý chi nhánh',headSub:'Đích đến: Quản lý chi nhánh · Học Phó Quản lý trước, đủ điều kiện mới mở Quản lý',groups:[{name:null,note:null,stages:[
+          {id:'ql1',name:'Phó Quản lý chi nhánh',desc:'Giai đoạn đầu của hướng Quản lý — mở khoá khi hoàn thành Lộ trình chung và đạt mốc 500 XP.',xpReq:500,gate:'chung+xp'},
+          {id:'ql2',name:'Quản lý chi nhánh',desc:'Giai đoạn đích — mở khoá khi hoàn thành Phó Quản lý và đạt mốc 1.200 XP.',xpReq:1200,gate:'prev+xp'}
+        ]}]},
+        kythuat:{title:'Hướng Kỹ thuật Trưởng',headSub:'Hai lộ trình: Kỹ thuật Thay thế (theo thang cấp) và Kỹ thuật Phần cứng (nằm dưới)',groups:[
+          {name:'Lộ trình 1 · Kỹ thuật Thay thế',note:'Trình tự: Lộ trình chung → Kỹ thuật Học việc → Kỹ thuật Lv 1 → Kỹ thuật Lv 2 → Kỹ thuật Lv 3 → Kỹ thuật Leader → Kỹ thuật Trưởng. Mở khoá dần theo từng giai đoạn.',stages:[
+            {id:'tt1',name:'Kỹ thuật Học việc',desc:'Mở khoá sau khi hoàn thành Lộ trình chung — nền tảng nghề thay thế linh kiện cho kỹ thuật viên mới.',xpReq:0,gate:'chung'},
+            {id:'tt2',name:'Kỹ thuật Lv 1',desc:'Thay thế các linh kiện phổ biến theo quy trình chuẩn.',xpReq:0,gate:'prev'},
+            {id:'tt3',name:'Kỹ thuật Lv 2',desc:'Xử lý các ca thay thế khó hơn và lỗi phát sinh sau thay thế.',xpReq:0,gate:'prev'},
+            {id:'tt4',name:'Kỹ thuật Lv 3',desc:'Ca thay thế phức tạp, phối hợp cùng Tư vấn và Thu ngân khi bàn giao.',xpReq:0,gate:'prev'},
+            {id:'tt5',name:'Kỹ thuật Leader',desc:'Giai đoạn đầu của đích Kỹ thuật Trưởng — mở khoá khi hoàn thành Kỹ thuật Lv 3 và đạt mốc 500 XP.',xpReq:500,gate:'prev+xp'},
+            {id:'tt6',name:'Kỹ thuật Trưởng',desc:'Giai đoạn đích — mở khoá khi hoàn thành Kỹ thuật Leader và đạt mốc 1.200 XP.',xpReq:1200,gate:'prev+xp'}
+          ]},
+          {name:'Lộ trình 2 · Kỹ thuật Phần cứng',note:'Phần cứng gồm cả điện thoại và laptop/PC. Lộ trình này nằm dưới lộ trình Thay thế và không đi theo thang Học việc → Trưởng.',stages:[
+            {id:'pc1',name:'Phần cứng điện thoại',desc:'Chẩn đoán và xử lý lỗi phần cứng trên điện thoại.',xpReq:0,gate:'none'},
+            {id:'pc2',name:'Phần cứng Laptop & PC',desc:'Chẩn đoán, nâng cấp và xử lý lỗi phần cứng trên laptop/PC.',xpReq:0,gate:'prev'}
+          ]}
+        ]}
+      };
+      /* Lộ trình chung được tính là xong khi xong các mô-đun ĐÃ CÓ nội dung thật:
+         mô-đun 01 (khảo sát 5/5), mô-đun 02 (quiz Văn hoá phục vụ 10/10) và game Vượt ải 4C
+         (thử thách 30 ngày). Mô-đun 03–05 chưa có nội dung nên chưa tính vào điều kiện. */
+      function commonProgress(){
+        var done=0;
+        if(module1Done)done++;
+        if(lessonCompleted)done++;
+        if(game4cDone)done++;
+        return{done:done,total:3};
+      }
+      function commonDone(){return commonProgress().done>=3}
+      function detectBlock(){
+        var d=myProfile&&myProfile.department?String(myProfile.department):'';
+        return d.indexOf('Chi nhánh')===0?'cuahang':'vanphong';
+      }
+      /* Giai đoạn nghề nghiệp chưa có bài học thật nên chưa thể 'hoàn thành' — hàm này sẽ
+         xét tiến trình thật khi có nội dung. Vì vậy mọi cửa 'prev' hiện đang khoá. */
+      function devStageDone(pathId,gi,si){return false}
+      function devStageStatus(pathId,gi,si){
+        var st=DEV_PATHS[pathId].groups[gi].stages[si];
+        if(st.gate==='chung')return commonDone()?'open':'locked-prev';
+        if(st.gate==='chung+xp'){
+          if(!commonDone())return 'locked-prev';
+          return myXp<st.xpReq?'locked-xp':'open';
+        }
+        if(st.gate==='prev+xp'){
+          if(si>0&&!devStageDone(pathId,gi,si-1))return 'locked-prev';
+          return myXp<st.xpReq?'locked-xp':'open';
+        }
+        if(st.gate==='prev'){
+          if(si>0&&!devStageDone(pathId,gi,si-1))return 'locked-prev';
+          return 'open';
+        }
+        if(st.gate==='xp')return myXp<st.xpReq?'locked-xp':'open';
+        return 'open';
+      }
+      function devLockReason(pathId,gi,si){
+        var st=DEV_PATHS[pathId].groups[gi].stages[si];
+        if(st.gate==='chung')return 'Giai đoạn này mở khoá sau khi bạn hoàn thành Lộ trình chung — bước đầu tiên của trình tự trước khi vào '+st.name+'.';
+        if(st.gate==='chung+xp')return 'Giai đoạn này mở khoá sau khi bạn hoàn thành Lộ trình chung và đạt '+fmt(st.xpReq)+' XP.';
+        if(st.gate==='prev+xp'){var pv=DEV_PATHS[pathId].groups[gi].stages[si-1];return 'Giai đoạn này mở khoá sau khi bạn hoàn thành '+(pv?pv.name:'giai đoạn trước')+' và đạt '+fmt(st.xpReq)+' XP.';}
+        var pv2=DEV_PATHS[pathId].groups[gi].stages[si-1];
+        return 'Giai đoạn này mở khoá sau khi bạn hoàn thành '+(pv2?pv2.name:'giai đoạn trước')+' ở ngay phía trên.';
+      }
+      function devLockShort(pathId,gi,si){
+        var st=DEV_PATHS[pathId].groups[gi].stages[si];
+        if(st.gate==='chung'||st.gate==='chung+xp')return 'cần xong Lộ trình chung';
+        if(st.xpReq>0)return 'cần '+fmt(st.xpReq)+' XP';
+        return 'cần xong giai đoạn trước';
+      }
+      function devStageSub(pathId,gi,si,sst){
+        var st=DEV_PATHS[pathId].groups[gi].stages[si];
+        if(sst==='pass')return 'PASS · Đã hoàn thành';
+        if(sst==='locked-xp')return 'Mở khoá ở '+fmt(st.xpReq)+' XP · Bạn đang có '+fmt(myXp)+' XP';
+        if(sst==='locked-prev'){
+          if(st.gate==='chung'||st.gate==='chung+xp')return 'Cần hoàn thành Lộ trình chung trước';
+          return 'Cần hoàn thành giai đoạn trước';
+        }
+        return 'Đang mở · Nội dung đang chuẩn bị';
+      }
+      function devStars(filled){
+        var h='<span class="dev-stars" aria-hidden="true">';
+        for(var i=0;i<3;i++)h+='<svg width="15" height="15" viewBox="0 0 24 24"><path d="M12 2.6l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.4l-5.8 3.1 1.1-6.5L2.6 9.4l6.5-.9z" fill="'+(filled?'#ffb020':'#e7dcc8')+'"/></svg>';
+        return h+'</span>';
+      }
+      function devCardHTML(cfg){
+        var chips=cfg.chips.map(function(c,i){
+          return (i?'<span class="dev-arr">→</span>':'')+'<span class="dev-chip'+(c.lock?' lock':'')+'">'+escapeHtml(c.label)+'</span>';
+        }).join('');
+        var foot='';
+        if(cfg.progressLabel){
+          foot+='<span class="dev-prog-label"><span>'+escapeHtml(cfg.progressLabel)+'</span><b>'+escapeHtml(cfg.progressText)+'</b></span><span class="dev-bar'+(cfg.progressPct>=100?' green':'')+'"><i style="width:'+cfg.progressPct+'%"></i></span>';
+        }
+        foot+='<span class="dev-cta"><span class="dev-status-chip '+cfg.statusClass+'">'+escapeHtml(cfg.statusText)+'</span><span class="dev-arrow"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M4 12h15m-6-7l7 7-7 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span>';
+        return '<button class="dev-card" type="button" data-dev-open="'+cfg.openKey+'"><span class="dev-card-media"><img src="'+cfg.img+'" alt="'+escapeHtml(cfg.imgAlt)+'"><span class="dev-card-tag">'+escapeHtml(cfg.tag)+'</span></span><span class="dev-card-body">'+(cfg.kicker?'<span class="dev-card-kicker">'+escapeHtml(cfg.kicker)+'</span>':'')+'<h3>'+escapeHtml(cfg.title)+'</h3><p class="dev-desc">'+escapeHtml(cfg.desc)+'</p><span class="dev-chips">'+chips+'</span><span class="dev-audience">'+cfg.audience+'</span><span class="dev-foot">'+foot+'</span></span></button>';
+      }
+      function renderDevHub(){
+        var cardsEl=document.getElementById('devCards');
+        if(!cardsEl)return;
+        devBlock=detectBlock();
+        var store=devBlock==='cuahang';
+        var cp=commonProgress();
+        var di=(typeof DEV_IMGS!=='undefined')?DEV_IMGS:{learning:'',screwdriver:''};
+        var intro=document.getElementById('devHubIntro');
+        if(intro)intro.textContent=store?
+          'Lộ trình phát triển của Khối Cửa hàng: mọi nhân viên bắt đầu từ lộ trình chung, tích luỹ XP và thứ hạng để mở khoá hai hướng nghề nghiệp.':
+          'Tài khoản của bạn thuộc Khối Văn phòng: bạn học Lộ trình chung và Tài liệu học tập nội bộ. Hai hướng phát triển nghề nghiệp chỉ áp dụng cho Khối Cửa hàng.';
+        var strip=document.getElementById('devXpStrip');
+        if(strip){
+          if(store){
+            var gate=myXp<XP_GATE_MID?XP_GATE_MID:XP_GATE_TOP;
+            var label=myXp<XP_GATE_MID?'Mốc mở khoá Phó Quản lý / Kỹ thuật Leader: 500 XP':(myXp<XP_GATE_TOP?'Mốc mở khoá Quản lý / Kỹ thuật Trưởng: 1.200 XP':'Bạn đã đạt mốc XP cao nhất (1.200 XP)');
+            strip.hidden=false;
+            strip.innerHTML='<span class="big">Tiến độ của bạn: '+fmt(myXp)+' XP</span><span class="grow"><span class="dev-bar"><i style="width:'+Math.min(100,Math.round(myXp*100/gate))+'%"></i></span></span><span class="note">'+(myXp<gate?'Còn thiếu <b>'+fmt(gate-myXp)+' XP</b> · ':'')+label+'</span>';
+          }else{strip.hidden=true;strip.innerHTML='';}
+        }
+        var note=document.getElementById('devOfficeNote');
+        if(note)note.hidden=store;
+        var vhStatus=cp.done>=cp.total?{cls:'done',text:'Đã hoàn thành'}:{cls:'open',text:cp.done>0?'Đang học · Vào học tiếp':'Đang mở · Vào học'};
+        var cards=[];
+        cards.push(devCardHTML({
+          openKey:'common',img:'assets/fastie-wave.webp',imgAlt:'Sóc Fastie chính thức của FASTCARE — mặc áo cam FASTCARE, nhảy mừng giơ nắm tay',
+          tag:'Ô 1 · Lộ trình chung',kicker:'Chào mừng đến với',title:'Văn hoá FASTCARE',
+          desc:'Khám phá lịch sử hình thành, văn hoá và môi trường làm việc, nội quy – quy định, chính sách phúc lợi và những điều cần biết để trở thành một thành viên FASTCARE',
+          chips:[{label:'Hội nhập'},{label:'Nội quy'},{label:'Phúc lợi'},{label:'Văn hoá phục vụ'},{label:'Game 4C'}],
+          audience:'Dành cho <b>tất cả nhân viên</b> hai khối',
+          progressLabel:'Tiến độ lộ trình chung',progressText:cp.done+'/'+cp.total+' mô-đun',progressPct:Math.round(cp.done*100/cp.total),
+          statusClass:vhStatus.cls,statusText:vhStatus.text
+        }));
+        if(store){
+          var gate2=myXp<XP_GATE_MID?XP_GATE_MID:XP_GATE_TOP;
+          var qlStatus;
+          if(!commonDone())qlStatus={cls:'lock',text:'Khoá · Cần hoàn thành Lộ trình chung'};
+          else if(myXp<XP_GATE_MID)qlStatus={cls:'lock',text:'Khoá · Cần 500 XP để mở Phó Quản lý'};
+          else if(myXp<XP_GATE_TOP)qlStatus={cls:'open',text:'Phó Quản lý đang mở · Quản lý khoá tới 1.200 XP'};
+          else qlStatus={cls:'open',text:'Đang mở cả 2 giai đoạn'};
+          cards.push(devCardHTML({
+            openKey:'career:quanly',img:di.learning,imgAlt:'Sóc Fastie chính thức của FASTCARE — đeo kính, ngồi đọc sách bên chồng sách',
+            tag:'Ô 2 · Hướng nghề nghiệp',kicker:'Lộ trình "nảy mầm"',title:'Quản lý & Phó Quản lý',
+            desc:'Mỗi nỗ lực là một bước tiến! Hãy chủ động học hỏi, rèn luyện và tích luỹ đủ điểm số, kinh nghiệm để sẵn sàng chinh phục vị trí Phó Quản lý, Quản lý chi nhánh',
+            chips:[{label:'Lộ trình chung'},{label:'Phó Quản lý · 500 XP',lock:!commonDone()||myXp<XP_GATE_MID},{label:'Quản lý · 1.200 XP',lock:myXp<XP_GATE_TOP}],
+            audience:'Thường tuyển nội bộ từ <b>Tư vấn / Thu ngân</b>',
+            progressLabel:myXp<XP_GATE_TOP?'XP của bạn so với mốc '+fmt(gate2):'Tiến độ hướng Quản lý',
+            progressText:myXp<XP_GATE_TOP?fmt(myXp)+'/'+fmt(gate2)+' XP':'Đang mở cả 2 giai đoạn',
+            progressPct:myXp<XP_GATE_TOP?Math.min(100,Math.round(myXp*100/gate2)):100,
+            statusClass:qlStatus.cls,statusText:qlStatus.text
+          }));
+          var ktStatus;
+          if(!commonDone())ktStatus={cls:'lock',text:'Khoá · Cần hoàn thành Lộ trình chung'};
+          else if(myXp<XP_GATE_MID)ktStatus={cls:'lock',text:'Leader khoá · Cần 500 XP'};
+          else if(myXp<XP_GATE_TOP)ktStatus={cls:'open',text:'Đang mở · Trưởng khoá tới 1.200 XP'};
+          else ktStatus={cls:'open',text:'Đang mở tới Kỹ thuật Trưởng'};
+          cards.push(devCardHTML({
+            openKey:'career:kythuat',img:di.screwdriver,imgAlt:'Sóc Fastie chính thức của FASTCARE — cầm tua vít xanh, đang sửa điện thoại tại bàn kỹ thuật',
+            tag:'Ô 3 · Hướng nghề nghiệp',kicker:'Lộ trình "nảy mầm"',title:'Kỹ thuật Trưởng & Kỹ thuật Leader',
+            desc:'Không ngừng học hỏi, rèn luyện và nâng cao tay nghề; tích luỹ kinh nghiệm thực tế để nâng cao năng lực chuyên môn và chinh phục những cấp bậc Kỹ thuật cao hơn tại FASTCARE.',
+            chips:[{label:'Thay thế: Học việc → Trưởng'},{label:'Phần cứng: Điện thoại · Laptop/PC'}],
+            audience:'Thường tuyển nội bộ từ <b>nhân sự Kỹ thuật</b>',
+            progressLabel:'XP của bạn so với mốc '+fmt(gate2),progressText:fmt(myXp)+'/'+fmt(gate2)+' XP',
+            progressPct:Math.min(100,Math.round(myXp*100/gate2)),
+            statusClass:ktStatus.cls,statusText:ktStatus.text
+          }));
+        }else{
+          cards.push(devCardHTML({
+            openKey:'doc',img:'assets/fastie-celebrate.webp',imgAlt:'Sóc Fastie chính thức của FASTCARE — cầm loa thông báo',
+            tag:'Toàn thể nhân sự',kicker:'',title:'Tài liệu học tập nội bộ',
+            desc:'Các bài học và bài test ngắn theo từng đợt truyền thông của Ban Lãnh đạo, dành cho toàn thể nhân sự cả hai khối — cũng là công cụ đo hiệu quả truyền thông nội bộ.',
+            chips:[{label:'Bài test theo đợt truyền thông'},{label:'Khảo sát'},{label:'Clip bài học'}],
+            audience:'Dành cho <b>toàn thể nhân sự</b>',
+            progressLabel:'',progressText:'',progressPct:0,
+            statusClass:'open',statusText:'Đang mở · Vào học'
+          }));
+        }
+        cardsEl.innerHTML=cards.join('');
+      }
+      function findDevStage(pathId,stageId){
+        var path=DEV_PATHS[pathId];
+        for(var gi=0;gi<path.groups.length;gi++)for(var si=0;si<path.groups[gi].stages.length;si++)
+          if(path.groups[gi].stages[si].id===stageId)return{path:path,gi:gi,si:si,stage:path.groups[gi].stages[si]};
+        return null;
+      }
+      function firstDevStage(pathId){
+        var path=DEV_PATHS[pathId];
+        for(var gi=0;gi<path.groups.length;gi++)for(var si=0;si<path.groups[gi].stages.length;si++)
+          if(devStageStatus(pathId,gi,si)==='open')return{path:path,gi:gi,si:si,stage:path.groups[gi].stages[si]};
+        return{path:path,gi:0,si:0,stage:path.groups[0].stages[0]};
+      }
+      function showDevScreen(name,pathId,stageId){
+        devScreen=name;
+        var hub=document.getElementById('devHub'),common=document.getElementById('devCommon'),career=document.getElementById('devCareer');
+        if(hub)hub.hidden=name!=='hub';
+        if(common)common.hidden=name!=='common';
+        if(career)career.hidden=name!=='career';
+        if(name==='hub')renderDevHub();
+        if(name==='career'&&pathId){devCareerPath=pathId;devCareerStage=stageId||null;renderDevCareer();}
+        window.scrollTo({top:0,behavior:'smooth'});
+      }
+      function renderDevCareer(){
+        var body=document.getElementById('devCareerBody');
+        if(!body||!devCareerPath)return;
+        var pathId=devCareerPath,path=DEV_PATHS[pathId];
+        var found=findDevStage(pathId,devCareerStage)||firstDevStage(pathId);
+        devCareerStage=found.stage.id;
+        var st=devStageStatus(pathId,found.gi,found.si);
+        var stage=found.stage;
+        var side=path.groups.map(function(g,gi){
+          var h='';
+          if(g.name)h+='<div class="dev-group-label">'+escapeHtml(g.name)+'</div>';
+          if(g.note)h+='<p class="dev-group-note">'+escapeHtml(g.note)+'</p>';
+          if(pathId==='kythuat'&&gi===0){
+            var cp=commonProgress();
+            var vhPass=cp.done>=cp.total;
+            h+='<button class="dev-stage-item st-'+(vhPass?'pass':'open')+'" type="button" data-dev-common="1"><span class="dev-stage-badge">'+(vhPass?'✓':'LC')+'</span><span class="dev-stage-info"><b>Lộ trình chung</b><span>'+(vhPass?'PASS · Đã hoàn thành toàn bộ':cp.done+'/'+cp.total+' mô-đun · Hoàn thành để mở Kỹ thuật Học việc')+'</span><span class="dev-bar'+(vhPass?' green':'')+'"><i style="width:'+Math.round(cp.done*100/cp.total)+'%"></i></span></span>'+(vhPass?'<span class="dev-mini-chip pass">PASS</span>':'<span class="dev-mini-chip open">ĐI TỚI</span>')+'</button>';
+          }
+          h+=g.stages.map(function(s,si){
+            var sst=devStageStatus(pathId,gi,si);
+            var badge=sst==='pass'?'✓':(si+1<10?'0'+(si+1):String(si+1));
+            var chip=sst==='pass'?'<span class="dev-mini-chip pass">PASS</span>':sst==='open'?'<span class="dev-mini-chip open">ĐANG MỞ</span>':'<span class="dev-mini-chip">🔒 KHÓA</span>';
+            return '<button class="dev-stage-item st-'+(sst==='pass'?'pass':sst==='open'?'open':'locked')+(s.id===devCareerStage?' selected':'')+(sst.indexOf('locked')===0?' is-locked':'')+'" type="button" data-dev-stage="'+s.id+'"><span class="dev-stage-badge">'+badge+'</span><span class="dev-stage-info"><b>'+escapeHtml(s.name)+'</b><span>'+devStageSub(pathId,gi,si,sst)+'</span></span>'+chip+'</button>';
+          }).join('');
+          return h;
+        }).join('');
+        var bannerIc=st==='pass'?'✓':st.indexOf('locked')===0?'🔒':'';
+        var lockNote='';
+        if(st==='locked-xp')lockNote='<div class="dev-lock-notice"><span>🔒</span><span>Giai đoạn <b>'+escapeHtml(stage.name)+'</b> mở khoá khi đạt <b>'+fmt(stage.xpReq)+' XP</b>. Bạn đang có <b>'+fmt(myXp)+' XP</b> — còn thiếu <b>'+fmt(stage.xpReq-myXp)+' XP</b>. Hãy hoàn thành thêm bài ở Lộ trình chung để tích luỹ XP.</span></div>';
+        else if(st==='locked-prev')lockNote='<div class="dev-lock-notice"><span>🔒</span><span>'+escapeHtml(devLockReason(pathId,found.gi,found.si))+'</span></div>';
+        var group=path.groups[found.gi];
+        var rows=group.stages.map(function(s,si){
+          var sst=devStageStatus(pathId,found.gi,si);
+          var nodeInner=sst==='pass'?'✓':sst.indexOf('locked')===0?'🔒':String(si+1);
+          var nodeCls=sst==='pass'?'done':sst.indexOf('locked')===0?'locked':(s.id===devCareerStage?'current':'');
+          var meta=sst==='pass'?'<span class="act">Đã hoàn thành</span>':sst==='open'?'<span class="act">Xem giai đoạn →</span>':'<span>Đang khoá — '+escapeHtml(devLockShort(pathId,found.gi,si))+'</span>';
+          return '<div class="dev-trail-row'+(si%2===1?' flip':'')+'"><div class="dev-node-wrap">'+devStars(sst==='pass')+'<button class="dev-node '+nodeCls+'" type="button" data-dev-stage="'+s.id+'" aria-label="Giai đoạn '+(si+1)+': '+escapeHtml(s.name)+'">'+nodeInner+'</button></div><button class="dev-stage-card'+(sst==='pass'?' is-done':'')+(sst.indexOf('locked')===0?' is-locked':'')+'" type="button" data-dev-stage="'+s.id+'"><span class="dev-stage-type">Giai đoạn '+(si+1)+' · '+escapeHtml(s.name)+'</span><h4>'+escapeHtml(s.name)+'</h4><span class="dev-stage-meta"><span>'+escapeHtml(s.desc)+'</span>'+meta+'</span></button></div>';
+        }).join('');
+        body.innerHTML='<div class="dev-path-layout"><aside class="dev-side"><div class="dev-side-head"><p class="kicker">Lộ trình phát triển</p><h2>'+escapeHtml(path.title)+'</h2><p>'+escapeHtml(path.headSub)+'</p></div><div class="dev-side-groups">'+side+'</div></aside><section><div class="dev-banner"><div><h2>'+escapeHtml(stage.name)+'</h2><p>'+escapeHtml(stage.desc)+'</p></div><span class="banner-ic">'+bannerIc+'</span></div>'+lockNote+'<div class="dev-trail" id="devTrail"><svg class="dev-trail-svg" id="devTrailSvg" aria-hidden="true"><path id="devTrailPathAll" fill="none" stroke="#eadfd9" stroke-width="3" stroke-dasharray="2 9" stroke-linecap="round"/><path id="devTrailPathDone" fill="none" stroke="#f45b18" stroke-width="3" stroke-dasharray="2 9" stroke-linecap="round"/></svg>'+rows+'</div><div class="dev-placeholder"><b>Nội dung đang được chuẩn bị.</b> Bài học của giai đoạn “'+escapeHtml(stage.name)+'” sẽ xuất hiện tại đây khi có tài liệu đào tạo — hiện tại màn này dùng để duyệt cấu trúc lộ trình và logic khoá/mở.</div></section></div>';
+        body.querySelectorAll('[data-dev-common]').forEach(function(b){b.addEventListener('click',function(){showDevScreen('common')})});
+        body.querySelectorAll('[data-dev-stage]').forEach(function(b){b.addEventListener('click',function(){devCareerStage=b.getAttribute('data-dev-stage');renderDevCareer()})});
+        requestAnimationFrame(drawDevTrail);
+      }
+      function devSmoothPath(pts){
+        if(pts.length<2)return '';
+        var d='M '+pts[0].x+','+pts[0].y;
+        for(var i=0;i<pts.length-1;i++){
+          var p0=pts[i-1]||pts[i],p1=pts[i],p2=pts[i+1],p3=pts[i+2]||p2;
+          var c1x=p1.x+(p2.x-p0.x)/6,c1y=p1.y+(p2.y-p0.y)/6;
+          var c2x=p2.x-(p3.x-p1.x)/6,c2y=p2.y-(p3.y-p1.y)/6;
+          d+=' C '+c1x.toFixed(1)+','+c1y.toFixed(1)+' '+c2x.toFixed(1)+','+c2y.toFixed(1)+' '+p2.x+','+p2.y;
+        }
+        return d;
+      }
+      function drawDevTrail(){
+        var trail=document.getElementById('devTrail'),svg=document.getElementById('devTrailSvg');
+        if(!trail||!svg||devScreen!=='career')return;
+        var nodes=Array.prototype.slice.call(trail.querySelectorAll('.dev-node'));
+        if(!nodes.length)return;
+        var tr=trail.getBoundingClientRect();
+        svg.setAttribute('viewBox','0 0 '+trail.offsetWidth+' '+trail.offsetHeight);
+        var pts=nodes.map(function(n){
+          var r=n.getBoundingClientRect();
+          var isDone=n.className.indexOf('done')>-1,isCur=n.className.indexOf('current')>-1;
+          return{x:Math.round(r.left-tr.left+r.width/2),y:Math.round(r.top-tr.top+r.height/2),state:isDone?'done':isCur?'current':'todo'};
+        });
+        var all=document.getElementById('devTrailPathAll');
+        if(all)all.setAttribute('d',devSmoothPath(pts));
+        var lastDone=-1;
+        pts.forEach(function(pt,i){if(pt.state==='done'||pt.state==='current')lastDone=i});
+        var dn=document.getElementById('devTrailPathDone');
+        if(dn)dn.setAttribute('d',lastDone>0?devSmoothPath(pts.slice(0,lastDone+1)):'');
+      }
+      var devResizeTimer=null;
+      window.addEventListener('resize',function(){clearTimeout(devResizeTimer);devResizeTimer=setTimeout(drawDevTrail,120)});
+      function openDevModal(html){
+        var m=document.getElementById('devModal'),box=document.getElementById('devModalBox');
+        if(!m||!box)return;
+        box.innerHTML=html;
+        m.classList.add('open');
+        var c=box.querySelector('#devModalClose');
+        if(c)c.addEventListener('click',closeDevModal);
+      }
+      function closeDevModal(){var m=document.getElementById('devModal');if(m)m.classList.remove('open')}
+      function openDevDocModal(){
+        openDevModal('<span class="dev-stage-type" style="color:var(--teal)">Tài liệu học tập nội bộ</span><h3>Luồng này giữ nguyên như web hiện tại</h3><p>Bản cập nhật này chỉ thêm phần Lộ trình phát triển cho Khối Cửa hàng. Luồng Tài liệu học tập nội bộ (bài test ngắn theo đợt truyền thông, dành cho toàn thể nhân sự) không thay đổi — các bài test vẫn xuất hiện tại Trang học.</p><div class="dev-modal-actions"><button class="btn-ghost" id="devModalClose" type="button">Đóng</button></div>');
+      }
+      (function initDevPaths(){
+        var cardsEl=document.getElementById('devCards');
+        if(cardsEl)cardsEl.addEventListener('click',function(e){
+          var b=e.target&&e.target.closest?e.target.closest('[data-dev-open]'):null;
+          if(!b)return;
+          var k=b.getAttribute('data-dev-open');
+          if(k==='common')showDevScreen('common');
+          else if(k==='doc')openDevDocModal();
+          else if(k.indexOf('career:')===0)showDevScreen('career',k.slice(7));
+        });
+        var bc=document.getElementById('devBackCommon');
+        if(bc)bc.addEventListener('click',function(){showDevScreen('hub')});
+        var bk=document.getElementById('devBackCareer');
+        if(bk)bk.addEventListener('click',function(){showDevScreen('hub')});
+        var dm=document.getElementById('devModal');
+        if(dm)dm.addEventListener('click',function(e){if(e.target===dm)closeDevModal()});
+        document.addEventListener('keydown',function(e){if(e.key==='Escape'){var m=document.getElementById('devModal');if(m&&m.classList.contains('open'))closeDevModal()}});
+        renderDevHub();
+      })();
     })();
