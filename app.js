@@ -747,20 +747,28 @@
         if(lessonCompleted)return;
         lessonCompleted=true;
         saveLessonProgress().then(function(){refreshMyStats()});
+        /* Thẻ 'Bài học dành cho bạn' đã gỡ khỏi Trang chủ (03/11) — các thao tác dưới
+           chỉ chạy khi phần tử còn tồn tại, để không lỗi khi hoàn thành bài. */
         var currentCourse=document.getElementById('currentCourse');
-        currentCourse.classList.add('completed');
-        document.getElementById('currentProgress').style.width='100%';
-        var currentAction=document.getElementById('currentCourseAction');
-        currentAction.disabled=true;
-        currentAction.setAttribute('aria-label','Bài học đã hoàn thành');
-        currentAction.innerHTML='<svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg>';
-        var nextAction=document.getElementById('nextCourseAction');
-        var unlockedAction=nextAction.cloneNode(true);
-        unlockedAction.removeAttribute('data-toast');
-        unlockedAction.setAttribute('aria-label','Mở bài học tiếp theo');
-        unlockedAction.innerHTML='<svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg>';
-        nextAction.parentNode.replaceChild(unlockedAction,nextAction);
-        unlockedAction.addEventListener('click',function(){openLesson(unlockedAction,true)});
+        if(currentCourse){
+          currentCourse.classList.add('completed');
+          var _cp=document.getElementById('currentProgress');if(_cp)_cp.style.width='100%';
+          var currentAction=document.getElementById('currentCourseAction');
+          if(currentAction){
+            currentAction.disabled=true;
+            currentAction.setAttribute('aria-label','Bài học đã hoàn thành');
+            currentAction.innerHTML='<svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg>';
+          }
+          var nextAction=document.getElementById('nextCourseAction');
+          if(nextAction){
+            var unlockedAction=nextAction.cloneNode(true);
+            unlockedAction.removeAttribute('data-toast');
+            unlockedAction.setAttribute('aria-label','Mở bài học tiếp theo');
+            unlockedAction.innerHTML='<svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg>';
+            nextAction.parentNode.replaceChild(unlockedAction,nextAction);
+            unlockedAction.addEventListener('click',function(){openLesson(unlockedAction,true)});
+          }
+        }
         var currentModule=document.getElementById('currentModule');
         currentModule.classList.remove('current');currentModule.classList.add('done');
         currentModule.querySelector('.module-num').textContent='✓';
@@ -768,9 +776,7 @@
         document.getElementById('nextModule').classList.add('unlocked');
         document.getElementById('nextModuleStatus').textContent='BÀI 1/3 ĐÃ MỞ';
         document.getElementById('routeContinue').textContent='Bắt đầu mô-đun 3';
-        document.getElementById('heroEyebrow').textContent='Bài tiếp theo đã mở';
         document.getElementById('heroTitle').textContent='Chuẩn tác phong tạo nên sự chuyên nghiệp.';
-        document.getElementById('heroSummary').textContent='Bắt đầu mô-đun 3: các quy định cần nhớ khi làm việc tại cửa hàng FASTCARE.';
         document.getElementById('heroAction').innerHTML='Bài tiếp theo · 8 phút <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg>';
       }
       document.getElementById('submitQuiz').addEventListener('click',function(){
@@ -1189,6 +1195,65 @@
         foot+='<span class="dev-cta"><span class="dev-status-chip '+cfg.statusClass+'">'+escapeHtml(cfg.statusText)+'</span><span class="dev-arrow"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M4 12h15m-6-7l7 7-7 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span>';
         return '<button class="dev-card" type="button" data-dev-open="'+cfg.openKey+'"><span class="dev-card-media"><img src="'+cfg.img+'" alt="'+escapeHtml(cfg.imgAlt)+'"><span class="dev-card-tag">'+escapeHtml(cfg.tag)+'</span></span><span class="dev-card-body">'+(cfg.kicker?'<span class="dev-card-kicker">'+escapeHtml(cfg.kicker)+'</span>':'')+'<h3>'+escapeHtml(cfg.title)+'</h3><p class="dev-desc">'+escapeHtml(cfg.desc)+'</p><span class="dev-chips">'+chips+'</span><span class="dev-audience">'+cfg.audience+'</span><span class="dev-foot">'+foot+'</span></span></button>';
       }
+      /* ---- Cây Hạt giống trên Trang chủ (03/11) ----
+         6 mốc theo màn 'Hạt giống' của ForumFlash, tone FASTCARE. Mốc 01–03 và 06 theo
+         logic mở khoá đã chốt; mốc 04 (800 XP) và 05 (1.000 XP) là SỐ ĐỀ XUẤT, chờ Kem chốt.
+         'Kết trái' = đạt cấp cao nhất: hiện đo bằng mốc XP cao nhất (1.200 XP + xong Lộ trình
+         chung), vì hai hướng nghề nghiệp chưa có bài học thật nên chưa tính 'hoàn thành giai đoạn'. */
+      var SEED_MID1=800,SEED_MID2=1000; /* MỐC ĐỀ XUẤT */
+      var SEED_NAMES=['Hạt giống','Nảy mầm','Phát triển thân','Phân cành','Ra lá','Kết trái'];
+      function seedStage(){
+        if(!commonDone())return 1;
+        if(myXp<XP_GATE_MID)return 2;
+        if(myXp<SEED_MID1)return 3;
+        if(myXp<SEED_MID2)return 4;
+        if(myXp<XP_GATE_TOP)return 5;
+        return 6;
+      }
+      function seedArtSVG(stage){
+        /* Cây mọc dần theo mốc: hạt → mầm → thân → cành → lá → trái. SVG thuần, không ảnh ngoài. */
+        var sun='<circle cx="182" cy="26" r="15" fill="#e5ad32"/><g stroke="#e5ad32" stroke-width="3" stroke-linecap="round"><line x1="182" y1="2" x2="182" y2="8"/><line x1="182" y1="44" x2="182" y2="50"/><line x1="158" y1="26" x2="164" y2="26"/><line x1="200" y1="26" x2="206" y2="26"/></g>';
+        var ground='<ellipse cx="100" cy="146" rx="86" ry="12" fill="#f0e3cd"/><ellipse cx="100" cy="143" rx="62" ry="8" fill="#e3d3b3"/>';
+        var seed='<ellipse cx="100" cy="140" rx="13" ry="8" fill="#8a5a2b"/><path d="M100 138 Q100 128 106 124" stroke="#176b61" stroke-width="3" fill="none" stroke-linecap="round"/>';
+        function leaf(cx,cy,rot,fill){return '<ellipse cx="'+cx+'" cy="'+cy+'" rx="17" ry="8" fill="'+fill+'" transform="rotate('+rot+' '+cx+' '+cy+')"/>';}
+        var stem='',leaves='',fruits='';
+        if(stage>=2){stem='<path d="M100 142 Q100 118 100 104" stroke="#176b61" stroke-width="4" fill="none" stroke-linecap="round"/>';leaves+=leaf(84,108,-28,'#7fb069')+leaf(116,108,28,'#dce94d');}
+        if(stage>=3){stem='<path d="M100 142 Q100 104 100 78" stroke="#176b61" stroke-width="4.5" fill="none" stroke-linecap="round"/>';leaves+=leaf(82,88,-30,'#176b61')+leaf(118,88,30,'#7fb069');}
+        if(stage>=4){stem='<path d="M100 142 Q100 96 100 62" stroke="#176b61" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M100 96 Q84 84 74 76" stroke="#176b61" stroke-width="3.5" fill="none" stroke-linecap="round"/><path d="M100 88 Q116 76 126 68" stroke="#176b61" stroke-width="3.5" fill="none" stroke-linecap="round"/>';leaves+=leaf(70,72,-32,'#dce94d')+leaf(130,64,32,'#176b61');}
+        if(stage>=5){leaves+=leaf(78,58,-24,'#7fb069')+leaf(122,58,24,'#dce94d')+leaf(100,46,0,'#176b61');}
+        if(stage>=6){fruits='<circle cx="76" cy="76" r="9" fill="#e84924"/><circle cx="124" cy="72" r="9" fill="#e84924"/><circle cx="100" cy="52" r="9" fill="#e84924"/><circle cx="73" cy="73" r="2.5" fill="#ffd9c2"/><circle cx="121" cy="69" r="2.5" fill="#ffd9c2"/><circle cx="97" cy="49" r="2.5" fill="#ffd9c2"/>';}
+        return '<svg viewBox="0 0 210 160" role="img" aria-label="Cây Hạt giống đang ở mốc '+SEED_NAMES[stage-1]+'">'+sun+ground+(stage===1?seed:stem+leaves+fruits)+'</svg>';
+      }
+      function renderSeed(){
+        var art=document.getElementById('seedArt');
+        if(!art)return;
+        var cp=commonProgress(),st=seedStage();
+        art.innerHTML=seedArtSVG(st);
+        var label=document.getElementById('seedNextLabel'),pctEl=document.getElementById('seedPct'),fill=document.getElementById('seedBarFill');
+        var pct=0,text='';
+        if(st===1){
+          pct=Math.round(cp.done*100/cp.total);
+          text=cp.done>0?('Lộ trình chung: '+cp.done+'/'+cp.total+' mô-đun · Còn '+(cp.total-cp.done)+' mô-đun để đạt Nảy mầm'):('Hoàn thành Lộ trình chung để đạt Nảy mầm · '+cp.done+'/'+cp.total+' mô-đun');
+        }else if(st<6){
+          var cur=st===2?0:(st===3?XP_GATE_MID:(st===4?SEED_MID1:SEED_MID2));
+          var nxt=st===2?XP_GATE_MID:(st===3?SEED_MID1:(st===4?SEED_MID2:XP_GATE_TOP));
+          pct=Math.round((myXp-cur)*100/(nxt-cur));
+          text='Còn '+fmt(nxt-myXp)+' XP để đạt '+SEED_NAMES[st];
+        }else{
+          pct=100;text='Đã kết trái — bạn đã đạt cấp cao nhất!';
+        }
+        if(label)label.textContent=text;
+        if(pctEl)pctEl.textContent=pct+'%';
+        if(fill)fill.style.width=pct+'%';
+        var list=document.getElementById('seedStages');
+        if(list){
+          list.innerHTML=SEED_NAMES.map(function(n,i){
+            var cls=i+1<st?'done':(i+1===st?'current':'');
+            var mark=i+1<st?'✓':('0'+(i+1));
+            return '<li class="'+cls+'"><span class="seed-num">'+mark+'</span><span>'+n+'</span></li>';
+          }).join('');
+        }
+      }
       function renderDevHub(){
         var cardsEl=document.getElementById('devCards');
         if(!cardsEl)return;
@@ -1267,6 +1332,16 @@
           }));
         }
         cardsEl.innerHTML=cards.join('');
+        /* Trang chủ dùng chung 3 ô này (03/11): render cùng nội dung vào #homeDevCards. */
+        var homeEl=document.getElementById('homeDevCards');
+        if(homeEl)homeEl.innerHTML=cards.join('');
+        var homeSub=document.getElementById('homeDevSub');
+        if(homeSub)homeSub.textContent=store?
+          'Ba hướng học: bắt đầu từ Văn hoá FASTCARE, rồi mở khoá Quản lý hoặc Kỹ thuật khi đủ điểm và thứ hạng.':
+          'Tài khoản của bạn thuộc Khối Văn phòng: bạn học Lộ trình chung và Tài liệu học tập nội bộ — hai hướng nghề nghiệp chỉ áp dụng cho Khối Cửa hàng.';
+        var homeNote=document.getElementById('homeOfficeNote');
+        if(homeNote)homeNote.hidden=store;
+        renderSeed();
       }
       function findDevStage(pathId,stageId){
         var path=DEV_PATHS[pathId];
@@ -1382,6 +1457,16 @@
           var b=e.target&&e.target.closest?e.target.closest('[data-dev-open]'):null;
           if(!b)return;
           var k=b.getAttribute('data-dev-open');
+          if(k==='common')showDevScreen('common');
+          else if(k==='doc')openDevDocModal();
+          else if(k.indexOf('career:')===0)showDevScreen('career',k.slice(7));
+        });
+        var homeEl=document.getElementById('homeDevCards');
+        if(homeEl)homeEl.addEventListener('click',function(e){
+          var b=e.target&&e.target.closest?e.target.closest('[data-dev-open]'):null;
+          if(!b)return;
+          var k=b.getAttribute('data-dev-open');
+          switchView('route');
           if(k==='common')showDevScreen('common');
           else if(k==='doc')openDevDocModal();
           else if(k.indexOf('career:')===0)showDevScreen('career',k.slice(7));
