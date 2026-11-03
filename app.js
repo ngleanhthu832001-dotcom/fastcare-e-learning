@@ -42,6 +42,17 @@
         return null;
       }
       function canModerate(){return userRole==='admin'||userRole==='manager'}
+      /* Quyền bổ sung theo Bảng phân quyền (SQL v11) — chỉ có sau khi Kem chạy SQL
+         và cấp quyền trên web; chưa chạy SQL thì myPerms=null, mọi quyền bổ sung = không có. */
+      function hasCrossBlock(){return userRole==='admin'||(myPerms&&myPerms.can_cross_block===true)}
+      async function loadMyPerms(){
+        myPerms=null;
+        if(!currentUser)return;
+        try{
+          var r=await sb.from('role_permissions').select('user_id,role_label,scope,can_view_progress,can_view_details,can_cross_block').eq('user_id',currentUser.id).maybeSingle();
+          if(!r.error&&r.data)myPerms=r.data;
+        }catch(e){/* bảng role_permissions chưa có (chưa chạy SQL v11) → không có quyền bổ sung */}
+      }
       function applyProfileToUI(profile){
         myProfile=profile||null;
         var metaName=currentUser.user_metadata&&currentUser.user_metadata.full_name;
@@ -56,7 +67,7 @@
         var roleEl=document.getElementById('userRole');
         if(profile&&profile.role==='admin'){userRole='admin';roleEl.textContent='Quản trị viên';document.getElementById('adminNav').style.display=''}
         else if(profile&&profile.role==='manager'){userRole='manager';roleEl.textContent='Quản lý';document.getElementById('adminNav').style.display=''}
-        else{userRole='staff';roleEl.textContent=(profile&&profile.position)||'Nhân sự FASTCARE'}
+        else{userRole='staff';roleEl.textContent=(profile&&profile.position)||'Nhân sự FASTCARE';var _an=document.getElementById('adminNav');if(_an)_an.style.display=(myPerms&&myPerms.can_view_progress)?'':'none'}
         var ps=document.getElementById('permSection');if(ps)ps.hidden=!(profile&&profile.role==='admin');
         var ds=document.getElementById('dirSection');if(ds)ds.hidden=!(profile&&profile.role==='admin');
         var cs=document.getElementById('createSection');if(cs)cs.hidden=!(profile&&profile.role==='admin');
@@ -538,6 +549,265 @@
           if(btn)btn.disabled=false;
         }
       }
+      /* ===== Quản trị công cụ · Bảng phân quyền + Tiến độ theo phạm vi (SQL v11) =====
+         Bảng phân quyền là lớp quyền RIÊNG, độc lập với quyền 3 cấp (profiles.role).
+         Mọi hàm dưới đây đều chịu được việc bảng role_permissions chưa tồn tại
+         (Kem chưa chạy SQL v11): lúc đó bảng hiện hướng dẫn chạy SQL, không crash. */
+      var ptRows=[],ptGrants={},ptState={},ptBase={},ptWired=false;
+      var scopeRows=[],scopeWired=false;
+      var adminTab='students';
+      var PT_ROLES=['Quản trị viên','PNS','BLĐ','AM','QLCN','Phó QL','Trưởng phòng/Bộ phận','Nhân viên'];
+      var PT_SCOPES=[['all','Toàn hệ thống'],['all_stores','Tất cả chi nhánh'],['own_branch','Chi nhánh của mình'],['own_dept','Phòng ban của mình'],['none','—']];
+      function ptScopeLabel(s){for(var i=0;i<PT_SCOPES.length;i++)if(PT_SCOPES[i][0]===s)return PT_SCOPES[i][1];return '—'}
+      /* Gợi ý vai trò từ chức vụ/phòng ban trong hồ sơ (Kem sửa tay được trong bảng). */
+      function suggestRole(p){
+        if(p.role==='admin')return 'Quản trị viên';
+        var pos=String(p.position||''),dep=String(p.department||'');
+        if(/HĐQT|Chủ tịch/i.test(pos)||dep==='HĐQT')return 'BLĐ';
+        if(/Quản lý khu vực|\(AM\)/i.test(pos))return 'AM';
+        if(dep==='Phòng HCNS')return 'PNS';
+        if(/Phó Quản lý/i.test(pos))return 'Phó QL';
+        if(/Quản lý chi nhánh/i.test(pos))return 'QLCN';
+        if(/Trưởng phòng|Trưởng bộ phận|QL Khối/i.test(pos))return 'Trưởng phòng/Bộ phận';
+        return 'Nhân viên';
+      }
+      function suggestScope(role){
+        if(role==='Quản trị viên'||role==='PNS'||role==='BLĐ')return 'all';
+        if(role==='AM')return 'all_stores';
+        if(role==='QLCN'||role==='Phó QL')return 'own_branch';
+        if(role==='Trưởng phòng/Bộ phận')return 'own_dept';
+        return 'none';
+      }
+      function suggestPerms(role){
+        if(role==='Quản trị viên'||role==='PNS'||role==='BLĐ'||role==='AM')return{v:true,d:true,c:true};
+        if(role==='QLCN'||role==='Phó QL'||role==='Trưởng phòng/Bộ phận')return{v:true,d:true,c:false};
+        return{v:false,d:false,c:false};
+      }
+      function ptVal(st){return{role:st.role,scope:st.scope,v:!!st.v,d:!!st.d,c:!!st.c}}
+      function ptIsDirty(id){return ptState[id]&&ptBase[id]&&JSON.stringify(ptVal(ptState[id]))!==JSON.stringify(ptBase[id])}
+      function ptDirtyIds(){return Object.keys(ptState).filter(function(id){return ptIsDirty(id)})}
+      function ptChip(id){
+        var st=ptState[id];if(!st)return '';
+        if(ptIsDirty(id))return '<span class="pt-chip pt-dirty">Chưa lưu</span>';
+        if(st.saved)return '<span class="pt-chip pt-saved">Đã lưu</span>';
+        return '<span class="pt-chip pt-suggest">Đề xuất</span>';
+      }
+      function ptRefreshSaveBtn(){
+        var btn=document.getElementById('ptSave'),msg=document.getElementById('ptSaveMsg');
+        var n=ptDirtyIds().length;
+        if(btn)btn.textContent=n?('Lưu phân quyền ('+n+' thay đổi)'):'Lưu phân quyền';
+        if(msg)msg.textContent=n?('Có '+n+' dòng chưa lưu — bấm Lưu để áp dụng.'):'';
+      }
+      async function renderPermTool(){
+        var box=document.getElementById('ptTable');
+        var saveBtn=document.getElementById('ptSave');
+        if(!box||userRole!=='admin')return;
+        if(!ptWired){
+          ptWired=true;
+          document.getElementById('ptSearch').addEventListener('input',renderPtRows);
+          document.getElementById('ptRole').addEventListener('change',renderPtRows);
+          document.getElementById('ptReload').addEventListener('click',async function(){ptGrants={};ptState={};ptBase={};await renderPermTool();showToast('Đã tải lại bảng phân quyền')});
+          box.addEventListener('change',function(e){
+            var el=e.target;if(!el||!el.getAttribute)return;
+            var id=el.getAttribute('data-pt-for');if(!id)return;
+            var st=ptState[id];if(!st)return;
+            var kind=el.getAttribute('data-pt-kind');
+            if(kind==='role'){
+              st.role=el.value;
+              /* Đổi vai trò thì gợi ý lại quyền/phạm vi theo vai trò mới — Kem vẫn sửa tiếp được. */
+              var sp=suggestPerms(st.role);st.v=sp.v;st.d=sp.d;st.c=sp.c;st.scope=suggestScope(st.role);
+              renderPtRows();
+            }else if(kind==='scope'){st.scope=el.value}
+            else if(kind==='v'){st.v=el.checked}
+            else if(kind==='d'){st.d=el.checked}
+            else if(kind==='c'){st.c=el.checked}
+            else{return}
+            var chip=document.querySelector('[data-pt-chip="'+id+'"]');
+            if(chip)chip.innerHTML=ptChip(id);
+            ptRefreshSaveBtn();
+          });
+          if(saveBtn)saveBtn.addEventListener('click',savePermTool);
+        }
+        box.innerHTML='<p class="muted-center">Đang tải bảng phân quyền…</p>';
+        try{
+          var res=await sb.from('profiles').select('id,full_name,email,department,employee_code,role,position,is_approved,is_rejected').order('full_name',{ascending:true});
+          if(res.error)throw res.error;
+          ptRows=res.data||[];
+          var gr=await sb.from('role_permissions').select('user_id,role_label,scope,can_view_progress,can_view_details,can_cross_block');
+          if(gr.error)throw gr.error;
+          ptGrants={};(gr.data||[]).forEach(function(g){ptGrants[g.user_id]=g});
+          ptState={};ptBase={};
+          ptRows.forEach(function(p){
+            var g=ptGrants[p.id],st;
+            if(g){st={role:g.role_label,scope:g.scope,v:!!g.can_view_progress,d:!!g.can_view_details,c:!!g.can_cross_block,saved:true}}
+            else{var role=suggestRole(p),sp2=suggestPerms(role);st={role:role,scope:suggestScope(role),v:sp2.v,d:sp2.d,c:sp2.c,saved:false}}
+            ptState[p.id]=st;ptBase[p.id]=ptVal(st);
+          });
+          if(saveBtn)saveBtn.disabled=false;
+          renderPtRows();
+        }catch(e){
+          box.innerHTML='<p class="muted-center">Chưa tải được bảng phân quyền. Nếu đây là lần đầu dùng mục này, hãy chạy file SQL v11 (supabase-v11-permission-table.sql) rồi tải lại trang.</p>';
+          if(saveBtn)saveBtn.disabled=true;
+        }
+      }
+      function renderPtRows(){
+        var box=document.getElementById('ptTable');
+        if(!box)return;
+        var q=(document.getElementById('ptSearch').value||'').toLowerCase();
+        var rf=document.getElementById('ptRole').value;
+        var rows=ptRows.filter(function(p){
+          var st=ptState[p.id];if(!st)return false;
+          if(rf&&st.role!==rf)return false;
+          if(q&&(p.full_name||'').toLowerCase().indexOf(q)<0&&(p.email||'').toLowerCase().indexOf(q)<0&&(p.employee_code||'').toLowerCase().indexOf(q)<0)return false;
+          return true;
+        });
+        if(!rows.length){box.innerHTML='<p class="muted-center">Không có nhân sự nào khớp.</p>';ptRefreshSaveBtn();return}
+        box.innerHTML='<div class="pt-wrap"><table class="pt-table"><thead><tr><th>Nhân sự</th><th>Vai trò (gợi ý)</th><th>Phạm vi</th><th>Xem tiến độ</th><th>Xem bài làm &amp; điểm</th><th>Học bài khối khác</th><th></th></tr></thead><tbody>'+
+          rows.map(function(p){
+            var st=ptState[p.id];
+            var roleOpts=PT_ROLES.map(function(r){return '<option'+(st.role===r?' selected':'')+'>'+r+'</option>'}).join('');
+            var scopeOpts=PT_SCOPES.map(function(s){return '<option value="'+s[0]+'"'+(st.scope===s[0]?' selected':'')+'>'+s[1]+'</option>'}).join('');
+            var meta=escapeHtml(p.email||'')+(p.department?' · '+escapeHtml(p.department):'')+(p.employee_code?' · '+escapeHtml(p.employee_code):'')+'<br>'+permStatus(p);
+            return '<tr><td><div class="person"><div class="person-dot">'+dotAvatar(null,p.full_name)+'</div><div><strong>'+escapeHtml(p.full_name||'Học viên')+(p.id===currentUser.id?' (bạn)':'')+'</strong><span>'+meta+'</span></div></div></td>'+
+              '<td><select class="role-select" data-pt-for="'+p.id+'" data-pt-kind="role">'+roleOpts+'</select></td>'+
+              '<td><select class="role-select" data-pt-for="'+p.id+'" data-pt-kind="scope">'+scopeOpts+'</select></td>'+
+              '<td><input type="checkbox" data-pt-for="'+p.id+'" data-pt-kind="v"'+(st.v?' checked':'')+' aria-label="Xem tiến độ"></td>'+
+              '<td><input type="checkbox" data-pt-for="'+p.id+'" data-pt-kind="d"'+(st.d?' checked':'')+' aria-label="Xem bài làm và điểm"></td>'+
+              '<td><input type="checkbox" data-pt-for="'+p.id+'" data-pt-kind="c"'+(st.c?' checked':'')+' aria-label="Học bài khối khác"></td>'+
+              '<td data-pt-chip="'+p.id+'">'+ptChip(p.id)+'</td></tr>';
+          }).join('')+'</tbody></table></div>';
+        ptRefreshSaveBtn();
+      }
+      async function savePermTool(){
+        var ids=ptDirtyIds();
+        if(!ids.length){showToast('Chưa có thay đổi nào để lưu');return}
+        if(!confirm('Lưu phân quyền cho '+ids.length+' người? Quyền mới có hiệu lực ngay sau khi lưu.'))return;
+        var btn=document.getElementById('ptSave');if(btn)btn.disabled=true;
+        try{
+          var rows=ids.map(function(id){
+            var st=ptState[id],p=null;
+            ptRows.forEach(function(x){if(x.id===id)p=x});
+            return{user_id:id,email:p?p.email:null,employee_code:p?p.employee_code:null,role_label:st.role,scope:st.scope,can_view_progress:st.v,can_view_details:st.d,can_cross_block:st.c,updated_by:currentUser.id,updated_at:new Date().toISOString()};
+          });
+          var r=await sb.from('role_permissions').upsert(rows,{onConflict:'user_id'});
+          if(r.error)throw r.error;
+          ids.forEach(function(id){ptBase[id]=ptVal(ptState[id]);ptState[id].saved=true});
+          renderPtRows();
+          showToast('Đã lưu phân quyền cho '+ids.length+' người');
+        }catch(e){showToast('Không lưu được phân quyền — kiểm tra lại SQL v11 đã chạy chưa rồi thử lại')}
+        if(btn)btn.disabled=false;
+      }
+      function lessonLabel(id){
+        var map={'bai-3-4-van-hoa-phuc-vu':'Văn hoá phục vụ — Quiz 10 câu','khao-sat-module-01':'Khảo sát mô-đun 01 (5 câu)','mini-game-vuot-ai-4c':'Game Vượt ải 4C (tổng kết)','mini-game-vuot-ai-4c-ai-1':'Game 4C · Ải 1 Chủ động','mini-game-vuot-ai-4c-ai-2':'Game 4C · Ải 2 Cười','mini-game-vuot-ai-4c-ai-3':'Game 4C · Ải 3 Chào'};
+        return map[id]||id;
+      }
+      async function renderScopeProgress(){
+        var box=document.getElementById('scopeTable');
+        if(!box)return;
+        if(!(userRole==='admin'||(myPerms&&myPerms.can_view_progress))){
+          box.innerHTML='<p class="muted-center">Bạn chưa được cấp quyền xem tiến độ. Quản trị viên cấp quyền trong Bảng phân quyền.</p>';
+          var dd=document.getElementById('scopeDetail');if(dd)dd.hidden=true;
+          return;
+        }
+        box.innerHTML='<p class="muted-center">Đang tải tiến độ…</p>';
+        try{
+          var res=await sb.rpc('get_scope_progress');
+          if(res.error)throw res.error;
+          scopeRows=res.data||[];
+          var unitSel=document.getElementById('scopeUnit');
+          var cur=unitSel.value,units=[];
+          scopeRows.forEach(function(p){if(p.department&&units.indexOf(p.department)<0)units.push(p.department)});
+          units.sort();
+          unitSel.innerHTML='<option value="">Tất cả đơn vị</option>'+units.map(function(u){return '<option'+(u===cur?' selected':'')+'>'+escapeHtml(u)+'</option>'}).join('');
+          if(!scopeWired){
+            scopeWired=true;
+            document.getElementById('scopeSearch').addEventListener('input',renderScopeRows);
+            unitSel.addEventListener('change',renderScopeRows);
+            document.getElementById('scopeReload').addEventListener('click',async function(){await renderScopeProgress();showToast('Đã tải lại tiến độ')});
+            box.addEventListener('click',function(e){
+              var b=e.target&&e.target.closest?e.target.closest('[data-scope-detail]'):null;
+              if(!b)return;
+              renderScopeDetail(b.getAttribute('data-scope-detail'));
+            });
+          }
+          renderScopeRows();
+        }catch(e){
+          box.innerHTML='<p class="muted-center">Chưa tải được tiến độ. Nếu đây là lần đầu dùng mục này, hãy chạy file SQL v11 (supabase-v11-permission-table.sql) rồi tải lại trang.</p>';
+        }
+      }
+      function renderScopeRows(){
+        var box=document.getElementById('scopeTable');
+        if(!box)return;
+        var q=(document.getElementById('scopeSearch').value||'').toLowerCase();
+        var u=document.getElementById('scopeUnit').value;
+        var rows=scopeRows.filter(function(p){
+          if(u&&p.department!==u)return false;
+          if(q&&(p.full_name||'').toLowerCase().indexOf(q)<0&&(p.employee_code||'').toLowerCase().indexOf(q)<0)return false;
+          return true;
+        });
+        var canDetail=userRole==='admin'||(myPerms&&myPerms.can_view_details);
+        if(!rows.length){box.innerHTML='<p class="muted-center">Không có nhân sự nào trong phạm vi của bạn.</p>';return}
+        box.innerHTML='<div class="rank-row rank-head scope-row"><span>•</span><span>Nhân sự ('+rows.length+')</span><span class="xp">Tổng XP</span></div>'+rows.map(function(p){
+          var pct=Math.round((p.lessons_done||0)*100/12);
+          var last=p.last_activity?new Date(p.last_activity).toLocaleDateString('vi-VN'):'Chưa học';
+          var btn=canDetail?'<button class="restore-btn" data-scope-detail="'+p.user_id+'">Xem bài làm</button>':'<span style="font-size:11px;color:var(--muted);font-weight:600">Chưa cấp quyền xem chi tiết</span>';
+          return '<div class="rank-row scope-row"><b>•</b><div class="person"><div class="person-dot">'+dotAvatar(null,p.full_name)+'</div><div><strong>'+escapeHtml(p.full_name||'Học viên')+'</strong><span>'+escapeHtml(p.department||'')+(p.employee_code?' · '+escapeHtml(p.employee_code):'')+'</span><span class="scope-prog">'+(p.lessons_done||0)+'/12 bài · '+pct+'% · Hoạt động gần nhất: '+last+'</span></div></div><span class="xp row-actions"><b style="margin-right:10px">'+fmt(p.total_xp)+'</b>'+btn+'</span></div>';
+        }).join('');
+      }
+      async function renderScopeDetail(userId){
+        var box=document.getElementById('scopeDetail');
+        if(!box)return;
+        if(!(userRole==='admin'||(myPerms&&myPerms.can_view_details))){showToast('Bạn chưa được cấp quyền xem bài làm chi tiết');return}
+        var p=null;scopeRows.forEach(function(x){if(x.user_id===userId)p=x});
+        box.hidden=false;
+        box.innerHTML='<div class="side-card"><h3>Bài làm của '+(p?escapeHtml(p.full_name):'nhân sự')+'</h3><p class="muted-center">Đang tải…</p></div>';
+        try{
+          var res=await sb.rpc('get_user_attempts',{target_id:userId});
+          if(res.error)throw res.error;
+          var rows=res.data||[];
+          var body='';
+          if(!rows.length){body='<p>Chưa có lượt làm bài nào.</p>'}
+          else{
+            body=rows.map(function(a){
+              var d=a.at?new Date(a.at).toLocaleDateString('vi-VN'):'—';
+              var line=a.kind==='quiz'?('Quiz: '+(a.score==null?'—':a.score)+'/'+(a.total==null?'—':a.total)+' · +'+fmt(a.xp_earned)+' XP'):('Bài học: '+(a.completed?'Đã hoàn thành':'Chưa hoàn thành')+' · +'+fmt(a.xp_earned)+' XP');
+              return '<div class="scope-attempt"><div><strong>'+escapeHtml(lessonLabel(a.lesson_id))+'</strong><span>'+line+'</span></div><span class="scope-date">'+d+'</span></div>';
+            }).join('');
+          }
+          box.innerHTML='<div class="side-card"><h3>Bài làm của '+(p?escapeHtml(p.full_name):'nhân sự')+'</h3>'+body+'<div style="margin-top:12px"><button class="btn-secondary" id="scopeDetailClose" type="button">Đóng</button></div></div>';
+          var c=document.getElementById('scopeDetailClose');
+          if(c)c.addEventListener('click',function(){box.hidden=true});
+          box.scrollIntoView({behavior:'smooth',block:'nearest'});
+        }catch(e){
+          box.innerHTML='<div class="side-card"><h3>Bài làm</h3><p class="muted-center">Chưa tải được bài làm. Có thể database chưa có hàm get_user_attempts — hãy chạy file SQL v11 rồi thử lại.</p></div>';
+        }
+      }
+      function switchAdminTab(name){
+        adminTab=name;
+        var st=document.getElementById('adminStudents'),tl=document.getElementById('adminTools');
+        if(st)st.hidden=name!=='students';
+        if(tl)tl.hidden=name!=='tools';
+        document.querySelectorAll('[data-admintab]').forEach(function(b){b.classList.toggle('active',b.getAttribute('data-admintab')===name)});
+        if(name==='tools'){
+          var pts=document.getElementById('permToolSection');
+          if(pts)pts.hidden=userRole!=='admin';
+          renderPermTool();
+          renderScopeProgress();
+        }else if(canModerate()){
+          renderPendingApprovals();
+          if(userRole==='admin'){renderPermissions();renderDirectory()}
+          renderAdmin();
+        }
+      }
+      function openAdminView(){
+        var canStudents=canModerate();
+        var canTools=userRole==='admin'||(myPerms&&myPerms.can_view_progress);
+        var sb1=document.getElementById('adminTabStudentsBtn'),tb=document.getElementById('adminTabToolsBtn'),bar=document.getElementById('adminTabs');
+        if(sb1)sb1.style.display=canStudents?'':'none';
+        if(tb)tb.style.display=canTools?'':'none';
+        if(bar)bar.style.display=(canStudents&&canTools)?'':'none';
+        switchAdminTab(canStudents?'students':'tools');
+      }
       async function handleSession(session){
         var _uid=session&&session.user?session.user.id:null;
         if(lastUid!==null&&_uid!==lastUid){location.reload();return}
@@ -546,6 +816,7 @@
           currentUser=session.user;
           unlockApp();
           var profile=await fetchMyProfile();
+          await loadMyPerms();
           applyProfileToUI(profile);
           if(profile&&profile.role!=='admin'&&profile.is_rejected===true){
             showRejected();return;
@@ -696,7 +967,8 @@
         navButtons.forEach(function(b){b.classList.toggle('active',b.getAttribute('data-view')===id)});
         window.scrollTo({top:0,behavior:'smooth'});
       }
-      navButtons.forEach(function(btn){btn.addEventListener('click',function(){var v=btn.getAttribute('data-view');switchView(v);if(v==='route')showDevScreen('hub');if(v==='admin'&&canModerate()){renderPendingApprovals();if(userRole==='admin'){renderPermissions();renderDirectory()}}})});
+      navButtons.forEach(function(btn){btn.addEventListener('click',function(){var v=btn.getAttribute('data-view');switchView(v);if(v==='route')showDevScreen('hub');if(v==='admin')openAdminView()})});
+      document.querySelectorAll('[data-admintab]').forEach(function(b){b.addEventListener('click',function(){switchAdminTab(b.getAttribute('data-admintab'))})});
       document.querySelectorAll('[data-goto]').forEach(function(btn){btn.addEventListener('click',function(){switchView(btn.getAttribute('data-goto'));if(btn.getAttribute('data-goto')==='route')showDevScreen('hub')})});
 
       var overlay=document.getElementById('lessonOverlay');
@@ -1095,6 +1367,7 @@
       var XP_GATE_MID=500;   /* MỐC THỬ NGHIỆM: mở Phó Quản lý / Kỹ thuật Leader */
       var XP_GATE_TOP=1200;  /* MỐC THỬ NGHIỆM: mở Quản lý chi nhánh / Kỹ thuật Trưởng */
       var myXp=0,game4cDone=false,devBlock='cuahang';
+      var myPerms=null; /* dòng phân quyền của chính mình trong bảng role_permissions (SQL v11) */
       var devScreen='hub',devCareerPath=null,devCareerStage=null;
       /* Chỉ có cấu trúc giai đoạn + mô tả khung (theo bản nháp Kem đã duyệt). Bài học bên trong
          hai hướng Quản lý / Kỹ thuật CHƯA có nội dung — hiển thị 'Nội dung đang được chuẩn bị',
@@ -1258,11 +1531,18 @@
         var cardsEl=document.getElementById('devCards');
         if(!cardsEl)return;
         devBlock=detectBlock();
-        var store=devBlock==='cuahang';
+        /* Admin thấy giao diện đầy đủ của cả hai khối; người được cấp quyền
+           "Học bài khối khác" cũng thấy đủ 3 ô cửa hàng + Tài liệu nội bộ. */
+        var adminAll=userRole==='admin';
+        var cross=hasCrossBlock();
+        var store=devBlock==='cuahang'||adminAll||cross;
+        var showDoc=!store||adminAll||cross;
         var cp=commonProgress();
         var di=(typeof DEV_IMGS!=='undefined')?DEV_IMGS:{learning:'',screwdriver:''};
         var intro=document.getElementById('devHubIntro');
-        if(intro)intro.textContent=store?
+        if(intro)intro.textContent=adminAll?
+          'Tài khoản Quản trị viên: bạn thấy giao diện đầy đủ của cả hai khối — 3 ô Khối Cửa hàng và Tài liệu học tập nội bộ.':
+          store?
           'Lộ trình phát triển của Khối Cửa hàng: mọi nhân viên bắt đầu từ lộ trình chung, tích luỹ XP và thứ hạng để mở khoá hai hướng nghề nghiệp.':
           'Tài khoản của bạn thuộc Khối Văn phòng: bạn học Lộ trình chung và Tài liệu học tập nội bộ. Hai hướng phát triển nghề nghiệp chỉ áp dụng cho Khối Cửa hàng.';
         var strip=document.getElementById('devXpStrip');
@@ -1320,7 +1600,8 @@
             progressPct:Math.min(100,Math.round(myXp*100/gate2)),
             statusClass:ktStatus.cls,statusText:ktStatus.text
           }));
-        }else{
+        }
+        if(showDoc){
           cards.push(devCardHTML({
             openKey:'doc',img:'assets/fastie-celebrate.webp',imgAlt:'Sóc Fastie chính thức của FASTCARE — cầm loa thông báo',
             tag:'Toàn thể nhân sự',kicker:'',title:'Tài liệu học tập nội bộ',
@@ -1336,7 +1617,9 @@
         var homeEl=document.getElementById('homeDevCards');
         if(homeEl)homeEl.innerHTML=cards.join('');
         var homeSub=document.getElementById('homeDevSub');
-        if(homeSub)homeSub.textContent=store?
+        if(homeSub)homeSub.textContent=adminAll?
+          'Tài khoản Quản trị viên: bạn thấy đủ cả 3 hướng Khối Cửa hàng và Tài liệu học tập nội bộ.':
+          store?
           'Ba hướng học: bắt đầu từ Văn hoá FASTCARE, rồi mở khoá Quản lý hoặc Kỹ thuật khi đủ điểm và thứ hạng.':
           'Tài khoản của bạn thuộc Khối Văn phòng: bạn học Lộ trình chung và Tài liệu học tập nội bộ — hai hướng nghề nghiệp chỉ áp dụng cho Khối Cửa hàng.';
         var homeNote=document.getElementById('homeOfficeNote');

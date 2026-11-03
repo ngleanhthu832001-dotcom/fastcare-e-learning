@@ -112,6 +112,30 @@
     .perm-controls select{padding:10px 14px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:14px;background:#fff}
     .role-select{padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:12px;font-weight:700;background:#fff;cursor:pointer;max-width:100%;box-sizing:border-box}
     .role-select:disabled{opacity:.55;cursor:not-allowed}
+    .admin-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0 4px}
+    .admin-tab{border:2px solid var(--line);background:var(--surface);border-radius:12px;padding:10px 16px;font-weight:800;font-size:13px;cursor:pointer;color:var(--muted)}
+    .admin-tab.active{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+    .pt-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+    .pt-table{width:100%;border-collapse:collapse;font-size:13px;min-width:820px}
+    .pt-table th,.pt-table td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+    .pt-table th{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+    .pt-table tr:last-child td{border-bottom:0}
+    .pt-table input[type=checkbox]{width:18px;height:18px;accent-color:var(--brand);cursor:pointer}
+    .pt-chip{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:800;white-space:nowrap}
+    .pt-suggest{background:#fef3c7;color:#92400e}
+    .pt-saved{background:#dcfce7;color:#166534}
+    .pt-dirty{background:#ffe7df;color:#bf3215}
+    .pt-save-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:14px 0}
+    .pt-save-row .primary:disabled{opacity:.55;cursor:not-allowed}
+    .pt-note{font-size:13px;color:var(--muted);margin:0 0 8px;line-height:1.6}
+    .rank-row.scope-row{grid-template-columns:40px minmax(0,1fr) minmax(150px,auto)}
+    .scope-prog{display:block;font-size:11px;color:var(--muted);margin-top:2px}
+    .scope-attempt{display:flex;justify-content:space-between;gap:14px;align-items:baseline;padding:11px 0;border-bottom:1px solid var(--line)}
+    .scope-attempt:last-child{border-bottom:0}
+    .scope-attempt strong{display:block;font-size:13px}
+    .scope-attempt span{font-size:12px;color:var(--muted)}
+    .scope-date{font-size:11px;color:var(--muted);white-space:nowrap}
+    @media(max-width:700px){.rank-row.scope-row{grid-template-columns:34px minmax(0,1fr) minmax(96px,auto)}}
     .row-actions{display:inline-flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:nowrap;white-space:nowrap}
     .status-chip{display:inline-block;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:800}
     .dir-summary{font-size:13px;color:var(--muted);margin:0 0 12px;font-weight:600}
@@ -632,7 +656,12 @@
       </section>
 
       <section id="admin" class="view">
-        <div class="rank-hero"><p class="eyebrow" style="color:var(--brand)">Khu vực quản trị</p><h1>Quản lý học viên.</h1><p>Danh sách học viên và tổng điểm XP — chỉ hiển thị với tài khoản quản trị.</p></div>
+        <div class="rank-hero"><p class="eyebrow" style="color:var(--brand)">Khu vực quản trị</p><h1>Quản trị.</h1><p>Quản lý học viên và công cụ phân quyền — theo phạm vi được cấp cho tài khoản của bạn.</p></div>
+        <div class="admin-tabs" id="adminTabs">
+          <button class="admin-tab active" type="button" data-admintab="students" id="adminTabStudentsBtn">Quản trị học viên</button>
+          <button class="admin-tab" type="button" data-admintab="tools" id="adminTabToolsBtn">Quản trị công cụ</button>
+        </div>
+        <div id="adminStudents">
         <div id="pendingApprovals" style="margin-bottom:18px"></div>
         <div id="rejectedList" style="margin-bottom:18px"></div>
         <div id="createSection" hidden>
@@ -670,6 +699,24 @@
         </div>
         <div class="leaderboard" id="adminTable" aria-live="polite">
           <p class="muted-center">Đang tải danh sách…</p>
+        </div>
+        </div>
+        <div id="adminTools" hidden>
+          <div id="permToolSection">
+            <h2 class="perm-h">Bảng phân quyền</h2>
+            <p class="perm-sub">Chính Quản trị viên cấp quyền cho từng nhân sự — bảng này KHÔNG tự cấp quyền. Mỗi dòng hiện gợi ý theo chức vụ/phòng ban trong hồ sơ; bạn sửa lại rồi bấm “Lưu phân quyền”. Quyền này khác với quyền 3 cấp (Quản trị viên/Quản lý/Nhân viên) ở mục Quản trị học viên.</p>
+            <p class="pt-note">Danh sách gồm nhân sự đã có tài khoản web. Nhân sự chưa có email/tài khoản (ví dụ Quản lý chi nhánh Quang Trung Trần Thị Lan Anh, FC73) sẽ xuất hiện trong bảng sau khi có email và tạo tài khoản.</p>
+            <div class="perm-controls"><input id="ptSearch" type="search" placeholder="Tìm theo tên, email hoặc mã NS…"><select id="ptRole"><option value="">Tất cả vai trò</option><option>Quản trị viên</option><option>PNS</option><option>BLĐ</option><option>AM</option><option>QLCN</option><option>Phó QL</option><option>Trưởng phòng/Bộ phận</option><option>Nhân viên</option></select><button class="restore-btn" id="ptReload" type="button">↻ Tải lại</button></div>
+            <div class="pt-save-row"><button class="primary" id="ptSave" type="button">Lưu phân quyền</button><span id="ptSaveMsg" style="font-size:13px;color:var(--muted);font-weight:600"></span></div>
+            <div id="ptTable" aria-live="polite"><p class="muted-center">Đang tải bảng phân quyền…</p></div>
+          </div>
+          <div id="scopeSection">
+            <h2 class="perm-h">Tiến độ trong phạm vi của bạn</h2>
+            <p class="perm-sub">Danh sách nhân sự trong phạm vi bạn được cấp quyền xem — kèm % hoàn thành, tổng XP và lần học gần nhất. Bấm “Xem bài làm” để xem chi tiết từng bài (cần quyền “Xem bài làm &amp; điểm”).</p>
+            <div class="perm-controls"><input id="scopeSearch" type="search" placeholder="Tìm theo tên hoặc mã NS…"><select id="scopeUnit"><option value="">Tất cả đơn vị</option></select><button class="restore-btn" id="scopeReload" type="button">↻ Tải lại</button></div>
+            <div class="leaderboard" id="scopeTable" aria-live="polite"><p class="muted-center">Đang tải tiến độ…</p></div>
+            <div id="scopeDetail" hidden style="margin-top:16px"></div>
+          </div>
         </div>
       </section>
 
