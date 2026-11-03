@@ -63,6 +63,7 @@
         else{avEl.textContent=initials(name)}
         document.getElementById('userName').innerHTML=escapeHtml(name)+(currentUser.email?' <span class="u-email">('+escapeHtml(currentUser.email)+')</span>':'');
         document.getElementById('greetingName').textContent='Xin chào, '+first+'!';
+        var rg=document.getElementById('reminderGreeting');if(rg)rg.textContent=first+' ơi, mình hoàn thành bài đúng hạn để giữ chuỗi học nhé!';
         var dt=document.getElementById('demoTag');if(dt)dt.style.display='none';
         var roleEl=document.getElementById('userRole');
         if(profile&&profile.role==='admin'){userRole='admin';roleEl.textContent='Quản trị viên';document.getElementById('adminNav').style.display=''}
