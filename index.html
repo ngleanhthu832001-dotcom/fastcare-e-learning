@@ -124,6 +124,9 @@
     .admin-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0 4px}
     .admin-tab{border:2px solid var(--line);background:var(--surface);border-radius:12px;padding:10px 16px;font-weight:800;font-size:13px;cursor:pointer;color:var(--muted)}
     .admin-tab.active{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+    .dev-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0 4px}
+    .dev-tab{border:2px solid var(--line);background:var(--surface);border-radius:12px;padding:10px 16px;font-weight:800;font-size:13px;cursor:pointer;color:var(--muted)}
+    .dev-tab.active{background:var(--brand);border-color:var(--brand);color:#fff}
     .pt-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
     .pt-table{width:100%;border-collapse:collapse;font-size:13px;min-width:820px}
     .pt-table th,.pt-table td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
@@ -627,6 +630,7 @@
       </section>
 
       <section id="route" class="view">
+        <div class="dev-tabs" id="devTabs" role="tablist" aria-label="Chọn lộ trình"></div>
         <div id="devCommon" hidden>
         <div class="route-hero"><div><p class="eyebrow" style="color:var(--brand)">Lộ trình nhân sự mới</p><h1 class="route-title"><span class="route-big">30 ngày</span><span class="route-rest">Hiểu việc<br>Vững văn hoá</span></h1><p>Từng mô-đun mở theo tiến độ, kết hợp clip ngắn, tình huống thực tế và bài kiểm tra cuối chặng.</p></div><button class="primary open-lesson" id="routeContinue">Bắt đầu mô-đun 2</button></div>
         <div class="route-track">

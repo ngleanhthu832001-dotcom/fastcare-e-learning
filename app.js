@@ -1432,7 +1432,7 @@
       var XP_GATE_TOP=1200;  /* MỐC THỬ NGHIỆM: mở Quản lý chi nhánh / Kỹ thuật Trưởng */
       var myXp=0,game4cDone=false,devBlock='cuahang';
       var myPerms=null; /* dòng phân quyền của chính mình trong bảng role_permissions (SQL v11) */
-      var devScreen='hub',devCareerPath=null,devCareerStage=null;
+      var devScreen='common',devCareerPath=null,devCareerStage=null;
       /* Chỉ có cấu trúc giai đoạn + mô tả khung (theo bản nháp Kem đã duyệt). Bài học bên trong
          hai hướng Quản lý / Kỹ thuật CHƯA có nội dung — hiển thị 'Nội dung đang được chuẩn bị',
          không tự đặt tên bài học. */
@@ -1470,6 +1470,47 @@
       function detectBlock(){
         var d=myProfile&&myProfile.department?String(myProfile.department):'';
         return d.indexOf('Chi nhánh')===0?'cuahang':'vanphong';
+      }
+      /* Khối lộ trình của người đang đăng nhập — quyết định lộ trình nào hiện
+         trong tab Lộ trình và 3 ô ở Trang chủ (Kem chốt 04/11):
+         kythuat: chỉ lộ trình Kỹ thuật · tuvan: chỉ lộ trình Quản lý/Phó QL
+         vanphong: Lộ trình chung + Tài liệu nội bộ
+         storeAll: cả 2 lộ trình cửa hàng (QLCN/Phó QL, để hướng dẫn nhân viên)
+         all: tất cả (admin, AM — AM vừa giám sát cửa hàng vừa được xem như VP,
+         người được cấp quyền học khối khác). */
+      function detectUserBlock(){
+        if(userRole==='admin'||hasCrossBlock())return 'all';
+        var p=myProfile&&myProfile.position?String(myProfile.position):'';
+        var pl=p.toLowerCase();
+        if(pl.indexOf('quản lý khu vực')>-1||pl.indexOf('(am)')>-1)return 'all';
+        if(pl.indexOf('quản lý chi nhánh')>-1||pl.indexOf('phó quản lý')>-1)return 'storeAll';
+        if(pl.indexOf('kỹ thuật')>-1)return 'kythuat';
+        if(pl.indexOf('tư vấn')>-1||pl.indexOf('thu ngân')>-1)return 'tuvan';
+        return detectBlock()==='cuahang'?'tuvan':'vanphong';
+      }
+      function visibleDevPaths(){
+        var b=detectUserBlock();
+        if(b==='all'||b==='storeAll')return ['quanly','kythuat'];
+        if(b==='kythuat')return ['kythuat'];
+        if(b==='tuvan')return ['quanly'];
+        return [];
+      }
+      function showDevDoc(){
+        var b=detectUserBlock();
+        return b==='all'||b==='vanphong';
+      }
+      function renderDevTabs(){
+        var el=document.getElementById('devTabs');
+        if(!el)return;
+        var tabs=[{key:'common',label:'Lộ trình chung'}];
+        var paths=visibleDevPaths();
+        if(paths.indexOf('quanly')>-1)tabs.push({key:'career:quanly',label:'Quản lý & Phó Quản lý'});
+        if(paths.indexOf('kythuat')>-1)tabs.push({key:'career:kythuat',label:'Kỹ thuật Trưởng & Leader'});
+        if(showDevDoc())tabs.push({key:'doc',label:'Tài liệu nội bộ'});
+        el.innerHTML=tabs.map(function(t){
+          var active=(t.key==='common'&&devScreen==='common')||(t.key.indexOf('career:')===0&&devScreen==='career'&&devCareerPath===t.key.slice(7));
+          return '<button type="button" class="dev-tab'+(active?' active':'')+'" data-dev-tab="'+t.key+'" role="tab">'+escapeHtml(t.label)+'</button>';
+        }).join('');
       }
       /* Giai đoạn nghề nghiệp chưa có bài học thật nên chưa thể 'hoàn thành' — hàm này sẽ
          xét tiến trình thật khi có nội dung. Vì vậy mọi cửa 'prev' hiện đang khoá. */
@@ -1598,8 +1639,10 @@
            "Học bài khối khác" cũng thấy đủ 3 ô cửa hàng + Tài liệu nội bộ. */
         var adminAll=userRole==='admin';
         var cross=hasCrossBlock();
-        var store=devBlock==='cuahang'||adminAll||cross;
-        var showDoc=!store||adminAll||cross;
+        var block=detectUserBlock();
+        var paths=visibleDevPaths();
+        var store=paths.length>0;
+        var showDoc=showDevDoc();
         var cp=commonProgress();
         var di=(typeof DEV_IMGS!=='undefined')?DEV_IMGS:{learning:'',screwdriver:''};
         var intro=document.getElementById('devHubIntro');
@@ -1630,8 +1673,8 @@
           progressLabel:'Tiến độ lộ trình chung',progressText:cp.done+'/'+cp.total+' mô-đun',progressPct:Math.round(cp.done*100/cp.total),
           statusClass:vhStatus.cls,statusText:vhStatus.text
         }));
-        if(store){
-          var gate2=myXp<XP_GATE_MID?XP_GATE_MID:XP_GATE_TOP;
+        var gate2=myXp<XP_GATE_MID?XP_GATE_MID:XP_GATE_TOP;
+        if(paths.indexOf('quanly')>-1){
           var qlStatus;
           if(!commonDone())qlStatus={cls:'lock',text:'Khoá · Cần hoàn thành Lộ trình chung'};
           else if(myXp<XP_GATE_MID)qlStatus={cls:'lock',text:'Khoá · Cần 500 XP để mở Phó Quản lý'};
@@ -1648,6 +1691,8 @@
             progressPct:myXp<XP_GATE_TOP?Math.min(100,Math.round(myXp*100/gate2)):100,
             statusClass:qlStatus.cls,statusText:qlStatus.text
           }));
+        }
+        if(paths.indexOf('kythuat')>-1){
           var ktStatus;
           if(!commonDone())ktStatus={cls:'lock',text:'Khoá · Cần hoàn thành Lộ trình chung'};
           else if(myXp<XP_GATE_MID)ktStatus={cls:'lock',text:'Leader khoá · Cần 500 XP'};
@@ -1682,11 +1727,16 @@
         var homeSub=document.getElementById('homeDevSub');
         if(homeSub)homeSub.textContent=adminAll?
           'Tài khoản Quản trị viên: bạn thấy đủ cả 3 hướng Khối Cửa hàng và Tài liệu học tập nội bộ.':
+          block==='kythuat'?
+          'Bắt đầu từ Văn hoá FASTCARE, rồi mở khoá các cấp bậc Kỹ thuật khi đủ điểm và thứ hạng.':
+          block==='tuvan'?
+          'Bắt đầu từ Văn hoá FASTCARE, rồi mở khoá Phó Quản lý và Quản lý chi nhánh khi đủ điểm và thứ hạng.':
           store?
           'Ba hướng học: bắt đầu từ Văn hoá FASTCARE, rồi mở khoá Quản lý hoặc Kỹ thuật khi đủ điểm và thứ hạng.':
           'Tài khoản của bạn thuộc Khối Văn phòng: bạn học Lộ trình chung và Tài liệu học tập nội bộ — hai hướng nghề nghiệp chỉ áp dụng cho Khối Cửa hàng.';
         var homeNote=document.getElementById('homeOfficeNote');
         if(homeNote)homeNote.hidden=store;
+        renderDevTabs();
         renderSeed();
       }
       function findDevStage(pathId,stageId){
@@ -1709,6 +1759,7 @@
         if(career)career.hidden=name!=='career';
         if(name==='hub')renderDevHub();
         if(name==='career'&&pathId){devCareerPath=pathId;devCareerStage=stageId||null;renderDevCareer();}
+        renderDevTabs();
         window.scrollTo({top:0,behavior:'smooth'});
       }
       function renderDevCareer(){
@@ -1819,6 +1870,15 @@
         });
         var bk=document.getElementById('devBackCareer');
         if(bk)bk.addEventListener('click',function(){showDevScreen('common')});
+        var tabs=document.getElementById('devTabs');
+        if(tabs)tabs.addEventListener('click',function(e){
+          var b=e.target&&e.target.closest?e.target.closest('[data-dev-tab]'):null;
+          if(!b)return;
+          var k=b.getAttribute('data-dev-tab');
+          if(k==='common')showDevScreen('common');
+          else if(k==='doc')openDevDocModal();
+          else if(k.indexOf('career:')===0)showDevScreen('career',k.slice(7));
+        });
         var dm=document.getElementById('devModal');
         if(dm)dm.addEventListener('click',function(e){if(e.target===dm)closeDevModal()});
         document.addEventListener('keydown',function(e){if(e.key==='Escape'){var m=document.getElementById('devModal');if(m&&m.classList.contains('open'))closeDevModal()}});
