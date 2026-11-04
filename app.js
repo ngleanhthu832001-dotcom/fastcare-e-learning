@@ -1031,9 +1031,9 @@
         navButtons.forEach(function(b){b.classList.toggle('active',b.getAttribute('data-view')===id)});
         window.scrollTo({top:0,behavior:'smooth'});
       }
-      navButtons.forEach(function(btn){btn.addEventListener('click',function(){var v=btn.getAttribute('data-view');switchView(v);if(v==='route')showDevScreen('hub');if(v==='admin')openAdminView()})});
+      navButtons.forEach(function(btn){btn.addEventListener('click',function(){var v=btn.getAttribute('data-view');switchView(v);if(v==='route')showDevScreen('common');if(v==='admin')openAdminView()})});
       document.querySelectorAll('[data-admintab]').forEach(function(b){b.addEventListener('click',function(){switchAdminTab(b.getAttribute('data-admintab'))})});
-      document.querySelectorAll('[data-goto]').forEach(function(btn){btn.addEventListener('click',function(){switchView(btn.getAttribute('data-goto'));if(btn.getAttribute('data-goto')==='route')showDevScreen('hub')})});
+      document.querySelectorAll('[data-goto]').forEach(function(btn){btn.addEventListener('click',function(){switchView(btn.getAttribute('data-goto'));if(btn.getAttribute('data-goto')==='route')showDevScreen('common')})});
 
       var overlay=document.getElementById('lessonOverlay');
       var lastFocus=null;
@@ -1593,7 +1593,6 @@
       }
       function renderDevHub(){
         var cardsEl=document.getElementById('devCards');
-        if(!cardsEl)return;
         devBlock=detectBlock();
         /* Admin thấy giao diện đầy đủ của cả hai khối; người được cấp quyền
            "Học bài khối khác" cũng thấy đủ 3 ô cửa hàng + Tài liệu nội bộ. */
@@ -1676,7 +1675,7 @@
             statusClass:'open',statusText:'Đang mở · Vào học'
           }));
         }
-        cardsEl.innerHTML=cards.join('');
+        if(cardsEl)cardsEl.innerHTML=cards.join('');
         /* Trang chủ dùng chung 3 ô này (03/11): render cùng nội dung vào #homeDevCards. */
         var homeEl=document.getElementById('homeDevCards');
         if(homeEl)homeEl.innerHTML=cards.join('');
@@ -1818,10 +1817,8 @@
           else if(k==='doc')openDevDocModal();
           else if(k.indexOf('career:')===0)showDevScreen('career',k.slice(7));
         });
-        var bc=document.getElementById('devBackCommon');
-        if(bc)bc.addEventListener('click',function(){showDevScreen('hub')});
         var bk=document.getElementById('devBackCareer');
-        if(bk)bk.addEventListener('click',function(){showDevScreen('hub')});
+        if(bk)bk.addEventListener('click',function(){showDevScreen('common')});
         var dm=document.getElementById('devModal');
         if(dm)dm.addEventListener('click',function(e){if(e.target===dm)closeDevModal()});
         document.addEventListener('keydown',function(e){if(e.key==='Escape'){var m=document.getElementById('devModal');if(m&&m.classList.contains('open'))closeDevModal()}});
