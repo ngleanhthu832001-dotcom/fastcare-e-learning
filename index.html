@@ -237,7 +237,7 @@
       --lime:#b8dc37;--teal:#188f84;--teal-soft:#e1f6f2;--gold:#e8a51d;--gold-soft:#fff3d4;
     }}
     body{font-weight:500}
-    .brand-lockup{display:block;padding:5px 10px 21px;border-bottom:1px solid var(--line)}
+    .brand-lockup{display:block;padding:5px 10px 21px;border:0;border-bottom:1px solid var(--line);background:transparent;cursor:pointer;text-align:left}
     .brand-lockup img{display:block;width:168px;height:auto;object-fit:contain}
     .profile{border-bottom:0;padding-top:20px}
     .avatar{background:var(--brand);border-radius:50%;width:44px;height:44px;min-width:44px;aspect-ratio:1/1;flex:none;align-self:center;overflow:hidden}
@@ -388,7 +388,8 @@
     @media(max-width:760px){.sim-main{grid-template-columns:1fr}.sim-bubble{max-width:180px}}
     .mem-intro{margin:0 0 12px}.mem-stats{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}.mem-stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:13px}.mem-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.mem-card{aspect-ratio:3/4;border:0;background:none;padding:0;cursor:pointer;perspective:700px}.mem-inner{position:relative;display:block;width:100%;height:100%;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.3,1.3,.5,1)}.mem-card.flipped .mem-inner{transform:rotateY(180deg)}.mem-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:6px}.mem-front{background:var(--brand);color:#fff;font-size:32px;font-weight:800;box-shadow:0 4px 0 rgba(0,0,0,.18)}.mem-back{background:var(--ps,#fff);border:2px solid var(--pc,#e84924);transform:rotateY(180deg)}.mem-icon{font-size:26px;line-height:1}.mem-letter{font-size:30px;font-weight:800;color:var(--pc,#e84924);line-height:1}.mem-word{font-size:12.5px;font-weight:800;color:var(--pc,#e84924);text-align:center;line-height:1.25}.mem-card.matched{cursor:default}.mem-card.matched .mem-back{box-shadow:0 0 0 3px var(--pc,#e84924),0 6px 14px rgba(0,0,0,.12)}#memWin{margin-top:16px}#memWin .primary{margin-top:10px}
     .mobile-logo{display:none;width:128px;height:auto}
-    @media(max-width:980px){.brand-lockup{display:none}.mobile-logo{display:block}.topline{flex-wrap:wrap}.topline>p{order:3;width:100%;margin-top:-4px}.skill-grid{grid-template-columns:repeat(3,1fr)}}
+    .mobile-logo-btn{display:none;background:transparent;border:0;padding:0;cursor:pointer}
+    @media(max-width:980px){.brand-lockup{display:none}.mobile-logo{display:block}.mobile-logo-btn{display:block}.topline{flex-wrap:wrap}.topline>p{order:3;width:100%;margin-top:-4px}.skill-grid{grid-template-columns:repeat(3,1fr)}}
     @media(max-width:700px){.hero{grid-template-columns:1fr}.fastie-stage{min-height:190px}.fastie{width:240px;height:190px}.fastie-bubble{right:4px}.skill-grid{grid-template-columns:repeat(2,1fr)}.skill-card:last-child{grid-column:1/-1;min-height:auto}.reminder-panel{right:16px;top:70px}.activity-modal{padding:12px}.lesson-intro{grid-template-columns:1fr}.lesson-fastie{display:none}.success-card{grid-template-columns:96px minmax(0,1fr);padding:13px;gap:12px}.success-card img{width:96px;height:90px}.completion-actions.show{display:grid;grid-template-columns:1fr}.completion-actions .primary,.completion-actions .secondary{justify-content:center;width:100%}.next-lesson-panel{padding:20px}}
     /* Supabase auth layer */
     body.locked .app,body.locked .mobile-nav{display:none}
@@ -571,7 +572,7 @@
   </div>
   <div class="app">
     <aside class="sidebar" aria-label="Điều hướng chính">
-      <div class="brand-lockup"><img src="assets/fastie-logo.png" alt="FASTCARE"></div>
+      <button type="button" class="brand-lockup" data-view="home" aria-label="Về Trang chủ"><img src="assets/fastie-logo.png" alt="FASTCARE"></button>
       <div class="profile" id="profileBlock" role="button" tabindex="0" title="Xem và sửa thông tin cá nhân" aria-label="Mở thông tin cá nhân">
         <div class="profile-main"><div class="avatar" id="userAvatar">MN</div><div class="profile-head"><strong id="userName">Minh Nguyễn</strong><span id="userRole">Nhân viên mới</span></div><span class="demo-tag" id="demoTag">DEMO</span></div>
         <div class="profile-meta">
@@ -592,7 +593,7 @@
     </aside>
 
     <main class="content">
-      <header class="topline"><img class="mobile-logo" src="assets/fastie-logo.png" alt="FASTCARE"><p><strong id="greetingName">Xin chào, Minh!</strong> Sẵn sàng cho bài học hôm nay?</p><div class="top-actions"><button class="icon-btn" id="notifyBtn" aria-label="Thông báo"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span class="notify-dot"></span></button></div></header>
+      <header class="topline"><button type="button" class="mobile-logo-btn" data-view="home" aria-label="Về Trang chủ"><img class="mobile-logo" src="assets/fastie-logo.png" alt="FASTCARE"></button><p><strong id="greetingName">Xin chào, Minh!</strong> Sẵn sàng cho bài học hôm nay?</p><div class="top-actions"><button class="icon-btn" id="notifyBtn" aria-label="Thông báo"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span class="notify-dot"></span></button></div></header>
 
       <section id="home" class="view active">
         <div class="hero">
