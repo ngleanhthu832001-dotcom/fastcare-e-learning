@@ -287,6 +287,7 @@
         impRunning=false;
         renderAdmin();
       }
+      var adminRows=[];
       async function renderAdmin(){
         var box=document.getElementById('adminTable');
         if(!box)return;
@@ -294,12 +295,19 @@
         try{
           var res=await sb.rpc('get_leaderboard');
           if(res.error)throw res.error;
-          var rows=res.data||[];
-          if(!rows.length){box.innerHTML=emptyRankHTML();return}
-          box.innerHTML='<div class="rank-row rank-head"><span>#</span><span>Học viên</span><span class="dept">Đơn vị</span><span class="xp">Tổng XP</span></div>'+rows.map(function(it,idx){
-            return '<div class="rank-row"><b>'+(idx+1)+'</b><div class="person"><div class="person-dot">'+dotAvatar(it.avatar_url,it.full_name)+'</div><div><strong>'+escapeHtml(it.full_name||'Học viên')+'</strong><span>'+escapeHtml(it.department||'FASTCARE')+'</span></div></div><span class="dept">'+escapeHtml(it.department||'—')+'</span><span class="xp">'+fmt(it.total_xp)+'</span></div>';
-          }).join('');
+          adminRows=res.data||[];
+          renderAdminRows();
         }catch(e){box.innerHTML='<p class="muted-center">Chưa tải được danh sách học viên.</p>'}
+      }
+      function renderAdminRows(){
+        var box=document.getElementById('adminTable');
+        if(!box)return;
+        if(!adminRows.length){box.innerHTML=emptyRankHTML();return}
+        var page=pagerSlice(adminRows,'admin');
+        var off=(pagerState.admin.page-1)*pagerState.admin.size;
+        box.innerHTML='<div class="rank-row rank-head"><span>#</span><span>Học viên</span><span class="dept">Đơn vị</span><span class="xp">Tổng XP</span></div>'+page.map(function(it,idx){
+          return '<div class="rank-row"><b>'+(off+idx+1)+'</b><div class="person"><div class="person-dot">'+dotAvatar(it.avatar_url,it.full_name)+'</div><div><strong>'+escapeHtml(it.full_name||'Học viên')+'</strong><span>'+escapeHtml(it.department||'FASTCARE')+'</span></div></div><span class="dept">'+escapeHtml(it.department||'—')+'</span><span class="xp">'+fmt(it.total_xp)+'</span></div>';
+        }).join('')+pagerHTML('admin',adminRows.length);
       }
       var pendingTimer=null;
       function showPending(){
@@ -406,6 +414,59 @@
           if(userRole==='admin'){renderPermissions();renderDirectory()}
         }catch(e){showToast('Không duyệt được, vui lòng thử lại');if(btn)btn.disabled=false}
       }
+      /* ===== Phân trang cho các danh sách dài trong Quản trị học viên =====
+         Mặc định 50 dòng/trang (có thể đổi 20/50/100). Chỉ phân trang phần HIỂN
+         THỊ — mảng dữ liệu gốc (permRows/dirRows/adminRows) vẫn giữ đủ, nên
+         tìm kiếm, đổi quyền, xoá tài khoản không bị ảnh hưởng. */
+      var pagerState={perm:{page:1,size:50},dir:{page:1,size:50},admin:{page:1,size:50}};
+      function pagerTotalPages(total,size){return Math.max(1,Math.ceil(total/size))}
+      function pagerSlice(rows,key){
+        var st=pagerState[key];var tp=pagerTotalPages(rows.length,st.size);
+        if(st.page>tp)st.page=tp;if(st.page<1)st.page=1;
+        var start=(st.page-1)*st.size;return rows.slice(start,start+st.size);
+      }
+      function pagerHTML(key,total){
+        var st=pagerState[key];var tp=pagerTotalPages(total,st.size);
+        if(tp<=1)return '';
+        var start=(st.page-1)*st.size+1;var end=Math.min(total,st.page*st.size);
+        var nums=[];
+        if(tp<=7){for(var i=1;i<=tp;i++)nums.push(i)}
+        else{
+          nums.push(1);
+          if(st.page>3)nums.push('…');
+          [st.page-1,st.page,st.page+1].forEach(function(n){if(n>1&&n<tp&&nums.indexOf(n)<0)nums.push(n)});
+          if(st.page<tp-2)nums.push('…');
+          if(nums.indexOf(tp)<0)nums.push(tp);
+        }
+        var btns=nums.map(function(n){
+          if(n==='…')return '<span class="pager-dots">…</span>';
+          return '<button type="button" class="pager-btn'+(n===st.page?' active':'')+'" data-pager="'+key+'" data-page="'+n+'">'+n+'</button>';
+        }).join('');
+        var sizeOpts=[20,50,100].map(function(s){return '<option value="'+s+'"'+(s===st.size?' selected':'')+'>'+s+'</option>'}).join('');
+        return '<div class="pager"><label class="pager-size-wrap">Hiển thị <select class="pager-size" data-pager-size="'+key+'">'+sizeOpts+'</select> dòng/trang</label><span class="pager-range">'+start+'–'+end+' / '+total+'</span><div class="pager-nav"><button type="button" class="pager-btn" data-pager="'+key+'" data-page="prev"'+(st.page<=1?' disabled':'')+'>← Trước</button>'+btns+'<button type="button" class="pager-btn" data-pager="'+key+'" data-page="next"'+(st.page>=tp?' disabled':'')+'>Sau →</button></div></div>';
+      }
+      function pagerRender(key){
+        if(key==='perm')renderPermRows();
+        else if(key==='dir')renderDirRows();
+        else if(key==='admin')renderAdminRows();
+      }
+      document.addEventListener('click',function(e){
+        var b=e.target&&e.target.closest?e.target.closest('[data-pager]'):null;
+        if(!b||b.disabled)return;
+        var key=b.getAttribute('data-pager');var st=pagerState[key];if(!st)return;
+        var pg=b.getAttribute('data-page');
+        if(pg==='prev')st.page--;
+        else if(pg==='next')st.page++;
+        else st.page=parseInt(pg,10)||1;
+        pagerRender(key);
+      });
+      document.addEventListener('change',function(e){
+        var s=e.target&&e.target.closest?e.target.closest('[data-pager-size]'):null;
+        if(!s)return;
+        var key=s.getAttribute('data-pager-size');var st=pagerState[key];if(!st)return;
+        st.size=parseInt(s.value,10)||50;st.page=1;
+        pagerRender(key);
+      });
       var permRows=[],permWired=false;
       async function renderPermissions(){
         var sec=document.getElementById('permSection');
@@ -423,8 +484,8 @@
           unitSel.innerHTML='<option value="">Tất cả đơn vị</option>'+units.map(function(u){return '<option'+(u===cur?' selected':'')+'>'+escapeHtml(u)+'</option>'}).join('');
           if(!permWired){
             permWired=true;
-            document.getElementById('permSearch').addEventListener('input',renderPermRows);
-            unitSel.addEventListener('change',renderPermRows);
+            document.getElementById('permSearch').addEventListener('input',function(){pagerState.perm.page=1;renderPermRows()});
+            unitSel.addEventListener('change',function(){pagerState.perm.page=1;renderPermRows()});
             box.addEventListener('change',function(e){
               var s=e.target&&e.target.closest?e.target.closest('[data-role-for]'):null;
               if(!s)return;
@@ -458,13 +519,14 @@
           return true;
         });
         if(!rows.length){box.innerHTML='<p class="muted-center">Không có tài khoản nào khớp.</p>';return}
-        box.innerHTML='<div class="rank-row rank-head perm-row"><span>•</span><span>Tài khoản ('+rows.length+')</span><span class="dept">Trạng thái</span><span class="xp">Quyền</span><span class="xp">Thao tác</span></div>'+rows.map(function(p){
+        var page=pagerSlice(rows,'perm');
+        box.innerHTML='<div class="rank-row rank-head perm-row"><span>•</span><span>Tài khoản ('+rows.length+')</span><span class="dept">Trạng thái</span><span class="xp">Quyền</span><span class="xp">Thao tác</span></div>'+page.map(function(p){
           var self=p.id===currentUser.id;
           var opts=[['staff','Nhân viên'],['manager','Quản lý'],['admin','Quản trị viên']].map(function(o){
             return '<option value="'+o[0]+'"'+(p.role===o[0]?' selected':'')+'>'+o[1]+'</option>';
           }).join('');
           return '<div class="rank-row perm-row"><b>•</b><div class="person"><div class="person-dot">'+dotAvatar(null,p.full_name)+'</div><div><strong>'+escapeHtml(p.full_name||'Học viên')+(self?' (bạn)':'')+'</strong><span>'+escapeHtml(p.email||'')+(p.department?' · '+escapeHtml(p.department):'')+'</span></div></div><span class="dept">'+permStatus(p)+'</span><span class="xp"><select class="role-select" data-role-for="'+p.id+'"'+(self?' disabled title="Không thể đổi quyền của chính bạn"':'')+'>'+opts+'</select></span><span class="xp">'+(self?'<span style="font-size:12px;color:var(--muted);font-weight:600">Bạn</span>':'<button class="del-btn" data-delperm="'+p.id+'">Xoá tài khoản</button>')+'</span></div>';
-        }).join('');
+        }).join('')+pagerHTML('perm',rows.length);
       }
       async function changeUserRole(id,newRole,sel){
         var p=null;permRows.forEach(function(x){if(x.id===id)p=x});
@@ -502,8 +564,8 @@
           unitSel.innerHTML='<option value="">Tất cả đơn vị</option>'+units.map(function(u){return '<option'+(u===cur?' selected':'')+'>'+escapeHtml(u)+'</option>'}).join('');
           if(!dirWired){
             dirWired=true;
-            document.getElementById('dirSearch').addEventListener('input',renderDirRows);
-            unitSel.addEventListener('change',renderDirRows);
+            document.getElementById('dirSearch').addEventListener('input',function(){pagerState.dir.page=1;renderDirRows()});
+            unitSel.addEventListener('change',function(){pagerState.dir.page=1;renderDirRows()});
             document.getElementById('dirReload').addEventListener('click',async function(){await renderDirectory();showToast('Đã tải lại danh bạ từ database')});
           }
           wireCreateSection();
@@ -523,12 +585,13 @@
         var reg=0;dirRows.forEach(function(p){if(dirRegEmails[(p.email||'').toLowerCase()])reg++});
         document.getElementById('dirSummary').textContent='Tổng '+dirRows.length+' người trong danh bạ · '+reg+' đã có tài khoản · '+(dirRows.length-reg)+' chưa đăng ký'+(dirWebOnly.length?' · cộng '+dirWebOnly.length+' tài khoản tạo trực tiếp trên web':'');
         if(!rows.length){box.innerHTML='<p class="muted-center">Không có ai khớp.</p>';return}
-        box.innerHTML='<div class="rank-row rank-head"><span>•</span><span>Nhân sự ('+rows.length+')</span><span class="dept">Đơn vị</span><span class="xp">Trạng thái</span></div>'+rows.map(function(p){
+        var dirPage=pagerSlice(rows,'dir');
+        box.innerHTML='<div class="rank-row rank-head"><span>•</span><span>Nhân sự ('+rows.length+')</span><span class="dept">Đơn vị</span><span class="xp">Trạng thái</span></div>'+dirPage.map(function(p){
           var has=p.web?true:!!dirRegEmails[(p.email||'').toLowerCase()];
           var sdp=p.start_date?String(p.start_date).slice(0,10).split('-'):null;
           var meta=(p.employee_code?p.employee_code+' · ':'')+(p.position||'')+(sdp?' · Vào '+sdp[2]+'/'+sdp[1]+'/'+sdp[0]:'')+(p.web?' · Tạo trên web':'');
           return '<div class="rank-row"><b>•</b><div class="person"><div class="person-dot">'+dotAvatar(null,p.full_name)+'</div><div><strong>'+escapeHtml(p.full_name||'Nhân sự')+'</strong><span>'+escapeHtml(p.email||'')+(meta?' · '+escapeHtml(meta):'')+'</span></div></div><span class="dept">'+escapeHtml(p.department||'—')+'</span><span class="xp">'+(has?'<span class="status-chip st-ok">Đã có tài khoản</span>':'<span class="status-chip st-pending">Chưa đăng ký</span>')+'</span></div>';
-        }).join('');
+        }).join('')+pagerHTML('dir',rows.length);
       }
       var lastUid=null;
       async function deleteAccount(p,btn){
