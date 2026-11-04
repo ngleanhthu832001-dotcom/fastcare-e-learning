@@ -1072,29 +1072,21 @@
          Bài 4–12 là nội dung sẽ bổ sung sau (chưa có nội dung nên mặc định CHƯA MỞ,
          sau này Kem mở bằng công tắc trong Quản trị học viên — bảng lesson_settings, SQL v12). */
       var COMMON_LESSONS=[
-        {id:'khao-sat-module-01',name:'Chào mừng đến FASTCARE',desc:'Câu chuyện thương hiệu, hệ thống và những người bạn sẽ đồng hành.',kind:'deck'},
-        {id:'bai-3-4-van-hoa-phuc-vu',name:'Văn hoá phục vụ khách hàng',desc:'Lắng nghe, chủ động, minh bạch và theo sát đến cùng.',kind:'lesson'},
-        {id:'mini-game-vuot-ai-4c',name:'Vượt ải 4C',desc:'Mô phỏng cửa hàng · 3 ải Chủ động – Cười – Chào, tối đa 10 XP.',kind:'game'},
-        {id:'chinh-sach-1',name:'Chính sách & quy định chung · Bài 1',desc:'Quy định tại cửa hàng & chuẩn tác phong.',kind:'placeholder'},
-        {id:'chinh-sach-2',name:'Chính sách & quy định chung · Bài 2',desc:'Nội dung đang được chuẩn bị.',kind:'placeholder'},
-        {id:'chinh-sach-3',name:'Chính sách & quy định chung · Bài 3',desc:'Nội dung đang được chuẩn bị.',kind:'placeholder'},
-        {id:'nghiep-vu-1',name:'Nghiệp vụ theo vị trí · Bài 1',desc:'Nội dung đang được chuẩn bị.',kind:'placeholder'},
-        {id:'nghiep-vu-2',name:'Nghiệp vụ theo vị trí · Bài 2',desc:'Nội dung đang được chuẩn bị.',kind:'placeholder'},
-        {id:'nghiep-vu-3',name:'Nghiệp vụ theo vị trí · Bài 3',desc:'Nội dung đang được chuẩn bị.',kind:'placeholder'},
-        {id:'nghiep-vu-4',name:'Nghiệp vụ theo vị trí · Bài 4',desc:'Nội dung đang được chuẩn bị.',kind:'placeholder'},
-        {id:'nghiep-vu-5',name:'Nghiệp vụ theo vị trí · Bài 5',desc:'Nội dung đang được chuẩn bị.',kind:'placeholder'},
-        {id:'thu-thach-30-ngay',name:'Thử thách 30 ngày',desc:'Tình huống tổng hợp, khảo sát trải nghiệm và chứng nhận hoàn thành.',kind:'placeholder'}
+        {id:'khao-sat-module-01',name:'Chào mừng đến với FASTCARE',desc:'Văn hoá, lịch sử hình thành · +10 XP',kind:'deck'},
+        {id:'quy-dinh-noi-quy',name:'Quy định - Nội quy',desc:'Nội quy, quy định làm việc tại FASTCARE.',kind:'placeholder'},
+        {id:'phuc-loi',name:'Phúc lợi',desc:'Chính sách, chế độ phúc lợi dành cho nhân sự.',kind:'placeholder'},
+        {id:'quy-tac-4c-5s',name:'Quy tắc 4C - 5S',desc:'Văn hoá phục vụ 4C · Quy tắc 5S · +20 XP',kind:'lesson4c'},
+        {id:'muoi-hai-khong',name:'12 "Không" tại FASTCARE',desc:'12 điều không được làm tại FASTCARE.',kind:'placeholder'}
       ];
       function commonLessonDone(i){
         if(i===0)return module1Done;
-        if(i===1)return lessonCompleted;
-        if(i===2)return game4cDone;
+        if(i===3)return lessonCompleted&&game4cDone; /* chặng 4C xong khi làm xong cả quiz lẫn game */
         return false;
       }
       function commonLessonOpen(i){
         if(i===0)return true;
         if(COMMON_LESSONS[i].kind==='placeholder')return false;
-        return commonLessonDone(i-1);
+        return commonLessonDone(0); /* chặng 4C mở sau khi xong chặng 1 — không bị kẹt sau các chặng chưa có nội dung */
       }
       function currentCommonLessonIdx(){
         for(var i=0;i<COMMON_LESSONS.length;i++){if(!commonLessonDone(i)&&commonLessonOpen(i))return i;}
@@ -1103,36 +1095,66 @@
       function commonLessonStatus(i){
         if(commonLessonDone(i))return 'done';
         if(!commonLessonOpen(i))return 'locked';
-        /* "Bắt đầu" chỉ dành cho Bài 1 (bài đầu tiên); các bài đã mở ở dưới hiển thị "Đã mở". */
+        /* "Bắt đầu" chỉ dành cho Chặng 1 (chặng đầu tiên); các chặng đã mở ở dưới hiển thị "Đã mở". */
         return i===0?'current':'open';
       }
       function renderCommonLessons(){
         var list=document.getElementById('commonLessonList');
         if(!list)return;
+        list.className='dev-trail';
         var cur=currentCommonLessonIdx();
-        list.innerHTML=COMMON_LESSONS.map(function(L,i){
+        var rows=COMMON_LESSONS.map(function(L,i){
           var st=commonLessonStatus(i);
-          var badge=st==='done'?'✓':(i+1<10?'0'+(i+1):String(i+1));
-          var chip=st==='done'?'<span class="status-chip">HOÀN THÀNH</span>':st==='current'?'<span class="status-chip">BẮT ĐẦU</span>':st==='open'?'<span class="status-chip">ĐÃ MỞ</span>':'<span class="status-chip">CHƯA MỞ</span>';
-          var cls='module'+(st==='done'?' done':st==='current'?' current':st==='locked'?' locked':'');
-          return '<article class="'+cls+'" data-bai="'+(i+1)+'" role="button" tabindex="0" title="'+(st==='locked'?'Bài chưa mở':('Mở Bài '+(i+1)))+'"><div class="module-num">'+badge+'</div><div class="module-card"><div><h3>Bài '+(i+1)+' · '+escapeHtml(L.name)+'</h3><p>'+escapeHtml(L.desc)+'</p></div>'+chip+'</div></article>';
+          var nodeInner=st==='done'?'✓':st==='locked'?'🔒':(i+1<10?'0'+(i+1):String(i+1));
+          var nodeCls=st==='done'?'done':st==='locked'?'locked':(i===cur?'current':'');
+          var action;
+          if(st==='done')action='<span class="act">Đã hoàn thành</span>';
+          else if(st==='locked')action='<span>Chưa mở — nội dung đang được chuẩn bị</span>';
+          else if(i===3&&lessonCompleted&&!game4cDone)action='<span class="act">Chơi game 4C →</span>';
+          else if(i===3)action='<span class="act">Học lý thuyết →</span>';
+          else action='<span class="act">Bắt đầu →</span>';
+          return '<div class="dev-trail-row'+(i%2===1?' flip':'')+'"><div class="dev-node-wrap">'+devStars(st==='done')+'<button class="dev-node '+nodeCls+'" type="button" data-chang="'+i+'" aria-label="Chặng '+(i+1)+': '+escapeHtml(L.name)+'">'+nodeInner+'</button></div><button class="dev-stage-card'+(st==='done'?' is-done':'')+(st==='locked'?' is-locked':'')+'" type="button" data-chang="'+i+'"><span class="dev-stage-type">Chặng '+(i+1)+'</span><h4>'+escapeHtml(L.name)+'</h4><span class="dev-stage-meta"><span>'+escapeHtml(L.desc)+'</span>'+action+'</span></button></div>';
         }).join('');
-        list.querySelectorAll('[data-bai]').forEach(function(row){
-          row.addEventListener('click',function(){openCommonLesson(Number(row.getAttribute('data-bai'))-1,row)});
-          row.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();openCommonLesson(Number(row.getAttribute('data-bai'))-1,row)}});
+        list.innerHTML='<svg class="dev-trail-svg" id="commonTrailSvg" aria-hidden="true"><path id="commonTrailPathAll" fill="none" stroke="#eadfd9" stroke-width="3" stroke-dasharray="2 9" stroke-linecap="round"/><path id="commonTrailPathDone" fill="none" stroke="#f45b18" stroke-width="3" stroke-dasharray="2 9" stroke-linecap="round"/></svg>'+rows;
+        list.querySelectorAll('[data-chang]').forEach(function(el){
+          el.addEventListener('click',function(){openCommonLesson(Number(el.getAttribute('data-chang')),el)});
         });
         var rc=document.getElementById('routeContinue');
         if(rc){
-          if(cur>=0){rc.textContent='Bắt đầu Bài '+(cur+1);rc.disabled=false;}
+          if(cur>=0){rc.textContent='Bắt đầu Chặng '+(cur+1);rc.disabled=false;}
           else{rc.textContent='Đã hoàn thành Lộ trình chung';rc.disabled=true;}
         }
+        requestAnimationFrame(drawCommonTrail);
+      }
+      function drawCommonTrail(){
+        var trail=document.getElementById('commonLessonList'),svg=document.getElementById('commonTrailSvg');
+        if(!trail||!svg||devScreen!=='common')return;
+        var nodes=Array.prototype.slice.call(trail.querySelectorAll('.dev-node'));
+        if(!nodes.length)return;
+        var tr=trail.getBoundingClientRect();
+        svg.setAttribute('viewBox','0 0 '+trail.offsetWidth+' '+trail.offsetHeight);
+        var pts=nodes.map(function(n){
+          var r=n.getBoundingClientRect();
+          var isDone=n.className.indexOf('done')>-1,isCur=n.className.indexOf('current')>-1;
+          return{x:Math.round(r.left-tr.left+r.width/2),y:Math.round(r.top-tr.top+r.height/2),state:isDone?'done':isCur?'current':'todo'};
+        });
+        var all=document.getElementById('commonTrailPathAll');
+        if(all)all.setAttribute('d',devSmoothPath(pts));
+        var lastDone=-1;
+        pts.forEach(function(pt,i){if(pt.state==='done'||pt.state==='current')lastDone=i});
+        var dn=document.getElementById('commonTrailPathDone');
+        if(dn)dn.setAttribute('d',lastDone>0?devSmoothPath(pts.slice(0,lastDone+1)):'');
       }
       function openCommonLesson(i,btn){
         if(i<0||i>=COMMON_LESSONS.length)return;
-        if(!commonLessonOpen(i)){showToast('Bài này chưa mở — nội dung đang được chuẩn bị');return;}
+        if(!commonLessonOpen(i)){showToast('Chặng này chưa mở — nội dung đang được chuẩn bị');return;}
         var L=COMMON_LESSONS[i];
         if(L.kind==='deck'){openWelcome();return;}
-        if(L.kind==='game'){var gb=document.getElementById('gameEntryBtn');if(gb){gb.click();return;}}
+        if(L.kind==='lesson4c'){
+          if(!lessonCompleted){openLesson(btn||null);return;}
+          var gb=document.getElementById('gameEntryBtn');if(gb){gb.click();return;}
+          return;
+        }
         openLesson(btn||null);
       }
       document.getElementById('routeContinue').addEventListener('click',function(){
@@ -1822,6 +1844,7 @@
         if(career)career.hidden=name!=='career';
         if(name==='hub')renderDevHub();
         if(name==='career'&&pathId){devCareerPath=pathId;devCareerStage=stageId||null;renderDevCareer();}
+        if(name==='common')requestAnimationFrame(drawCommonTrail);
         renderDevTabs();
         window.scrollTo({top:0,behavior:'smooth'});
       }
@@ -1892,7 +1915,7 @@
         if(dn)dn.setAttribute('d',lastDone>0?devSmoothPath(pts.slice(0,lastDone+1)):'');
       }
       var devResizeTimer=null;
-      window.addEventListener('resize',function(){clearTimeout(devResizeTimer);devResizeTimer=setTimeout(drawDevTrail,120)});
+      window.addEventListener('resize',function(){clearTimeout(devResizeTimer);devResizeTimer=setTimeout(function(){drawDevTrail();drawCommonTrail();},120)});
       function openDevModal(html){
         var m=document.getElementById('devModal'),box=document.getElementById('devModalBox');
         if(!m||!box)return;
