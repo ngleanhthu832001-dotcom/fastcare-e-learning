@@ -79,6 +79,7 @@
         var sd=p.start_date?String(p.start_date).slice(0,10).split('-'):null;
         document.getElementById('userStart').textContent=sd?(sd[2]+'/'+sd[1]+'/'+sd[0]):'—';
         renderDevHub();
+        renderCommonLessons();
       }
       async function refreshMyStats(){
         if(!currentUser)return;
@@ -108,6 +109,7 @@
           myXp=totalXp;
           var _g4=false;atts.forEach(function(a){if(a.lesson_id==='mini-game-vuot-ai-4c')_g4=true});game4cDone=_g4;
           renderDevHub();
+          renderCommonLessons();
           if(devScreen==='career'&&devCareerPath)renderDevCareer();
         }catch(e){/* giữ số liệu hiện tại, không crash */}
       }
@@ -762,7 +764,7 @@
         if(btn)btn.disabled=false;
       }
       function lessonLabel(id){
-        var map={'bai-3-4-van-hoa-phuc-vu':'Văn hoá phục vụ — Quiz 10 câu','khao-sat-module-01':'Khảo sát mô-đun 01 (5 câu)','mini-game-vuot-ai-4c':'Game Vượt ải 4C (tổng kết)','mini-game-vuot-ai-4c-ai-1':'Game 4C · Ải 1 Chủ động','mini-game-vuot-ai-4c-ai-2':'Game 4C · Ải 2 Cười','mini-game-vuot-ai-4c-ai-3':'Game 4C · Ải 3 Chào'};
+        var map={'bai-3-4-van-hoa-phuc-vu':'Văn hoá phục vụ — Quiz 10 câu','khao-sat-module-01':'Khảo sát Bài 1 (5 câu)','mini-game-vuot-ai-4c':'Game Vượt ải 4C (tổng kết)','mini-game-vuot-ai-4c-ai-1':'Game 4C · Ải 1 Chủ động','mini-game-vuot-ai-4c-ai-2':'Game 4C · Ải 2 Cười','mini-game-vuot-ai-4c-ai-3':'Game 4C · Ải 3 Chào'};
         return map[id]||id;
       }
       async function renderScopeProgress(){
@@ -1038,26 +1040,12 @@
       var overlay=document.getElementById('lessonOverlay');
       var lastFocus=null;
       var lessonCompleted=false;
-      var nextLessonMode=false;
-      function renderNextLesson(){
-        nextLessonMode=true;
-        document.querySelector('.lesson').classList.add('next-mode');
-        document.getElementById('lessonTopLabel').textContent='Bài 1/3 · Chính sách & quy định chung';
-        document.getElementById('lessonTitle').textContent='Quy định tại cửa hàng & chuẩn tác phong';
-        document.getElementById('lessonSummary').textContent='Tác phong thống nhất giúp khách hàng nhận ra sự chuyên nghiệp của FASTCARE ngay từ lần tiếp xúc đầu tiên.';
-        document.getElementById('keypoints').innerHTML='<div class="point"><b>01 · Đúng giờ</b><span>Có mặt và sẵn sàng trước giờ nhận ca.</span></div><div class="point"><b>02 · Đúng hình ảnh</b><span>Đồng phục gọn gàng, bảng tên rõ ràng.</span></div><div class="point"><b>03 · Đúng quy trình</b><span>Chào hỏi, tiếp nhận và bàn giao đủ bước.</span></div>';
-        document.getElementById('lessonQuiz').style.display='none';
-        document.getElementById('nextLessonPanel').classList.add('show');
-        var video=document.getElementById('storeConductVideo');
-        if(!video.src)video.src='https://www.youtube-nocookie.com/embed/DhO2ii8qRUs';
-      }
-      function openLesson(btn,openNext){
+      function openLesson(btn){
         lastFocus=btn;
-        if(openNext||lessonCompleted)renderNextLesson();
         overlay.classList.add('open');document.body.style.overflow='hidden';
         document.getElementById('closeLesson').focus();
       }
-      document.querySelectorAll('.open-lesson').forEach(function(btn){btn.addEventListener('click',function(){openLesson(btn,false)})});
+      document.querySelectorAll('.open-lesson').forEach(function(btn){btn.addEventListener('click',function(){openLesson(btn)})});
       function closeLesson(){overlay.classList.remove('open');document.body.style.overflow='';if(lastFocus&&!lastFocus.disabled)lastFocus.focus()}
       document.getElementById('closeLesson').addEventListener('click',closeLesson);
       var welcomeOverlay=document.getElementById('welcomeOverlay');
@@ -1079,6 +1067,78 @@
       overlay.addEventListener('click',function(e){if(e.target===overlay)closeLesson()});
       document.addEventListener('keydown',function(e){if(e.key==='Escape'&&overlay.classList.contains('open'))closeLesson()});
       document.querySelectorAll('.question').forEach(function(q){q.querySelectorAll('.option').forEach(function(opt,idx){opt.addEventListener('click',function(){q.querySelectorAll('.option').forEach(function(o){o.classList.remove('selected')});opt.classList.add('selected');q.dataset.selected=idx})})});
+      /* Danh sách phẳng các Bài của Lộ trình chung (30 ngày) — thay cho 5 thẻ Mô-đun cũ.
+         Bài 1–3 đã có nội dung thật (deck Canva + khảo sát, clip + quiz, game 4C);
+         Bài 4–12 là nội dung sẽ bổ sung sau (chưa có nội dung nên mặc định CHƯA MỞ,
+         sau này Kem mở bằng công tắc trong Quản trị học viên — bảng lesson_settings, SQL v12). */
+      var COMMON_LESSONS=[
+        {id:'khao-sat-module-01',name:'Chào mừng đến FASTCARE',desc:'Câu chuyện thương hiệu, hệ thống và những người bạn sẽ đồng hành.',kind:'deck'},
+        {id:'bai-3-4-van-hoa-phuc-vu',name:'Văn hoá phục vụ khách hàng',desc:'Lắng nghe, chủ động, minh bạch và theo sát đến cùng.',kind:'lesson'},
+        {id:'mini-game-vuot-ai-4c',name:'Vượt ải 4C',desc:'Mô phỏng cửa hàng · 3 ải Chủ động – Cười – Chào, tối đa 100 XP.',kind:'game'},
+        {id:'chinh-sach-1',name:'Chính sách & quy định chung · Bài 1',desc:'Quy định tại cửa hàng & chuẩn tác phong.',kind:'placeholder'},
+        {id:'chinh-sach-2',name:'Chính sách & quy định chung · Bài 2',desc:'Nội dung đang được chuẩn bị.',kind:'placeholder'},
+        {id:'chinh-sach-3',name:'Chính sách & quy định chung · Bài 3',desc:'Nội dung đang được chuẩn bị.',kind:'placeholder'},
+        {id:'nghiep-vu-1',name:'Nghiệp vụ theo vị trí · Bài 1',desc:'Nội dung đang được chuẩn bị.',kind:'placeholder'},
+        {id:'nghiep-vu-2',name:'Nghiệp vụ theo vị trí · Bài 2',desc:'Nội dung đang được chuẩn bị.',kind:'placeholder'},
+        {id:'nghiep-vu-3',name:'Nghiệp vụ theo vị trí · Bài 3',desc:'Nội dung đang được chuẩn bị.',kind:'placeholder'},
+        {id:'nghiep-vu-4',name:'Nghiệp vụ theo vị trí · Bài 4',desc:'Nội dung đang được chuẩn bị.',kind:'placeholder'},
+        {id:'nghiep-vu-5',name:'Nghiệp vụ theo vị trí · Bài 5',desc:'Nội dung đang được chuẩn bị.',kind:'placeholder'},
+        {id:'thu-thach-30-ngay',name:'Thử thách 30 ngày',desc:'Tình huống tổng hợp, khảo sát trải nghiệm và chứng nhận hoàn thành.',kind:'placeholder'}
+      ];
+      function commonLessonDone(i){
+        if(i===0)return module1Done;
+        if(i===1)return lessonCompleted;
+        if(i===2)return game4cDone;
+        return false;
+      }
+      function commonLessonOpen(i){
+        if(i===0)return true;
+        if(COMMON_LESSONS[i].kind==='placeholder')return false;
+        return commonLessonDone(i-1);
+      }
+      function currentCommonLessonIdx(){
+        for(var i=0;i<COMMON_LESSONS.length;i++){if(!commonLessonDone(i)&&commonLessonOpen(i))return i;}
+        return -1;
+      }
+      function commonLessonStatus(i){
+        if(commonLessonDone(i))return 'done';
+        if(!commonLessonOpen(i))return 'locked';
+        /* "Bắt đầu" chỉ dành cho Bài 1 (bài đầu tiên); các bài đã mở ở dưới hiển thị "Đã mở". */
+        return i===0?'current':'open';
+      }
+      function renderCommonLessons(){
+        var list=document.getElementById('commonLessonList');
+        if(!list)return;
+        var cur=currentCommonLessonIdx();
+        list.innerHTML=COMMON_LESSONS.map(function(L,i){
+          var st=commonLessonStatus(i);
+          var badge=st==='done'?'✓':(i+1<10?'0'+(i+1):String(i+1));
+          var chip=st==='done'?'<span class="status-chip">HOÀN THÀNH</span>':st==='current'?'<span class="status-chip">BẮT ĐẦU</span>':st==='open'?'<span class="status-chip">ĐÃ MỞ</span>':'<span class="status-chip">CHƯA MỞ</span>';
+          var cls='module'+(st==='done'?' done':st==='current'?' current':st==='locked'?' locked':'');
+          return '<article class="'+cls+'" data-bai="'+(i+1)+'" role="button" tabindex="0" title="'+(st==='locked'?'Bài chưa mở':('Mở Bài '+(i+1)))+'"><div class="module-num">'+badge+'</div><div class="module-card"><div><h3>Bài '+(i+1)+' · '+escapeHtml(L.name)+'</h3><p>'+escapeHtml(L.desc)+'</p></div>'+chip+'</div></article>';
+        }).join('');
+        list.querySelectorAll('[data-bai]').forEach(function(row){
+          row.addEventListener('click',function(){openCommonLesson(Number(row.getAttribute('data-bai'))-1,row)});
+          row.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();openCommonLesson(Number(row.getAttribute('data-bai'))-1,row)}});
+        });
+        var rc=document.getElementById('routeContinue');
+        if(rc){
+          if(cur>=0){rc.textContent='Bắt đầu Bài '+(cur+1);rc.disabled=false;}
+          else{rc.textContent='Đã hoàn thành Lộ trình chung';rc.disabled=true;}
+        }
+      }
+      function openCommonLesson(i,btn){
+        if(i<0||i>=COMMON_LESSONS.length)return;
+        if(!commonLessonOpen(i)){showToast('Bài này chưa mở — nội dung đang được chuẩn bị');return;}
+        var L=COMMON_LESSONS[i];
+        if(L.kind==='deck'){openWelcome();return;}
+        if(L.kind==='game'){var gb=document.getElementById('gameEntryBtn');if(gb){gb.click();return;}}
+        openLesson(btn||null);
+      }
+      document.getElementById('routeContinue').addEventListener('click',function(){
+        var cur=currentCommonLessonIdx();
+        if(cur>=0)openCommonLesson(cur);
+      });
       function completeCurrentLesson(){
         if(lessonCompleted)return;
         lessonCompleted=true;
@@ -1105,13 +1165,7 @@
             unlockedAction.addEventListener('click',function(){openLesson(unlockedAction,true)});
           }
         }
-        var currentModule=document.getElementById('currentModule');
-        currentModule.classList.remove('current');currentModule.classList.add('done');
-        currentModule.querySelector('.module-num').textContent='✓';
-        document.getElementById('currentModuleStatus').textContent='HOÀN THÀNH';
-        document.getElementById('nextModule').classList.add('unlocked');
-        document.getElementById('nextModuleStatus').textContent='BÀI 1/3 ĐÃ MỞ';
-        document.getElementById('routeContinue').textContent='Bắt đầu mô-đun 3';
+        renderCommonLessons();
         document.getElementById('heroTitle').textContent='Chuẩn tác phong tạo nên sự chuyên nghiệp.';
         document.getElementById('heroAction').innerHTML='Bài tiếp theo · 8 phút <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg>';
       }
@@ -1142,9 +1196,7 @@
       });
       function markModule1Done(){
         if(module1Done)return;module1Done=true;
-        var m1c=document.getElementById('module1Card');
-        if(m1c){m1c.classList.add('done');var mn=m1c.querySelector('.module-num');if(mn)mn.textContent='\u2713'}
-        var st=document.getElementById('module1Status');if(st)st.textContent='HO\u00c0N TH\u00c0NH';
+        renderCommonLessons();
       }
       document.querySelectorAll('.sq-question').forEach(function(q){q.querySelectorAll('.sq-option').forEach(function(opt,idx){opt.addEventListener('click',function(){q.querySelectorAll('.sq-option').forEach(function(o){o.classList.remove('selected')});opt.classList.add('selected');q.dataset.selected=idx})})});
       document.getElementById('submitSurvey').addEventListener('click',async function(){
@@ -1162,13 +1214,13 @@
         if(score===qs.length){
           markModule1Done();refreshMyStats();
           sBtn.disabled=true;sBtn.textContent='Đã hoàn thành';
-          showToast('Xuất sắc! Đã cộng 60 XP và hoàn thành mô-đun 1');
+          showToast('Xuất sắc! Đã cộng 60 XP và hoàn thành Bài 1');
         }else{
           sBtn.textContent='Nộp lại bài khảo sát';
           showToast('Bạn có thể chọn lại đáp án rồi nộp lại');
         }
       });
-      document.getElementById('nextLesson').addEventListener('click',function(){renderNextLesson();document.querySelector('.lesson').scrollTo({top:0,behavior:'smooth'});showToast('Đã mở bài tiếp theo')});
+      document.getElementById('nextLesson').addEventListener('click',function(){closeLesson();var cur=currentCommonLessonIdx();if(cur>=0)openCommonLesson(cur);else{switchView('route');showDevScreen('common')}});
       document.getElementById('backToRoute').addEventListener('click',function(){closeLesson();switchView('route');showDevScreen('common')});
       document.getElementById('startNextVideo').addEventListener('click',function(){closeLesson();switchView('route');showDevScreen('common')});
 
@@ -1455,9 +1507,9 @@
           ]}
         ]}
       };
-      /* Lộ trình chung được tính là xong khi xong các mô-đun ĐÃ CÓ nội dung thật:
-         mô-đun 01 (khảo sát 5/5), mô-đun 02 (quiz Văn hoá phục vụ 10/10) và game Vượt ải 4C
-         (thử thách 30 ngày). Mô-đun 03–05 chưa có nội dung nên chưa tính vào điều kiện. */
+      /* Lộ trình chung được tính là xong khi xong các Bài ĐÃ CÓ nội dung thật:
+         Bài 1 (khảo sát 5/5), Bài 2 (quiz Văn hoá phục vụ 10/10) và Bài 3 (game Vượt ải 4C).
+         Bài 4–12 chưa có nội dung nên chưa tính vào điều kiện. */
       function commonProgress(){
         var done=0;
         if(module1Done)done++;
@@ -1610,7 +1662,7 @@
         var pct=0,text='';
         if(st===1){
           pct=Math.round(cp.done*100/cp.total);
-          text=cp.done>0?('Lộ trình chung: '+cp.done+'/'+cp.total+' mô-đun · Còn '+(cp.total-cp.done)+' mô-đun để đạt Nảy mầm'):('Hoàn thành Lộ trình chung để đạt Nảy mầm · '+cp.done+'/'+cp.total+' mô-đun');
+          text=cp.done>0?('Lộ trình chung: '+cp.done+'/'+cp.total+' bài · Còn '+(cp.total-cp.done)+' bài để đạt Nảy mầm'):('Hoàn thành Lộ trình chung để đạt Nảy mầm · '+cp.done+'/'+cp.total+' bài');
         }else if(st<6){
           var cur=st===2?0:(st===3?XP_GATE_MID:(st===4?SEED_MID1:SEED_MID2));
           var nxt=st===2?XP_GATE_MID:(st===3?SEED_MID1:(st===4?SEED_MID2:XP_GATE_TOP));
@@ -1669,7 +1721,7 @@
           desc:'Khám phá lịch sử hình thành, văn hoá và môi trường làm việc, nội quy – quy định, chính sách phúc lợi và những điều cần biết để trở thành một thành viên FASTCARE',
           chips:[{label:'Hội nhập'},{label:'Nội quy'},{label:'Phúc lợi'},{label:'Văn hoá phục vụ'},{label:'Game 4C'}],
           audience:'Dành cho <b>tất cả nhân viên</b> hai khối',
-          progressLabel:'Tiến độ lộ trình chung',progressText:cp.done+'/'+cp.total+' mô-đun',progressPct:Math.round(cp.done*100/cp.total),
+          progressLabel:'Tiến độ lộ trình chung',progressText:cp.done+'/'+cp.total+' bài',progressPct:Math.round(cp.done*100/cp.total),
           statusClass:vhStatus.cls,statusText:vhStatus.text
         }));
         var gate2=myXp<XP_GATE_MID?XP_GATE_MID:XP_GATE_TOP;

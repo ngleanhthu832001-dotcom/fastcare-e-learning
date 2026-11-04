@@ -205,7 +205,7 @@
     .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:20px}.stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px}.stat span{font-size:11px;color:var(--muted);font-weight:700}.stat b{display:block;font-size:25px;margin-top:5px;letter-spacing:-.04em}.stat small{font-size:10px;color:var(--teal)}
     .route-hero{display:flex;justify-content:space-between;gap:20px;align-items:end}.route-hero h1,.rank-hero h1{font-family:"Manrope",sans-serif;font-weight:800;font-size:clamp(36px,5vw,62px);line-height:1;margin:0 0 10px;letter-spacing:-.035em}.route-title{display:flex;align-items:center;gap:20px;flex-wrap:wrap}.route-big{font-size:1.7em;line-height:1}.route-rest{line-height:1.12}.rank-title{display:flex;align-items:center;gap:20px;flex-wrap:wrap}.rank-big{font-size:1.7em;line-height:1}.rank-rest{line-height:1.12}.route-hero p,.rank-hero p{color:var(--muted);max-width:640px}.route-track{margin-top:28px;position:relative}.route-track:before{content:"";position:absolute;left:30px;top:22px;bottom:22px;width:2px;background:var(--line)}
     .module{position:relative;display:grid;grid-template-columns:62px 1fr;gap:18px;margin-bottom:18px}.module-num{width:62px;height:62px;border-radius:50%;background:var(--surface);border:2px solid var(--line);display:grid;place-items:center;font-weight:800;z-index:1}.module.done .module-num{background:var(--teal);border-color:var(--teal);color:white}.module.current .module-num{background:var(--brand);border-color:var(--brand);color:white;box-shadow:0 0 0 6px var(--brand-soft)}
-    .module-card{background:var(--surface);border:1px solid var(--line);padding:18px 20px;border-radius:15px;display:flex;justify-content:space-between;gap:16px;align-items:center}.module-card h3{margin:0 0 4px;font-size:16px}.module-card p{margin:0;color:var(--muted);font-size:12px}.status-chip{white-space:nowrap;padding:6px 9px;border-radius:8px;background:var(--surface-2);font-size:10px;font-weight:800}.module.current .status-chip{background:var(--brand-soft);color:var(--brand-strong)}.module.done .status-chip{background:var(--teal-soft);color:var(--teal)}
+    .module-card{background:var(--surface);border:1px solid var(--line);padding:18px 20px;border-radius:15px;display:flex;justify-content:space-between;gap:16px;align-items:center}.module-card h3{margin:0 0 4px;font-size:16px}.module-card p{margin:0;color:var(--muted);font-size:12px}.route-track .module{cursor:pointer}.route-track .module.locked{cursor:default}.route-track .module.locked .module-card{opacity:.7}.status-chip{white-space:nowrap;padding:6px 9px;border-radius:8px;background:var(--surface-2);font-size:10px;font-weight:800}.module.current .status-chip{background:var(--brand-soft);color:var(--brand-strong)}.module.done .status-chip{background:var(--teal-soft);color:var(--teal)}
     .rank-controls{display:flex;gap:8px;flex-wrap:wrap;margin:24px 0}.segmented{display:flex;background:var(--surface-2);padding:4px;border-radius:11px;gap:2px}.segmented button{border:0;background:transparent;padding:8px 13px;border-radius:8px;cursor:pointer;color:var(--muted);font-weight:700;font-size:12px}.segmented button.active{background:var(--surface);color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.07)}
     .podium{display:grid;grid-template-columns:1fr 1.08fr 1fr;gap:12px;align-items:end;margin:12px 0 24px}.podium-card{background:var(--surface);border:1px solid var(--line);border-radius:18px 18px 8px 8px;text-align:center;padding:18px 12px 14px;min-height:155px}.podium-card.first{min-height:190px;background:var(--ink);color:var(--surface);border-color:var(--ink)}.medal{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;margin:0 auto 10px;background:var(--gold-soft);color:#8b5e00;font-weight:800}.first .medal{width:52px;height:52px;background:var(--lime);color:#252900}.podium-card strong{display:block;font-size:14px}.podium-card span{font-size:11px;color:var(--muted)}.first span{color:#bfc4ba}.podium-card b{display:block;font-size:21px;margin-top:8px}
     .leaderboard{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden}.rank-row{display:grid;grid-template-columns:48px minmax(0,1fr) minmax(90px,auto) minmax(96px,auto);gap:14px;align-items:center;padding:14px 18px;border-bottom:1px solid var(--line)}.rank-row:last-child{border:0}.rank-head{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.07em;font-weight:800;background:var(--surface-2)}.person{display:flex;gap:10px;align-items:center}.person-dot{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--brand-soft);color:var(--brand-strong);font-size:11px;font-weight:800}.person strong{display:block;font-size:13px}.person span,.dept{font-size:11px;color:var(--muted)}.xp{text-align:right;font-weight:800}
@@ -633,14 +633,8 @@
       <section id="route" class="view">
         <div class="dev-tabs" id="devTabs" role="tablist" aria-label="Chọn lộ trình"></div>
         <div id="devCommon" hidden>
-        <div class="route-hero"><div><p class="eyebrow" style="color:var(--brand)">Lộ trình nhân sự mới</p><h1 class="route-title"><span class="route-big">30 ngày</span><span class="route-rest">Hiểu việc<br>Vững văn hoá</span></h1><p>Từng mô-đun mở theo tiến độ, kết hợp clip ngắn, tình huống thực tế và bài kiểm tra cuối chặng.</p></div><button class="primary open-lesson" id="routeContinue">Bắt đầu mô-đun 2</button></div>
-        <div class="route-track">
-          <article class="module" id="module1Card" role="button" tabindex="0" title="Mở mô-đun 1" style="cursor:pointer"><div class="module-num">01</div><div class="module-card"><div><h3>01 · Chào mừng đến FASTCARE</h3><p>Câu chuyện thương hiệu, hệ thống và những người bạn sẽ đồng hành.</p></div><span class="status-chip" id="module1Status">ĐÃ MỞ</span></div></article>
-          <article class="module current" id="currentModule"><div class="module-num">02</div><div class="module-card"><div><h3>Văn hoá phục vụ khách hàng</h3><p>4 bài · Lắng nghe, chủ động, minh bạch và theo sát đến cùng.</p></div><span class="status-chip" id="currentModuleStatus">0/4 BÀI</span></div></article>
-          <article class="module" id="nextModule"><div class="module-num">03</div><div class="module-card"><div><h3>Chính sách & quy định chung</h3><p>3 bài · Tác phong, bảo mật thông tin và quy trình nội bộ.</p></div><span class="status-chip" id="nextModuleStatus">CHƯA MỞ</span></div></article>
-          <article class="module"><div class="module-num">04</div><div class="module-card"><div><h3>Nghiệp vụ theo vị trí</h3><p>5 bài · Lộ trình riêng cho khối cửa hàng hoặc từng phòng ban văn phòng.</p></div><span class="status-chip">CHƯA MỞ</span></div></article>
-          <article class="module"><div class="module-num">05</div><div class="module-card"><div><h3>Thử thách 30 ngày</h3><p>Tình huống tổng hợp, khảo sát trải nghiệm và chứng nhận hoàn thành.</p></div><span class="status-chip">CHƯA MỞ</span></div></article>
-        </div>
+        <div class="route-hero"><div><p class="eyebrow" style="color:var(--brand)">Lộ trình nhân sự mới</p><h1 class="route-title"><span class="route-big">30 ngày</span><span class="route-rest">Hiểu việc<br>Vững văn hoá</span></h1><p>Từng bài mở theo tiến độ, kết hợp clip ngắn, tình huống thực tế và bài kiểm tra cuối chặng.</p></div><button class="primary" id="routeContinue">Bắt đầu Bài 1</button></div>
+        <div class="route-track" id="commonLessonList"></div>
         </div>
         <div id="devCareer" hidden>
           <button class="dev-back" type="button" id="devBackCareer">← Quay lại Lộ trình chung</button>
@@ -729,9 +723,9 @@
     </main>
   </div>
 
-  <div class="lesson-overlay" id="welcomeOverlay" role="dialog" aria-modal="true" aria-label="Mô-đun 1 · Chào mừng đến FASTCARE">
+  <div class="lesson-overlay" id="welcomeOverlay" role="dialog" aria-modal="true" aria-label="Bài 1 · Chào mừng đến FASTCARE">
     <div class="lesson">
-      <div class="lesson-top"><strong>Mô-đun 1 · Chào mừng đến FASTCARE</strong><button class="close-btn" id="closeWelcome" aria-label="Đóng">×</button></div>
+      <div class="lesson-top"><strong>Bài 1 · Chào mừng đến FASTCARE</strong><button class="close-btn" id="closeWelcome" aria-label="Đóng">×</button></div>
       <div class="lesson-body deck">
         <p style="color:var(--muted);font-size:14px;line-height:1.6;margin:0 0 4px">Dùng các nút mũi tên trong khung slide để lướt. Kem cập nhật gì trong Canva thì ở đây cũng tự mới theo.</p>
         <div style="position: relative; width: 100%; height: 0; padding-top: 56.2500%;
@@ -744,7 +738,7 @@
 <a href="https:&#x2F;&#x2F;www.canva.com&#x2F;design&#x2F;DAHZRLSGlJg&#x2F;1D2e2pVwCyLgwmtRR5rMOg&#x2F;view?utm_content=DAHZRLSGlJg&amp;utm_campaign=designshare&amp;utm_medium=embeds&amp;utm_source=link" target="_blank" rel="noopener">ĐÀO TẠO ONBOARDING 2026 (E-LEARNING)</a> của Anh Thư Nguyễn Lê (Mail công việc.)
         <section class="quiz" aria-label="Khảo sát sau slide">
           <h3>Khảo sát · Văn hoá FASTCARE</h3>
-          <p style="color:var(--muted);font-size:14px;line-height:1.6;margin:0 0 18px">Xem xong slide rồi, trả lời 5 câu dưới đây nhé. Đúng 5/5 sẽ cộng 60 XP và hoàn thành mô-đun 1.</p>
+          <p style="color:var(--muted);font-size:14px;line-height:1.6;margin:0 0 18px">Xem xong slide rồi, trả lời 5 câu dưới đây nhé. Đúng 5/5 sẽ cộng 60 XP và hoàn thành Bài 1.</p>
           <div class="sq-question" data-answer="2"><p>1. Hệ thống sửa chữa FASTCARE có bao nhiêu cửa hàng?</p><div class="sq-options"><button class="sq-option">A. 10 cửa hàng</button><button class="sq-option">B. 11 cửa hàng</button><button class="sq-option">C. 12 cửa hàng</button><button class="sq-option">D. 14 cửa hàng</button></div></div>
           <div class="sq-question" data-answer="0"><p>2. Giai đoạn hình thành của FASTCARE là năm nào?</p><div class="sq-options"><button class="sq-option">A. 2013 – 2015</button><button class="sq-option">B. 2015 – 2017</button><button class="sq-option">C. 2017 – 2023</button><button class="sq-option">D. 2023 – nay</button></div></div>
           <div class="sq-question" data-answer="2"><p>3. Từ lúc hình thành đến nay, FASTCARE đã thay bao nhiêu lần logo?</p><div class="sq-options"><button class="sq-option">A. 2 lần</button><button class="sq-option">B. 3 lần</button><button class="sq-option">C. 4 lần</button><button class="sq-option">D. 5 lần</button></div></div>
@@ -752,7 +746,6 @@
           <div class="sq-question" data-answer="3"><p>5. Theo quy định chấm công, đơn Quên chấm công được tạo tối đa bao nhiêu lần?</p><div class="sq-options"><button class="sq-option">A. Không giới hạn số lần</button><button class="sq-option">B. Không quá 2 lần/tuần, 4 lần/tháng</button><button class="sq-option">C. Không quá 5 lần/tuần, 10 lần/tháng</button><button class="sq-option">D. Không quá 3 lần/tuần, 5 lần/tháng</button></div></div>
           <div class="quiz-footer"><div class="quiz-result" id="surveyResult"></div><button class="primary" id="submitSurvey">Nộp bài khảo sát</button></div>
         </section>
-        <div style="margin-top:18px"><button class="primary" type="button" id="welcomeDone">Đã xem xong</button></div>
       </div>
     </div>
   </div>
@@ -770,6 +763,7 @@
     <p class="reminder-note">Bản demo hiển thị nhắc hẹn ngay trong trang. Web chính thức có thể kết nối tài khoản nhân sự để gửi đúng người, đúng hạn.</p>
   </section>
 
+  <button type="button" data-activity="game" id="gameEntryBtn" hidden aria-hidden="true" tabindex="-1"></button>
   <div class="activity-modal" id="activityModal" role="dialog" aria-modal="true" aria-label="Bài luyện tập">
     <article class="activity-card"><div class="activity-top"><h2 id="activityTitle">Bài luyện tập</h2><button class="close-btn" id="activityClose" aria-label="Đóng">×</button></div><div id="activityBody"></div></article>
   </div>
@@ -862,7 +856,7 @@
           <div class="quiz-footer"><div class="quiz-result" id="quizResult"></div><button class="primary" id="submitQuiz">Nộp bài kiểm tra</button></div>
           <div class="completion-actions" id="completionActions"><button class="secondary" id="backToRoute">Về lộ trình học</button><button class="primary" id="nextLesson">Bài tiếp theo <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></button></div>
         </div>
-        <div class="next-lesson-panel" id="nextLessonPanel"><h3>Bài tiếp theo đã được mở</h3><p>Quay lại lộ trình để xem nội dung và tiến độ của mô-đun tiếp theo.</p><button class="primary" id="startNextVideo">Về lộ trình học</button></div>
+        <div class="next-lesson-panel" id="nextLessonPanel"><h3>Bài tiếp theo đã được mở</h3><p>Quay lại lộ trình để xem nội dung và tiến độ của bài tiếp theo.</p><button class="primary" id="startNextVideo">Về lộ trình học</button></div>
           </div>
         </div>
       </div>
