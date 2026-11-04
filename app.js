@@ -1773,11 +1773,6 @@
           var h='';
           if(g.name)h+='<div class="dev-group-label">'+escapeHtml(g.name)+'</div>';
           if(g.note)h+='<p class="dev-group-note">'+escapeHtml(g.note)+'</p>';
-          if(pathId==='kythuat'&&gi===0){
-            var cp=commonProgress();
-            var vhPass=cp.done>=cp.total;
-            h+='<button class="dev-stage-item st-'+(vhPass?'pass':'open')+'" type="button" data-dev-common="1"><span class="dev-stage-badge">'+(vhPass?'✓':'LC')+'</span><span class="dev-stage-info"><b>Lộ trình chung</b><span>'+(vhPass?'PASS · Đã hoàn thành toàn bộ':cp.done+'/'+cp.total+' mô-đun · Hoàn thành để mở Kỹ thuật Học việc')+'</span><span class="dev-bar'+(vhPass?' green':'')+'"><i style="width:'+Math.round(cp.done*100/cp.total)+'%"></i></span></span>'+(vhPass?'<span class="dev-mini-chip pass">PASS</span>':'<span class="dev-mini-chip open">ĐI TỚI</span>')+'</button>';
-          }
           h+=g.stages.map(function(s,si){
             var sst=devStageStatus(pathId,gi,si);
             var badge=sst==='pass'?'✓':(si+1<10?'0'+(si+1):String(si+1));
@@ -1799,7 +1794,6 @@
           return '<div class="dev-trail-row'+(si%2===1?' flip':'')+'"><div class="dev-node-wrap">'+devStars(sst==='pass')+'<button class="dev-node '+nodeCls+'" type="button" data-dev-stage="'+s.id+'" aria-label="Giai đoạn '+(si+1)+': '+escapeHtml(s.name)+'">'+nodeInner+'</button></div><button class="dev-stage-card'+(sst==='pass'?' is-done':'')+(sst.indexOf('locked')===0?' is-locked':'')+'" type="button" data-dev-stage="'+s.id+'"><span class="dev-stage-type">Giai đoạn '+(si+1)+' · '+escapeHtml(s.name)+'</span><h4>'+escapeHtml(s.name)+'</h4><span class="dev-stage-meta"><span>'+escapeHtml(s.desc)+'</span>'+meta+'</span></button></div>';
         }).join('');
         body.innerHTML='<div class="dev-path-layout"><aside class="dev-side"><div class="dev-side-head"><p class="kicker">Lộ trình phát triển</p><h2>'+escapeHtml(path.title)+'</h2><p>'+escapeHtml(path.headSub)+'</p></div><div class="dev-side-groups">'+side+'</div></aside><section><div class="dev-banner"><div><h2>'+escapeHtml(stage.name)+'</h2><p>'+escapeHtml(stage.desc)+'</p></div><span class="banner-ic">'+bannerIc+'</span></div>'+lockNote+'<div class="dev-trail" id="devTrail"><svg class="dev-trail-svg" id="devTrailSvg" aria-hidden="true"><path id="devTrailPathAll" fill="none" stroke="#eadfd9" stroke-width="3" stroke-dasharray="2 9" stroke-linecap="round"/><path id="devTrailPathDone" fill="none" stroke="#f45b18" stroke-width="3" stroke-dasharray="2 9" stroke-linecap="round"/></svg>'+rows+'</div><div class="dev-placeholder"><b>Nội dung đang được chuẩn bị.</b> Bài học của giai đoạn “'+escapeHtml(stage.name)+'” sẽ xuất hiện tại đây khi có tài liệu đào tạo — hiện tại màn này dùng để duyệt cấu trúc lộ trình và logic khoá/mở.</div></section></div>';
-        body.querySelectorAll('[data-dev-common]').forEach(function(b){b.addEventListener('click',function(){showDevScreen('common')})});
         body.querySelectorAll('[data-dev-stage]').forEach(function(b){b.addEventListener('click',function(){devCareerStage=b.getAttribute('data-dev-stage');renderDevCareer()})});
         requestAnimationFrame(drawDevTrail);
       }
