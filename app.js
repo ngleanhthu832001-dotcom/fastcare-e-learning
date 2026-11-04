@@ -25,7 +25,7 @@
       }
       function setAuthError(t){var el=document.getElementById('authError');if(el)el.textContent=t||''}
       function unlockApp(){document.body.classList.remove('locked')}
-      function lockApp(){document.body.classList.add('locked');currentUser=null;userRole='staff';var an=document.getElementById('adminNav');if(an)an.style.display='none'}
+      function lockApp(){document.body.classList.add('locked');currentUser=null;userRole='staff';var an=document.getElementById('adminNav');if(an)an.style.display='none';setDashNavVisible(false)}
       async function fetchMyProfile(){
         var fields=[
           'full_name,role,department,employee_code,position,start_date,avatar_url,is_approved,is_rejected',
@@ -69,6 +69,7 @@
         if(profile&&profile.role==='admin'){userRole='admin';roleEl.textContent='Quản trị viên';document.getElementById('adminNav').style.display=''}
         else if(profile&&profile.role==='manager'){userRole='manager';roleEl.textContent='Quản lý';document.getElementById('adminNav').style.display=''}
         else{userRole='staff';roleEl.textContent=(profile&&profile.position)||'Nhân sự FASTCARE';var _an=document.getElementById('adminNav');if(_an)_an.style.display=(myPerms&&myPerms.can_view_progress)?'':'none'}
+        setDashNavVisible(userRole==='admin'||(myPerms&&myPerms.can_view_progress));
         var ps=document.getElementById('permSection');if(ps)ps.hidden=!(profile&&profile.role==='admin');
         var ds=document.getElementById('dirSection');if(ds)ds.hidden=!(profile&&profile.role==='admin');
         var cs=document.getElementById('createSection');if(cs)cs.hidden=!(profile&&profile.role==='admin');
@@ -420,7 +421,7 @@
          Mặc định 50 dòng/trang (có thể đổi 20/50/100). Chỉ phân trang phần HIỂN
          THỊ — mảng dữ liệu gốc (permRows/dirRows/adminRows) vẫn giữ đủ, nên
          tìm kiếm, đổi quyền, xoá tài khoản không bị ảnh hưởng. */
-      var pagerState={perm:{page:1,size:50},dir:{page:1,size:50},admin:{page:1,size:50}};
+      var pagerState={perm:{page:1,size:50},dir:{page:1,size:50},admin:{page:1,size:50},dash:{page:1,size:50}};
       function pagerTotalPages(total,size){return Math.max(1,Math.ceil(total/size))}
       function pagerSlice(rows,key){
         var st=pagerState[key];var tp=pagerTotalPages(rows.length,st.size);
@@ -451,6 +452,7 @@
         if(key==='perm')renderPermRows();
         else if(key==='dir')renderDirRows();
         else if(key==='admin')renderAdminRows();
+        else if(key==='dash')renderDashRows();
       }
       document.addEventListener('click',function(e){
         var b=e.target&&e.target.closest?e.target.closest('[data-pager]'):null;
@@ -728,7 +730,7 @@
           return true;
         });
         if(!rows.length){box.innerHTML='<p class="muted-center">Không có nhân sự nào khớp.</p>';ptRefreshSaveBtn();return}
-        box.innerHTML='<div class="pt-wrap"><table class="pt-table"><thead><tr><th>Nhân sự</th><th>Vai trò (gợi ý)</th><th>Phạm vi</th><th>Xem tiến độ</th><th>Xem bài làm &amp; điểm</th><th>Học bài khối khác</th><th></th></tr></thead><tbody>'+
+        box.innerHTML='<div class="pt-wrap"><table class="pt-table"><thead><tr><th>Nhân sự</th><th>Vai trò (gợi ý)</th><th>Phạm vi</th><th>Xem tiến độ + Dashboard</th><th>Xem bài làm &amp; điểm</th><th>Học bài khối khác</th><th></th></tr></thead><tbody>'+
           rows.map(function(p){
             var st=ptState[p.id];
             var roleOpts=PT_ROLES.map(function(r){return '<option'+(st.role===r?' selected':'')+'>'+r+'</option>'}).join('');
@@ -777,7 +779,7 @@
         }
         box.innerHTML='<p class="muted-center">Đang tải tiến độ…</p>';
         try{
-          var res=await sb.rpc('get_scope_progress');
+          var res=await sb.rpc('get_dashboard_progress');
           if(res.error)throw res.error;
           scopeRows=res.data||[];
           var unitSel=document.getElementById('scopeUnit');
@@ -798,7 +800,7 @@
           }
           renderScopeRows();
         }catch(e){
-          box.innerHTML='<p class="muted-center">Chưa tải được tiến độ. Nếu đây là lần đầu dùng mục này, hãy chạy file SQL v11 (supabase-v11-permission-table.sql) rồi tải lại trang.</p>';
+          box.innerHTML='<p class="muted-center">Chưa tải được tiến độ. Nếu đây là lần đầu dùng mục này, hãy chạy file SQL v13 (supabase-v13-dashboard-progress.sql) rồi tải lại trang.</p>';
         }
       }
       function renderScopeRows(){
@@ -814,10 +816,10 @@
         var canDetail=userRole==='admin'||(myPerms&&myPerms.can_view_details);
         if(!rows.length){box.innerHTML='<p class="muted-center">Không có nhân sự nào trong phạm vi của bạn.</p>';return}
         box.innerHTML='<div class="rank-row rank-head scope-row"><span>•</span><span>Nhân sự ('+rows.length+')</span><span class="xp">Tổng XP</span></div>'+rows.map(function(p){
-          var pct=Math.round((p.lessons_done||0)*100/12);
+          var total=p.lessons_total||3;var pct=Math.round((p.lessons_done||0)*100/total);
           var last=p.last_activity?new Date(p.last_activity).toLocaleDateString('vi-VN'):'Chưa học';
           var btn=canDetail?'<button class="restore-btn" data-scope-detail="'+p.user_id+'">Xem bài làm</button>':'<span style="font-size:11px;color:var(--muted);font-weight:600">Chưa cấp quyền xem chi tiết</span>';
-          return '<div class="rank-row scope-row"><b>•</b><div class="person"><div class="person-dot">'+dotAvatar(null,p.full_name)+'</div><div><strong>'+escapeHtml(p.full_name||'Học viên')+'</strong><span>'+escapeHtml(p.department||'')+(p.employee_code?' · '+escapeHtml(p.employee_code):'')+'</span><span class="scope-prog">'+(p.lessons_done||0)+'/12 bài · '+pct+'% · Hoạt động gần nhất: '+last+'</span></div></div><span class="xp row-actions"><b style="margin-right:10px">'+fmt(p.total_xp)+'</b>'+btn+'</span></div>';
+          return '<div class="rank-row scope-row"><b>•</b><div class="person"><div class="person-dot">'+dotAvatar(null,p.full_name)+'</div><div><strong>'+escapeHtml(p.full_name||'Học viên')+'</strong><span>'+escapeHtml(p.department||'')+(p.employee_code?' · '+escapeHtml(p.employee_code):'')+'</span><span class="scope-prog">'+(p.lessons_done||0)+'/'+total+' bài · '+pct+'% · Hoạt động gần nhất: '+last+'</span></div></div><span class="xp row-actions"><b style="margin-right:10px">'+fmt(p.total_xp)+'</b>'+btn+'</span></div>';
         }).join('');
       }
       async function renderScopeDetail(userId){
@@ -865,6 +867,112 @@
           renderAdmin();
         }
       }
+
+      /* ============ Dashboard (báo cáo tiến độ) ============ */
+      var REGION_OF={'Lê Hồng Phong':'KV1','Âu Cơ':'KV1','Hoàng Văn Thụ':'KV1','Hậu Giang':'KV1','Quang Trung':'KV1','Tô Ký':'KV1','Khánh Hội':'KV2','Nguyễn Thị Thập':'KV2','Xô Viết Nghệ Tĩnh':'KV2','Võ Văn Ngân':'KV2','Lê Văn Việt':'KV2','Nguyễn An Ninh':'KV2'};
+      function isStoreDept(d){return String(d||'').indexOf('Chi nhánh')===0}
+      function branchRegion(d){var n=String(d||'').replace(/^Chi nhánh\s*/,'');return REGION_OF[n]||null}
+      function canViewDashboard(){return userRole==='admin'||(myPerms&&myPerms.can_view_progress)}
+      function setDashNavVisible(show){document.querySelectorAll('.dashNav').forEach(function(b){b.style.display=show?'':'none'})}
+      function dashScopeLabel(){
+        if(userRole==='admin')return 'Toàn hệ thống';
+        var sc=myPerms&&myPerms.scope;
+        if(sc==='all')return 'Toàn hệ thống';
+        if(sc==='all_stores')return 'Tất cả chi nhánh';
+        if(sc==='own_branch'||sc==='own_dept')return (myProfile&&myProfile.department)||'Đơn vị của bạn';
+        return 'Chưa được cấp phạm vi';
+      }
+      var dashRows=[];
+      function dashAgg(rows){
+        var total=rows.length,don3=0,don0=0,sum=0,dist=[0,0,0,0];
+        rows.forEach(function(p){var d=Math.min(3,p.lessons_done||0);dist[d]++;if(d>=3)don3++;if(d<=0)don0++;sum+=d/3;});
+        return {total:total,avgPct:total?Math.round(sum*100/total):0,done3:don3,done0:don0,dist:dist};
+      }
+      function dashGroup(rows,keyFn){
+        var g={};
+        rows.forEach(function(p){var k=keyFn(p);if(!k)return;if(!g[k])g[k]={n:0,sum:0,done3:0};g[k].n++;g[k].sum+=(p.lessons_done||0)/3;if((p.lessons_done||0)>=3)g[k].done3++;});
+        return Object.keys(g).sort(function(a,b){return a.localeCompare(b,'vi')}).map(function(k){var x=g[k];return {name:k,n:x.n,pct:Math.round(x.sum*100/x.n),done3:x.done3}});
+      }
+      function dashDonut(pct){
+        var r=52,c=(2*Math.PI*r).toFixed(1),f=(c*pct/100).toFixed(1);
+        return '<svg viewBox="0 0 120 120" class="dash-donut" role="img" aria-label="Hoàn thành trung bình '+pct+'%"><circle cx="60" cy="60" r="'+r+'" fill="none" stroke="#f0e3cd" stroke-width="14"/><circle cx="60" cy="60" r="'+r+'" fill="none" stroke="#e84924" stroke-width="14" stroke-linecap="round" stroke-dasharray="'+f+' '+c+'" transform="rotate(-90 60 60)"/><text x="60" y="58" text-anchor="middle" class="dash-donut-num">'+pct+'%</text><text x="60" y="76" text-anchor="middle" class="dash-donut-sub">hoàn thành</text></svg>';
+      }
+      function dashBarRow(label,sub,pct){
+        return '<div class="dash-bar-row"><div class="dash-bar-label"><b>'+escapeHtml(label)+'</b><span>'+escapeHtml(sub)+'</span></div><div class="dash-bar"><i style="width:'+pct+'%"></i></div><b class="dash-bar-pct">'+pct+'%</b></div>';
+      }
+      async function renderDashboard(){
+        var body=document.getElementById('dashBody');
+        if(!body)return;
+        var scopeEl=document.getElementById('dashScope');
+        if(!canViewDashboard()){
+          if(scopeEl)scopeEl.textContent='';
+          body.innerHTML='<p class="muted-center">Bạn chưa được cấp quyền xem Dashboard. Quản trị viên cấp quyền "Xem tiến độ + Dashboard" trong Bảng phân quyền (Quản trị công cụ).</p>';
+          return;
+        }
+        if(scopeEl)scopeEl.textContent='Phạm vi của bạn: '+dashScopeLabel();
+        body.innerHTML='<p class="muted-center">Đang tải Dashboard…</p>';
+        try{
+          var res=await sb.rpc('get_dashboard_progress');
+          if(res.error)throw res.error;
+          dashRows=res.data||[];
+          var agg=dashAgg(dashRows);
+          var stores=dashRows.filter(function(p){return isStoreDept(p.department)});
+          var office=dashRows.filter(function(p){return !isStoreDept(p.department)});
+          var byBranch=dashGroup(stores,function(p){return p.department});
+          var byRegion=dashGroup(stores,function(p){return branchRegion(p.department)});
+          var byDept=dashGroup(office,function(p){return p.department});
+          var distColors=['#d9dcd4','#f4c65a','#f45b18','#176b61'];
+          var distLabels=['Chưa bắt đầu (0/3)','Đang học (1/3)','Đang học (2/3)','Hoàn thành (3/3)'];
+          var distBar=agg.dist.map(function(n,i){return n>0?'<i style="width:'+(n*100/Math.max(1,agg.total))+'%;background:'+distColors[i]+'"></i>':''}).join('');
+          var distLegend=agg.dist.map(function(n,i){return '<span><i style="background:'+distColors[i]+'"></i>'+distLabels[i]+': <b>'+n+'</b></span>'}).join('');
+          var h='';
+          h+='<div class="dash-summary"><div class="dash-donut-card">'+dashDonut(agg.avgPct)+'<div><b style="font-size:17px">Tiến độ trung bình</b><p style="margin:6px 0 0;color:var(--muted);font-size:13px;font-weight:600">Trung bình '+agg.avgPct+'% trên '+agg.total+' nhân sự trong phạm vi của bạn.</p></div></div>'
+            +'<div class="dash-stat"><b>'+agg.total+'</b><span>Nhân sự trong phạm vi</span><small>Tổng số bài đang mở: 3 (khảo sát · quiz · game)</small></div>'
+            +'<div class="dash-stat"><b>'+agg.done3+'</b><span>Đã hoàn thành 3/3</span><small>'+(agg.total?Math.round(agg.done3*100/agg.total):0)+'% nhân sự</small></div>'
+            +'<div class="dash-stat"><b>'+agg.done0+'</b><span>Chưa bắt đầu (0/3)</span><small>Cần thúc đẩy hoàn thành</small></div></div>';
+          if(byBranch.length){
+            h+='<div class="dash-sec"><h3>Tiến độ theo chi nhánh</h3><p>Tỉ lệ hoàn thành trung bình của từng chi nhánh trong phạm vi của bạn.</p>'+byBranch.map(function(b){return dashBarRow(b.name.replace(/^Chi nhánh\s*/,''),b.n+' người · '+b.done3+' hoàn thành',b.pct)}).join('')+'</div>';
+          }
+          if(byRegion.length>1){
+            h+='<div class="dash-sec"><h3>Tiến độ theo khu vực</h3><p>So sánh hai khu vực để xét thi đua.</p>'+byRegion.map(function(b){return dashBarRow('Khu vực '+b.name,b.n+' người · '+b.done3+' hoàn thành',b.pct)}).join('')+'</div>';
+          }
+          if(byDept.length){
+            h+='<div class="dash-sec"><h3>Tiến độ theo phòng ban</h3><p>Tỉ lệ hoàn thành trung bình của từng phòng ban khối Văn phòng trong phạm vi của bạn.</p>'+byDept.map(function(b){return dashBarRow(b.name,b.n+' người · '+b.done3+' hoàn thành',b.pct)}).join('')+'</div>';
+          }
+          h+='<div class="dash-sec"><h3>Phân bố mức hoàn thành</h3><p>Nhân sự đang ở mức nào trong 3 bài.</p><div class="dash-dist">'+distBar+'</div><div class="dash-legend">'+distLegend+'</div></div>';
+          h+='<div class="dash-sec"><h3>Tiến độ từng nhân sự</h3><p>Tỉ lệ % đã làm được / tổng số bài đã mở (3 bài). Bấm "Tải lại" để cập nhật số liệu mới nhất.</p><div class="dash-tools"><input id="dashSearch" type="search" placeholder="Tìm tên, mã nhân sự…" aria-label="Tìm nhân sự"><select id="dashUnit" aria-label="Lọc đơn vị"><option value="">Tất cả đơn vị</option></select><button class="secondary" id="dashReload" type="button">↻ Tải lại</button></div><div id="dashRows"></div></div>';
+          body.innerHTML=h;
+          var unitSel=document.getElementById('dashUnit');
+          var units=[];dashRows.forEach(function(p){if(p.department&&units.indexOf(p.department)<0)units.push(p.department)});
+          units.sort(function(a,b){return a.localeCompare(b,'vi')});
+          unitSel.innerHTML='<option value="">Tất cả đơn vị</option>'+units.map(function(u){return '<option>'+escapeHtml(u)+'</option>'}).join('');
+          document.getElementById('dashSearch').addEventListener('input',function(){pagerState.dash.page=1;renderDashRows()});
+          unitSel.addEventListener('change',function(){pagerState.dash.page=1;renderDashRows()});
+          document.getElementById('dashReload').addEventListener('click',async function(){await renderDashboard();showToast('Đã tải lại Dashboard')});
+          renderDashRows();
+        }catch(e){
+          body.innerHTML='<p class="muted-center">Chưa tải được Dashboard. Nếu đây là lần đầu dùng mục này, hãy chạy file SQL v13 (supabase-v13-dashboard-progress.sql) rồi tải lại trang.</p>';
+        }
+      }
+      function renderDashRows(){
+        var box=document.getElementById('dashRows');
+        if(!box)return;
+        var q=(document.getElementById('dashSearch').value||'').toLowerCase();
+        var u=document.getElementById('dashUnit').value;
+        var rows=dashRows.filter(function(p){
+          if(u&&p.department!==u)return false;
+          if(q&&(p.full_name||'').toLowerCase().indexOf(q)<0&&(p.employee_code||'').toLowerCase().indexOf(q)<0)return false;
+          return true;
+        });
+        if(!rows.length){box.innerHTML='<p class="muted-center">Không có nhân sự nào trong phạm vi của bạn.</p>';return}
+        var page=pagerSlice(rows,'dash');
+        box.innerHTML='<div class="dash-row dash-row-head"><span>Nhân sự ('+rows.length+')</span><span>Tiến độ</span><span class="xp">Tổng XP</span><span class="dash-last">Hoạt động gần nhất</span></div>'+page.map(function(p){
+          var total=p.lessons_total||3,done=p.lessons_done||0,pct=Math.round(done*100/total);
+          var last=p.last_activity?new Date(p.last_activity).toLocaleDateString('vi-VN'):'Chưa học';
+          return '<div class="dash-row"><div class="person"><div class="person-dot">'+dotAvatar(null,p.full_name)+'</div><div><strong>'+escapeHtml(p.full_name||'Học viên')+'</strong><span>'+escapeHtml(p.department||'')+(p.employee_code?' · '+escapeHtml(p.employee_code):'')+(p.position?' · '+escapeHtml(p.position):'')+'</span></div></div><div class="dash-pct"><div class="dash-bar"><i style="width:'+pct+'%"></i></div><b>'+done+'/'+total+' · '+pct+'%</b></div><span class="xp"><b>'+fmt(p.total_xp)+'</b></span><span class="dash-last">'+last+'</span></div>';
+        }).join('')+pagerHTML('dash',rows.length);
+      }
+
       function openAdminView(){
         var canStudents=canModerate();
         var canTools=userRole==='admin'||(myPerms&&myPerms.can_view_progress);
@@ -1033,7 +1141,7 @@
         navButtons.forEach(function(b){b.classList.toggle('active',b.getAttribute('data-view')===id)});
         window.scrollTo({top:0,behavior:'smooth'});
       }
-      navButtons.forEach(function(btn){btn.addEventListener('click',function(){var v=btn.getAttribute('data-view');switchView(v);if(v==='route')showDevScreen('common');if(v==='admin')openAdminView()})});
+      navButtons.forEach(function(btn){btn.addEventListener('click',function(){var v=btn.getAttribute('data-view');switchView(v);if(v==='route')showDevScreen('common');if(v==='admin')openAdminView();if(v==='dash')renderDashboard()})});
       document.querySelectorAll('[data-admintab]').forEach(function(b){b.addEventListener('click',function(){switchAdminTab(b.getAttribute('data-admintab'))})});
       document.querySelectorAll('[data-goto]').forEach(function(btn){btn.addEventListener('click',function(){switchView(btn.getAttribute('data-goto'));if(btn.getAttribute('data-goto')==='route')showDevScreen('common')})});
 
