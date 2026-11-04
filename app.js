@@ -4,9 +4,9 @@
       var SUPABASE_KEY='sb_publishable_Hvwz9IQza278-z6j1NAxnQ_Qo1yEkuD';
       var TECH_PWD='FcElearning@2026';
       var LESSON_ID='bai-3-4-van-hoa-phuc-vu';
-      var LESSON_XP=120;
+      var LESSON_XP=10; /* +10 XP mỗi bài hoàn hảo — dùng tích luỹ để thăng cấp */
       var SURVEY_ID='khao-sat-module-01';
-      var SURVEY_XP=60;
+      var SURVEY_XP=10;
       var module1Done=false;
       var sb=null,currentUser=null,userRole='staff',myProfile=null;
       function fmt(n){return Number(n||0).toLocaleString('vi-VN')}
@@ -1074,7 +1074,7 @@
       var COMMON_LESSONS=[
         {id:'khao-sat-module-01',name:'Chào mừng đến FASTCARE',desc:'Câu chuyện thương hiệu, hệ thống và những người bạn sẽ đồng hành.',kind:'deck'},
         {id:'bai-3-4-van-hoa-phuc-vu',name:'Văn hoá phục vụ khách hàng',desc:'Lắng nghe, chủ động, minh bạch và theo sát đến cùng.',kind:'lesson'},
-        {id:'mini-game-vuot-ai-4c',name:'Vượt ải 4C',desc:'Mô phỏng cửa hàng · 3 ải Chủ động – Cười – Chào, tối đa 100 XP.',kind:'game'},
+        {id:'mini-game-vuot-ai-4c',name:'Vượt ải 4C',desc:'Mô phỏng cửa hàng · 3 ải Chủ động – Cười – Chào, tối đa 10 XP.',kind:'game'},
         {id:'chinh-sach-1',name:'Chính sách & quy định chung · Bài 1',desc:'Quy định tại cửa hàng & chuẩn tác phong.',kind:'placeholder'},
         {id:'chinh-sach-2',name:'Chính sách & quy định chung · Bài 2',desc:'Nội dung đang được chuẩn bị.',kind:'placeholder'},
         {id:'chinh-sach-3',name:'Chính sách & quy định chung · Bài 3',desc:'Nội dung đang được chuẩn bị.',kind:'placeholder'},
@@ -1188,7 +1188,7 @@
           document.getElementById('completionActions').classList.add('show');
           completeCurrentLesson();
           successCard.scrollIntoView({behavior:'smooth',block:'nearest'});
-          showToast('Xuất sắc! Đã cộng 120 XP và mở bài tiếp theo');
+          showToast('Xuất sắc! Đã cộng '+LESSON_XP+' XP và mở bài tiếp theo');
         }else{
           document.getElementById('submitQuiz').textContent='Nộp lại bài kiểm tra';
           showToast('Bạn có thể chọn lại đáp án rồi nộp lại');
@@ -1198,25 +1198,37 @@
         if(module1Done)return;module1Done=true;
         renderCommonLessons();
       }
-      document.querySelectorAll('.sq-question').forEach(function(q){q.querySelectorAll('.sq-option').forEach(function(opt,idx){opt.addEventListener('click',function(){q.querySelectorAll('.sq-option').forEach(function(o){o.classList.remove('selected')});opt.classList.add('selected');q.dataset.selected=idx})})});
+      function surveyProgress(){var qs=document.querySelectorAll('.sq-question');var n=0;qs.forEach(function(q){if(q.querySelector('.sq-option.selected'))n++});var p=document.getElementById('surveyProgress');if(p)p.textContent=n>=qs.length?'Đã trả lời đủ '+qs.length+' câu — bấm Nộp bài nhé!':'Đã trả lời '+n+'/'+qs.length+' câu';}
+      document.querySelectorAll('.sq-question').forEach(function(q){q.querySelectorAll('.sq-option').forEach(function(opt,idx){opt.addEventListener('click',function(){q.querySelectorAll('.sq-option').forEach(function(o){o.classList.remove('selected')});opt.classList.add('selected');q.dataset.selected=idx;var _r=document.getElementById('surveyResult');if(_r)_r.textContent='';surveyProgress()})})});
       document.getElementById('submitSurvey').addEventListener('click',async function(){
         var qs=document.querySelectorAll('.sq-question');var answered=0,score=0;
         qs.forEach(function(q){
-          var selected=q.dataset.selected;if(selected!==undefined){answered++}
-          q.querySelectorAll('.sq-option').forEach(function(o,i){o.classList.remove('correct','wrong');if(i===Number(q.dataset.answer))o.classList.add('correct');if(selected!==undefined&&i===Number(selected)&&i!==Number(q.dataset.answer))o.classList.add('wrong')});
-          if(Number(selected)===Number(q.dataset.answer))score++;
+          var opts=q.querySelectorAll('.sq-option');
+          var sel=q.querySelector('.sq-option.selected');
+          var selected=sel!==null?Array.prototype.indexOf.call(opts,sel):(q.dataset.selected!==undefined?Number(q.dataset.selected):undefined);
+          if(selected!==undefined){answered++}
+          opts.forEach(function(o,i){o.classList.remove('correct','wrong');if(i===Number(q.dataset.answer))o.classList.add('correct');if(selected!==undefined&&i===selected&&i!==Number(q.dataset.answer))o.classList.add('wrong')});
+          if(selected===Number(q.dataset.answer))score++;
         });
         var result=document.getElementById('surveyResult');
-        if(answered<qs.length){result.textContent='Hãy trả lời đủ '+qs.length+' câu.';return}
+        if(answered<qs.length){result.textContent='Hãy trả lời đủ '+qs.length+' câu.';surveyProgress();return}
+        var score10=score*2; /* 5 câu -> thang điểm 10: mỗi câu đúng = 2 điểm */
         result.textContent='Kết quả: '+score+'/'+qs.length+' câu đúng';
+        var suc=document.getElementById('surveySuccess');
+        if(suc){
+          var st=document.getElementById('surveySuccessTitle');if(st)st.textContent=score===qs.length?'Chúc mừng bạn đã hoàn thành bài tập!':'Bạn đã nộp bài!';
+          var sx=document.getElementById('surveySuccessText');if(sx)sx.textContent='Số điểm của bạn là '+score10+'/10'+(score===qs.length?' · +'+SURVEY_XP+' XP — Bài 1 đã hoàn thành!':' · Chọn lại đáp án rồi nộp lại để cải thiện điểm nhé.');
+          suc.classList.remove('show');void suc.offsetWidth;suc.classList.add('show');
+          suc.scrollIntoView({behavior:'smooth',block:'nearest'});
+        }
         if(currentUser){try{var r=await sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:SURVEY_ID,score:score,total:qs.length,xp_earned:score===qs.length?SURVEY_XP:0});if(r.error)throw r.error}catch(e){dbErrorToast()}}
         var sBtn=document.getElementById('submitSurvey');
         if(score===qs.length){
           markModule1Done();refreshMyStats();
           sBtn.disabled=true;sBtn.textContent='Đã hoàn thành';
-          showToast('Xuất sắc! Đã cộng 60 XP và hoàn thành Bài 1');
+          showToast('Xuất sắc! Đã cộng '+SURVEY_XP+' XP và hoàn thành Bài 1');
         }else{
-          sBtn.textContent='Nộp lại bài khảo sát';
+          sBtn.textContent='Nộp lại bài';
           showToast('Bạn có thể chọn lại đáp án rồi nộp lại');
         }
       });
@@ -1269,7 +1281,7 @@
           function showGameMenu(){
             var card0=document.querySelector('.activity-card');if(card0)card0.classList.remove('wide');
             activityTitle.textContent='Mini-game · Thử thách vui';
-            activityBody.innerHTML='<p>Chọn một thử thách để chơi và cộng XP:</p><div class="game-menu"><button class="game-pick" id="pickMem" type="button"><span class="game-pick-icon">🎴</span><span><strong>Lật thẻ 4C</strong><small>Game trí nhớ 8 thẻ · tối đa 100 XP</small></span></button><button class="game-pick" id="pickStage" type="button"><span class="game-pick-icon">🏪</span><span><strong>Vượt ải 4C</strong><small>Mô phỏng cửa hàng · 3 ải · tối đa 100 XP</small></span></button></div>';
+            activityBody.innerHTML='<p>Chọn một thử thách để chơi và cộng XP:</p><div class="game-menu"><button class="game-pick" id="pickMem" type="button"><span class="game-pick-icon">🎴</span><span><strong>Lật thẻ 4C</strong><small>Game trí nhớ 8 thẻ · tối đa 10 XP</small></span></button><button class="game-pick" id="pickStage" type="button"><span class="game-pick-icon">🏪</span><span><strong>Vượt ải 4C</strong><small>Mô phỏng cửa hàng · 3 ải · tối đa 10 XP</small></span></button></div>';
             document.getElementById('pickMem').addEventListener('click',startMemGame);
             document.getElementById('pickStage').addEventListener('click',startStageGame);
           }
@@ -1320,7 +1332,7 @@
           }
           async function memWin(){
             memDone=true;
-            var xp=Math.max(40,100-(memTurns-PAIRS.length)*10);
+            var xp=Math.max(4,10-(memTurns-PAIRS.length)); /* tối đa 10 XP */
             document.getElementById('memWinText').textContent='Bạn tìm đủ 4 cặp chỉ sau '+memTurns+' lượt lật — nhận '+xp+' XP!';
             document.getElementById('memWin').classList.add('show');
             showToast('Hoàn thành Lật thẻ 4C! +'+xp+' XP');
@@ -1432,7 +1444,7 @@
               var moreQ=qi+1<STAGES[si].qs.length, moreS=si+1<STAGES.length;
               var submitBtn=document.getElementById('simSubmit');if(submitBtn)submitBtn.style.display='none';
               document.getElementById('simFb').innerHTML=
-                '<div class="stage-result '+(ok?'ok':'bad')+'">'+(ok?'✅ Chính xác! +10 XP':'❌ Chưa đúng rồi')+'</div>'+
+                '<div class="stage-result '+(ok?'ok':'bad')+'">'+(ok?'✅ Chính xác! +1 XP':'❌ Chưa đúng rồi')+'</div>'+
                 '<p class="stage-why">💡 '+q.why+'</p>'+'<div class="sim-tip"><b>Mẹo văn hoá:</b> '+q.tip+'</div>'+
                 '<button class="primary sim-submit" id="simNext" type="button">'+(moreQ?'Câu tiếp theo':(moreS?'Qua ải tiếp theo →':'Xem hành trình 🏅'))+'</button>';
               document.getElementById('simNext').addEventListener('click',function(){
@@ -1458,7 +1470,7 @@
             async function showFinal(){
               var card=document.querySelector('.activity-card');if(card)card.classList.remove('wide');
               activityTitle.textContent='Mini-game · Huy hiệu 4C';
-              var xp=correct*10;
+              var xp=correct; /* mỗi câu đúng = 1 XP, tối đa 10 XP */
               var msg=correct===totalQ?'Hoàn hảo! Bạn xử lý đúng cả '+totalQ+' tình huống như một chiến binh FASTCARE thực thụ!':'Bạn xử lý đúng '+correct+'/'+totalQ+' tình huống — luyện thêm để đạt điểm tuyệt đối nhé!';
               activityBody.innerHTML='<div class="badge-win"><div class="badge-medal">🏅</div><h3>Huy hiệu Nhân viên 4C</h3><p>'+msg+'</p><p class="badge-xp">+'+xp+' XP</p><div style="display:flex;gap:10px;justify-content:center;margin-top:8px;flex-wrap:wrap"><button class="primary" id="stReplay" type="button">Chơi lại</button><button class="secondary" id="stMenu" type="button">Chọn game khác</button></div></div>';
               showToast('Nhận Huy hiệu 4C! +'+xp+' XP');
@@ -1480,8 +1492,8 @@
       })});
 
       /* ===== Lộ trình phát triển · 3 ô chọn nội dung học ===== */
-      var XP_GATE_MID=500;   /* MỐC THỬ NGHIỆM: mở Phó Quản lý / Kỹ thuật Leader */
-      var XP_GATE_TOP=1200;  /* MỐC THỬ NGHIỆM: mở Quản lý chi nhánh / Kỹ thuật Trưởng */
+      var XP_GATE_MID=60;   /* MỐC ĐỀ XUẤT: mở Phó Quản lý / Kỹ thuật Leader — 60 XP = 6 bài hoàn hảo */
+      var XP_GATE_TOP=120;  /* MỐC ĐỀ XUẤT: mở Quản lý chi nhánh / Kỹ thuật Trưởng — 120 XP = 12 bài hoàn hảo */
       var myXp=0,game4cDone=false,devBlock='cuahang';
       var myPerms=null; /* dòng phân quyền của chính mình trong bảng role_permissions (SQL v11) */
       var devScreen='common',devCareerPath=null,devCareerStage=null;
@@ -1490,17 +1502,17 @@
          không tự đặt tên bài học. */
       var DEV_PATHS={
         quanly:{title:'Hướng Quản lý chi nhánh',headSub:'Đích đến: Quản lý chi nhánh · Học Phó Quản lý trước, đủ điều kiện mới mở Quản lý',groups:[{name:null,note:null,stages:[
-          {id:'ql1',name:'Phó Quản lý chi nhánh',desc:'Giai đoạn đầu của hướng Quản lý — mở khoá khi hoàn thành Lộ trình chung và đạt mốc 500 XP.',xpReq:500,gate:'chung+xp'},
-          {id:'ql2',name:'Quản lý chi nhánh',desc:'Giai đoạn đích — mở khoá khi hoàn thành Phó Quản lý và đạt mốc 1.200 XP.',xpReq:1200,gate:'prev+xp'}
+          {id:'ql1',name:'Phó Quản lý chi nhánh',desc:'Giai đoạn đầu của hướng Quản lý — mở khoá khi hoàn thành Lộ trình chung và đạt mốc 60 XP.',xpReq:60,gate:'chung+xp'},
+          {id:'ql2',name:'Quản lý chi nhánh',desc:'Giai đoạn đích — mở khoá khi hoàn thành Phó Quản lý và đạt mốc 120 XP.',xpReq:120,gate:'prev+xp'}
         ]}]},
         kythuat:{title:'Hướng Kỹ thuật Trưởng',headSub:'Thang cấp Kỹ thuật Thay thế (Học việc → Trưởng, mỗi cấp cần đủ điểm XP) · Kỹ thuật Phần cứng là nội dung đào tạo chung, không có lộ trình thăng cấp.',groups:[
           {name:'Kỹ thuật Thay thế',note:'Trình tự: Lộ trình chung → Kỹ thuật Học việc → Kỹ thuật Lv 1 → Kỹ thuật Lv 2 → Kỹ thuật Lv 3 → Kỹ thuật Leader → Kỹ thuật Trưởng. Mở khoá dần theo từng giai đoạn — mỗi cấp cần hoàn thành cấp trước và đạt đủ mốc XP.',stages:[
             {id:'tt1',name:'Kỹ thuật Học việc',desc:'Mở khoá sau khi hoàn thành Lộ trình chung — nền tảng nghề thay thế linh kiện cho kỹ thuật viên mới.',xpReq:0,gate:'chung'},
-            {id:'tt2',name:'Kỹ thuật Lv 1',desc:'Thay thế các linh kiện phổ biến theo quy trình chuẩn — mở khoá khi hoàn thành Kỹ thuật Học việc và đạt mốc 100 XP.',xpReq:100,gate:'prev+xp'},
-            {id:'tt3',name:'Kỹ thuật Lv 2',desc:'Xử lý các ca thay thế khó hơn và lỗi phát sinh sau thay thế — mở khoá khi hoàn thành Kỹ thuật Lv 1 và đạt mốc 200 XP.',xpReq:200,gate:'prev+xp'},
-            {id:'tt4',name:'Kỹ thuật Lv 3',desc:'Ca thay thế phức tạp, phối hợp cùng Tư vấn và Thu ngân khi bàn giao — mở khoá khi hoàn thành Kỹ thuật Lv 2 và đạt mốc 300 XP.',xpReq:300,gate:'prev+xp'},
-            {id:'tt5',name:'Kỹ thuật Leader',desc:'Giai đoạn đầu của đích Kỹ thuật Trưởng — mở khoá khi hoàn thành Kỹ thuật Lv 3 và đạt mốc 500 XP.',xpReq:500,gate:'prev+xp'},
-            {id:'tt6',name:'Kỹ thuật Trưởng',desc:'Giai đoạn đích — mở khoá khi hoàn thành Kỹ thuật Leader và đạt mốc 1.200 XP.',xpReq:1200,gate:'prev+xp'}
+            {id:'tt2',name:'Kỹ thuật Lv 1',desc:'Thay thế các linh kiện phổ biến theo quy trình chuẩn — mở khoá khi hoàn thành Kỹ thuật Học việc và đạt mốc 10 XP.',xpReq:10,gate:'prev+xp'},
+            {id:'tt3',name:'Kỹ thuật Lv 2',desc:'Xử lý các ca thay thế khó hơn và lỗi phát sinh sau thay thế — mở khoá khi hoàn thành Kỹ thuật Lv 1 và đạt mốc 20 XP.',xpReq:20,gate:'prev+xp'},
+            {id:'tt4',name:'Kỹ thuật Lv 3',desc:'Ca thay thế phức tạp, phối hợp cùng Tư vấn và Thu ngân khi bàn giao — mở khoá khi hoàn thành Kỹ thuật Lv 2 và đạt mốc 30 XP.',xpReq:30,gate:'prev+xp'},
+            {id:'tt5',name:'Kỹ thuật Leader',desc:'Giai đoạn đầu của đích Kỹ thuật Trưởng — mở khoá khi hoàn thành Kỹ thuật Lv 3 và đạt mốc 60 XP.',xpReq:60,gate:'prev+xp'},
+            {id:'tt6',name:'Kỹ thuật Trưởng',desc:'Giai đoạn đích — mở khoá khi hoàn thành Kỹ thuật Leader và đạt mốc 120 XP.',xpReq:120,gate:'prev+xp'}
           ]},
           {name:'Kỹ thuật Phần cứng',note:'Nội dung đào tạo chung cho cả Điện thoại và Laptop/PC. Vị trí này đã ở bậc cao nhất nên không có lộ trình thăng cấp thêm.',stages:[
             {id:'pc',name:'Kỹ thuật Phần cứng',desc:'Nội dung đào tạo chung cho kỹ thuật phần cứng — chẩn đoán và xử lý lỗi phần cứng trên cả điện thoại và laptop/PC.',xpReq:0,gate:'none'}
@@ -1626,10 +1638,10 @@
       }
       /* ---- Cây Hạt giống trên Trang chủ (03/11) ----
          6 mốc theo màn 'Hạt giống' của ForumFlash, tone FASTCARE. Mốc 01–03 và 06 theo
-         logic mở khoá đã chốt; mốc 04 (800 XP) và 05 (1.000 XP) là SỐ ĐỀ XUẤT, chờ Kem chốt.
-         'Kết trái' = đạt cấp cao nhất: hiện đo bằng mốc XP cao nhất (1.200 XP + xong Lộ trình
+         logic mở khoá đã chốt; mốc 04 (80 XP) và 05 (100 XP) là SỐ ĐỀ XUẤT, chờ Kem chốt.
+         'Kết trái' = đạt cấp cao nhất: hiện đo bằng mốc XP cao nhất (120 XP + xong Lộ trình
          chung), vì hai hướng nghề nghiệp chưa có bài học thật nên chưa tính 'hoàn thành giai đoạn'. */
-      var SEED_MID1=800,SEED_MID2=1000; /* MỐC ĐỀ XUẤT */
+      var SEED_MID1=80,SEED_MID2=100; /* MỐC ĐỀ XUẤT */
       var SEED_NAMES=['Hạt giống','Nảy mầm','Phát triển thân','Phân cành','Ra lá','Kết trái'];
       function seedStage(){
         if(!commonDone())return 1;
@@ -1706,7 +1718,7 @@
         if(strip){
           if(store){
             var gate=myXp<XP_GATE_MID?XP_GATE_MID:XP_GATE_TOP;
-            var label=myXp<XP_GATE_MID?'Mốc mở khoá Phó Quản lý / Kỹ thuật Leader: 500 XP':(myXp<XP_GATE_TOP?'Mốc mở khoá Quản lý / Kỹ thuật Trưởng: 1.200 XP':'Bạn đã đạt mốc XP cao nhất (1.200 XP)');
+            var label=myXp<XP_GATE_MID?'Mốc mở khoá Phó Quản lý / Kỹ thuật Leader: '+fmt(XP_GATE_MID)+' XP':(myXp<XP_GATE_TOP?'Mốc mở khoá Quản lý / Kỹ thuật Trưởng: '+fmt(XP_GATE_TOP)+' XP':'Bạn đã đạt mốc XP cao nhất ('+fmt(XP_GATE_TOP)+' XP)');
             strip.hidden=false;
             strip.innerHTML='<span class="big">Tiến độ của bạn: '+fmt(myXp)+' XP</span><span class="grow"><span class="dev-bar"><i style="width:'+Math.min(100,Math.round(myXp*100/gate))+'%"></i></span></span><span class="note">'+(myXp<gate?'Còn thiếu <b>'+fmt(gate-myXp)+' XP</b> · ':'')+label+'</span>';
           }else{strip.hidden=true;strip.innerHTML='';}
@@ -1728,14 +1740,14 @@
         if(paths.indexOf('quanly')>-1){
           var qlStatus;
           if(!commonDone())qlStatus={cls:'lock',text:'Khoá · Cần hoàn thành Lộ trình chung'};
-          else if(myXp<XP_GATE_MID)qlStatus={cls:'lock',text:'Khoá · Cần 500 XP để mở Phó Quản lý'};
-          else if(myXp<XP_GATE_TOP)qlStatus={cls:'open',text:'Phó Quản lý đang mở · Quản lý khoá tới 1.200 XP'};
+          else if(myXp<XP_GATE_MID)qlStatus={cls:'lock',text:'Khoá · Cần '+fmt(XP_GATE_MID)+' XP để mở Phó Quản lý'};
+          else if(myXp<XP_GATE_TOP)qlStatus={cls:'open',text:'Phó Quản lý đang mở · Quản lý khoá tới '+fmt(XP_GATE_TOP)+' XP'};
           else qlStatus={cls:'open',text:'Đang mở cả 2 giai đoạn'};
           cards.push(devCardHTML({
             openKey:'career:quanly',img:di.learning,imgAlt:'Sóc Fastie chính thức của FASTCARE — đeo kính, ngồi đọc sách bên chồng sách',
             tag:'Ô 2 · Hướng nghề nghiệp',kicker:'Lộ trình "nảy mầm"',title:'Quản lý & Phó Quản lý',
             desc:'Mỗi nỗ lực là một bước tiến! Hãy chủ động học hỏi, rèn luyện và tích luỹ đủ điểm số, kinh nghiệm để sẵn sàng chinh phục vị trí Phó Quản lý, Quản lý chi nhánh',
-            chips:[{label:'Lộ trình chung'},{label:'Phó Quản lý · 500 XP',lock:!commonDone()||myXp<XP_GATE_MID},{label:'Quản lý · 1.200 XP',lock:myXp<XP_GATE_TOP}],
+            chips:[{label:'Lộ trình chung'},{label:'Phó Quản lý · '+fmt(XP_GATE_MID)+' XP',lock:!commonDone()||myXp<XP_GATE_MID},{label:'Quản lý · '+fmt(XP_GATE_TOP)+' XP',lock:myXp<XP_GATE_TOP}],
             audience:'Thường tuyển nội bộ từ <b>Tư vấn / Thu ngân</b>',
             progressLabel:myXp<XP_GATE_TOP?'XP của bạn so với mốc '+fmt(gate2):'Tiến độ hướng Quản lý',
             progressText:myXp<XP_GATE_TOP?fmt(myXp)+'/'+fmt(gate2)+' XP':'Đang mở cả 2 giai đoạn',
@@ -1746,8 +1758,8 @@
         if(paths.indexOf('kythuat')>-1){
           var ktStatus;
           if(!commonDone())ktStatus={cls:'lock',text:'Khoá · Cần hoàn thành Lộ trình chung'};
-          else if(myXp<XP_GATE_MID)ktStatus={cls:'lock',text:'Leader khoá · Cần 500 XP'};
-          else if(myXp<XP_GATE_TOP)ktStatus={cls:'open',text:'Đang mở · Trưởng khoá tới 1.200 XP'};
+          else if(myXp<XP_GATE_MID)ktStatus={cls:'lock',text:'Leader khoá · Cần '+fmt(XP_GATE_MID)+' XP'};
+          else if(myXp<XP_GATE_TOP)ktStatus={cls:'open',text:'Đang mở · Trưởng khoá tới '+fmt(XP_GATE_TOP)+' XP'};
           else ktStatus={cls:'open',text:'Đang mở tới Kỹ thuật Trưởng'};
           cards.push(devCardHTML({
             openKey:'career:kythuat',img:di.screwdriver,imgAlt:'Sóc Fastie chính thức của FASTCARE — cầm tua vít xanh, đang sửa điện thoại tại bàn kỹ thuật',
