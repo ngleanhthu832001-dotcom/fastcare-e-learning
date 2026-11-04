@@ -1441,18 +1441,17 @@
           {id:'ql1',name:'Phó Quản lý chi nhánh',desc:'Giai đoạn đầu của hướng Quản lý — mở khoá khi hoàn thành Lộ trình chung và đạt mốc 500 XP.',xpReq:500,gate:'chung+xp'},
           {id:'ql2',name:'Quản lý chi nhánh',desc:'Giai đoạn đích — mở khoá khi hoàn thành Phó Quản lý và đạt mốc 1.200 XP.',xpReq:1200,gate:'prev+xp'}
         ]}]},
-        kythuat:{title:'Hướng Kỹ thuật Trưởng',headSub:'Hai lộ trình: Kỹ thuật Thay thế (theo thang cấp) và Kỹ thuật Phần cứng (nằm dưới)',groups:[
-          {name:'Lộ trình 1 · Kỹ thuật Thay thế',note:'Trình tự: Lộ trình chung → Kỹ thuật Học việc → Kỹ thuật Lv 1 → Kỹ thuật Lv 2 → Kỹ thuật Lv 3 → Kỹ thuật Leader → Kỹ thuật Trưởng. Mở khoá dần theo từng giai đoạn.',stages:[
+        kythuat:{title:'Hướng Kỹ thuật Trưởng',headSub:'Thang cấp Kỹ thuật Thay thế (Học việc → Trưởng, mỗi cấp cần đủ điểm XP) · Kỹ thuật Phần cứng là nội dung đào tạo chung, không có lộ trình thăng cấp.',groups:[
+          {name:'Kỹ thuật Thay thế',note:'Trình tự: Lộ trình chung → Kỹ thuật Học việc → Kỹ thuật Lv 1 → Kỹ thuật Lv 2 → Kỹ thuật Lv 3 → Kỹ thuật Leader → Kỹ thuật Trưởng. Mở khoá dần theo từng giai đoạn — mỗi cấp cần hoàn thành cấp trước và đạt đủ mốc XP.',stages:[
             {id:'tt1',name:'Kỹ thuật Học việc',desc:'Mở khoá sau khi hoàn thành Lộ trình chung — nền tảng nghề thay thế linh kiện cho kỹ thuật viên mới.',xpReq:0,gate:'chung'},
-            {id:'tt2',name:'Kỹ thuật Lv 1',desc:'Thay thế các linh kiện phổ biến theo quy trình chuẩn.',xpReq:0,gate:'prev'},
-            {id:'tt3',name:'Kỹ thuật Lv 2',desc:'Xử lý các ca thay thế khó hơn và lỗi phát sinh sau thay thế.',xpReq:0,gate:'prev'},
-            {id:'tt4',name:'Kỹ thuật Lv 3',desc:'Ca thay thế phức tạp, phối hợp cùng Tư vấn và Thu ngân khi bàn giao.',xpReq:0,gate:'prev'},
+            {id:'tt2',name:'Kỹ thuật Lv 1',desc:'Thay thế các linh kiện phổ biến theo quy trình chuẩn — mở khoá khi hoàn thành Kỹ thuật Học việc và đạt mốc 100 XP.',xpReq:100,gate:'prev+xp'},
+            {id:'tt3',name:'Kỹ thuật Lv 2',desc:'Xử lý các ca thay thế khó hơn và lỗi phát sinh sau thay thế — mở khoá khi hoàn thành Kỹ thuật Lv 1 và đạt mốc 200 XP.',xpReq:200,gate:'prev+xp'},
+            {id:'tt4',name:'Kỹ thuật Lv 3',desc:'Ca thay thế phức tạp, phối hợp cùng Tư vấn và Thu ngân khi bàn giao — mở khoá khi hoàn thành Kỹ thuật Lv 2 và đạt mốc 300 XP.',xpReq:300,gate:'prev+xp'},
             {id:'tt5',name:'Kỹ thuật Leader',desc:'Giai đoạn đầu của đích Kỹ thuật Trưởng — mở khoá khi hoàn thành Kỹ thuật Lv 3 và đạt mốc 500 XP.',xpReq:500,gate:'prev+xp'},
             {id:'tt6',name:'Kỹ thuật Trưởng',desc:'Giai đoạn đích — mở khoá khi hoàn thành Kỹ thuật Leader và đạt mốc 1.200 XP.',xpReq:1200,gate:'prev+xp'}
           ]},
-          {name:'Lộ trình 2 · Kỹ thuật Phần cứng',note:'Phần cứng gồm cả điện thoại và laptop/PC. Lộ trình này nằm dưới lộ trình Thay thế và không đi theo thang Học việc → Trưởng.',stages:[
-            {id:'pc1',name:'Phần cứng điện thoại',desc:'Chẩn đoán và xử lý lỗi phần cứng trên điện thoại.',xpReq:0,gate:'none'},
-            {id:'pc2',name:'Phần cứng Laptop & PC',desc:'Chẩn đoán, nâng cấp và xử lý lỗi phần cứng trên laptop/PC.',xpReq:0,gate:'prev'}
+          {name:'Kỹ thuật Phần cứng',note:'Nội dung đào tạo chung cho cả Điện thoại và Laptop/PC. Vị trí này đã ở bậc cao nhất nên không có lộ trình thăng cấp thêm.',stages:[
+            {id:'pc',name:'Kỹ thuật Phần cứng',desc:'Nội dung đào tạo chung cho kỹ thuật phần cứng — chẩn đoán và xử lý lỗi phần cứng trên cả điện thoại và laptop/PC.',xpReq:0,gate:'none'}
           ]}
         ]}
       };
@@ -1702,7 +1701,7 @@
             openKey:'career:kythuat',img:di.screwdriver,imgAlt:'Sóc Fastie chính thức của FASTCARE — cầm tua vít xanh, đang sửa điện thoại tại bàn kỹ thuật',
             tag:'Ô 3 · Hướng nghề nghiệp',kicker:'Lộ trình "nảy mầm"',title:'Kỹ thuật Trưởng & Kỹ thuật Leader',
             desc:'Không ngừng học hỏi, rèn luyện và nâng cao tay nghề; tích luỹ kinh nghiệm thực tế để nâng cao năng lực chuyên môn và chinh phục những cấp bậc Kỹ thuật cao hơn tại FASTCARE.',
-            chips:[{label:'Thay thế: Học việc → Trưởng'},{label:'Phần cứng: Điện thoại · Laptop/PC'}],
+            chips:[{label:'Thay thế: Học việc → Trưởng'},{label:'Kỹ thuật Phần cứng'}],
             audience:'Thường tuyển nội bộ từ <b>nhân sự Kỹ thuật</b>',
             progressLabel:'XP của bạn so với mốc '+fmt(gate2),progressText:fmt(myXp)+'/'+fmt(gate2)+' XP',
             progressPct:Math.min(100,Math.round(myXp*100/gate2)),
