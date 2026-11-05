@@ -89,11 +89,13 @@
           if(lp.error)throw lp.error;
           var qa=await sb.from('quiz_attempts').select('lesson_id,score,total,xp_earned,created_at').eq('user_id',currentUser.id);
           if(qa.error)throw qa.error;
-          var rows=lp.data||[],atts=qa.data||[];
+          var aa=await sb.from('announcement_attempts').select('xp_earned,updated_at').eq('user_id',currentUser.id);
+          var rows=lp.data||[],atts=qa.data||[],annAtts=(aa&&!aa.error)?(aa.data||[]):[];
           var totalXp=0,completed=0,weekXp=0;
           var weekAgo=Date.now()-7*24*3600*1000;
           rows.forEach(function(r){totalXp+=r.xp_earned||0;if(r.completed)completed++;if(r.updated_at&&new Date(r.updated_at).getTime()>weekAgo)weekXp+=r.xp_earned||0});
           atts.forEach(function(a){totalXp+=a.xp_earned||0;if(a.created_at&&new Date(a.created_at).getTime()>weekAgo)weekXp+=a.xp_earned||0});
+          annAtts.forEach(function(a){totalXp+=a.xp_earned||0;if(a.updated_at&&new Date(a.updated_at).getTime()>weekAgo)weekXp+=a.xp_earned||0});
           document.getElementById('xpTotal').textContent=fmt(totalXp);
           document.getElementById('xpDelta').textContent='+'+fmt(weekXp)+' tuần này';
           document.getElementById('completedTotal').textContent=completed+'/12';
@@ -957,9 +959,12 @@
           if(pts)pts.hidden=userRole!=='admin';
           var lss=document.getElementById('lessonSettingsSection');
           if(lss)lss.hidden=userRole!=='admin';
+          var ans=document.getElementById('annSection');
+          if(ans)ans.hidden=userRole!=='admin';
           renderPermTool();
           renderScopeProgress();
           renderLessonSettings();
+          renderAnnAdmin();
         }else if(canModerate()){
           renderPendingApprovals();
           if(userRole==='admin'){renderPermissions();renderDirectory()}
@@ -1091,6 +1096,7 @@
           var profile=await fetchMyProfile();
           await loadMyPerms();
           await loadLessonSettings();
+          await loadAnnouncements();
           applyProfileToUI(profile);
           if(profile&&profile.role!=='admin'&&profile.is_rejected===true){
             showRejected();return;
@@ -1353,8 +1359,9 @@
           var ms=lessonDeadlineMs(COMMON_LESSONS[i].id);
           if(ms===null)continue;
           var left=ms-Date.now();
-          items.push({idx:i,id:COMMON_LESSONS[i].id,name:COMMON_LESSONS[i].name,deadline:lessonSetting(COMMON_LESSONS[i].id).deadline,ms:left,expired:left<=0,urgent:left>0&&left<=URGENT_DAYS*24*3600*1000});
+          items.push({kind:'lesson',idx:i,id:COMMON_LESSONS[i].id,name:COMMON_LESSONS[i].name,deadline:lessonSetting(COMMON_LESSONS[i].id).deadline,ms:left,expired:left<=0,urgent:left>0&&left<=URGENT_DAYS*24*3600*1000});
         }
+        items=items.concat(annReminderItems());
         items.sort(function(a,b){return a.ms-b.ms});
         return items;
       }
@@ -1384,10 +1391,11 @@
         }
         list.innerHTML=items.map(function(it){
           if(it.expired){
-            return '<div class="reminder-item expired"><div class="reminder-icon">\uD83D\uDD12</div><div><strong>'+escapeHtml(it.name)+' — Da het han</strong><p>Bai da khoa tu '+escapeHtml(fmtDeadlineDate(it.deadline))+'. Lien he Quan tri vien neu can mo lai.</p></div></div>';
+            return '<div class="reminder-item expired"><div class="reminder-icon">\uD83D\uDD12</div><div><strong>'+escapeHtml(it.name)+' — Da het han</strong><p>'+(it.kind==='ann'?'Bo khao sat da khoa':'Bai da khoa')+' tu '+escapeHtml(fmtDeadlineDate(it.deadline))+'. Lien he Quan tri vien neu can mo lai.</p></div></div>';
           }
           var icon=it.urgent?'!':'\uD83D\uDD50';
-          return '<button type="button" class="reminder-item'+(it.urgent?' urgent':'')+'" data-remind="'+it.idx+'"><div class="reminder-icon">'+icon+'</div><div><strong>'+escapeHtml(it.name)+' — '+escapeHtml(fmtDeadlineLeft(it.ms))+'</strong><p>Het han '+escapeHtml(fmtDeadlineDate(it.deadline))+' \u00b7 Bam de lam bai ngay.</p></div></button>';
+          var attr=it.kind==='ann'?('data-ann="'+it.annId+'"'):('data-remind="'+it.idx+'"');
+          return '<button type="button" class="reminder-item'+(it.urgent?' urgent':'')+'" '+attr+'><div class="reminder-icon">'+icon+'</div><div><strong>'+escapeHtml(it.name)+' — '+escapeHtml(fmtDeadlineLeft(it.ms))+'</strong><p>Het han '+escapeHtml(fmtDeadlineDate(it.deadline))+' \u00b7 Bam de lam bai ngay.</p></div></button>';
         }).join('');
         list.querySelectorAll('[data-remind]').forEach(function(el){
           el.addEventListener('click',function(){
@@ -1395,6 +1403,371 @@
             openCommonLesson(Number(el.getAttribute('data-remind')),el);
           });
         });
+        list.querySelectorAll('[data-ann]').forEach(function(el){
+          el.addEventListener('click',function(){
+            document.getElementById('reminderPanel').classList.remove('open');
+            openAnnDetail(el.getAttribute('data-ann'));
+          });
+        });
+      }
+      /* ============ Thông báo / Khảo sát (mục Thông báo/Truyền thông chung) ============ */
+      /* Kem tự tạo thông báo + bộ câu hỏi; hết hạn thì đóng. XP +10/bộ, tính 1 lần.
+         Làm lại được đến khi hết hạn, lấy điểm cao nhất. Toàn thể nhân sự đều làm được. */
+      var annList=[],annLoaded=false,myAnnAttempts={};
+      var annQuestionsCache={};
+      var annAllAttempts=[];
+      var annEditor=null;
+      function annDeadlineMs(a){
+        if(!a||!a.deadline)return null;
+        var t=new Date(a.deadline).getTime();
+        return isNaN(t)?null:t;
+      }
+      function annExpired(a){
+        var ms=annDeadlineMs(a);
+        return ms!==null&&ms<Date.now();
+      }
+      function annMyAttempt(a){
+        return a?myAnnAttempts[a.id]||null:null;
+      }
+      function annScoredTotal(qs){
+        var n=0;qs.forEach(function(q){if(q.correct_index!==null&&q.correct_index!==undefined)n++});return n;
+      }
+      async function loadAnnouncements(){
+        try{
+          var res=await sb.from('announcements').select('id,title,body,created_by,created_at,is_open,deadline,xp_reward').order('created_at',{ascending:false});
+          if(res.error)throw res.error;
+          annList=res.data||[];
+          if(currentUser){
+            var at=await sb.from('announcement_attempts').select('announcement_id,answers,score,total,xp_earned,created_at,updated_at').eq('user_id',currentUser.id);
+            if(!at.error)(at.data||[]).forEach(function(r){myAnnAttempts[r.announcement_id]=r});
+          }
+        }catch(e){annList=[];/* bảng chưa có (chưa chạy SQL v14) — hiện rỗng, không crash */}
+        annLoaded=true;
+        renderReminders();
+      }
+      async function loadAnnQuestions(annId){
+        if(annQuestionsCache[annId])return annQuestionsCache[annId];
+        var res=await sb.from('announcement_questions').select('id,question,options,correct_index,position').eq('announcement_id',annId).order('position',{ascending:true});
+        if(res.error)throw res.error;
+        var qs=(res.data||[]).map(function(r){return{id:r.id,question:r.question,options:r.options||[],correct_index:(r.correct_index===null||r.correct_index===undefined)?null:r.correct_index}});
+        annQuestionsCache[annId]=qs;
+        return qs;
+      }
+      function annStatusText(a){
+        var att=annMyAttempt(a);
+        if(!a.is_open)return 'Bản nháp — chưa mở';
+        if(annExpired(a))return att?'Đã hết hạn · Bạn đã làm':'Đã hết hạn';
+        if(att)return 'Đã làm'+(att.total?' · '+att.score+'/'+att.total:'');
+        return 'Đang mở';
+      }
+      function renderAnnList(){
+        var box=document.getElementById('annBody');
+        if(!box)return;
+        if(!annLoaded){box.innerHTML='<p class="muted-center">Đang tải thông báo…</p>';return}
+        var open=annList.filter(function(a){return a.is_open&&!annExpired(a)});
+        var closed=annList.filter(function(a){return a.is_open&&annExpired(a)});
+        /* bản nháp (is_open=false) chỉ Quản trị viên thấy trong mục quản trị, nhân sự không thấy */
+        if(!open.length&&!closed.length){
+          box.innerHTML='<p class="muted-center">Chưa có thông báo nào. Khi Ban Lãnh đạo có đợt truyền thông mới, thông báo và bộ khảo sát sẽ hiện ở đây.</p>';
+          return;
+        }
+        var html='';
+        if(open.length){
+          html+='<h3 class="ann-group">Đang mở</h3>'+open.map(function(a){
+            var att=annMyAttempt(a),ms=annDeadlineMs(a);
+            var dl=ms?('<span class="ann-dl">'+escapeHtml(fmtDeadlineLeft(ms-Date.now()))+' · hết hạn '+escapeHtml(fmtDeadlineDate(a.deadline))+'</span>'):'<span class="ann-dl">Không hạn nộp</span>';
+            return '<button type="button" class="ann-card" data-ann-open="'+a.id+'"><div class="ann-card-top"><strong>'+escapeHtml(a.title)+'</strong><span class="ann-badge open">'+escapeHtml(annStatusText(a))+'</span></div><p>'+escapeHtml((a.body||'').slice(0,140))+((a.body||'').length>140?'…':'')+'</p>'+dl+'</button>';
+          }).join('');
+        }
+        if(closed.length){
+          html+='<h3 class="ann-group">Đã hết hạn</h3>'+closed.map(function(a){
+            return '<button type="button" class="ann-card closed" data-ann-open="'+a.id+'"><div class="ann-card-top"><strong>'+escapeHtml(a.title)+'</strong><span class="ann-badge expired">Đã hết hạn</span></div><p>'+escapeHtml((a.body||'').slice(0,140))+((a.body||'').length>140?'…':'')+'</p><span class="ann-dl">Hết hạn '+escapeHtml(fmtDeadlineDate(a.deadline))+'</span></button>';
+          }).join('');
+        }
+        box.innerHTML=html;
+        box.querySelectorAll('[data-ann-open]').forEach(function(el){
+          el.addEventListener('click',function(){openAnnDetail(el.getAttribute('data-ann-open'))});
+        });
+      }
+      function openAnnView(){
+        switchView('ann');
+        renderAnnList();
+      }
+      async function openAnnDetail(annId){
+        switchView('ann');
+        var box=document.getElementById('annBody');
+        if(!box)return;
+        var a=null;annList.forEach(function(x){if(x.id===annId)a=x});
+        if(!a){renderAnnList();return}
+        var att=annMyAttempt(a);
+        var backBtn='<button type="button" class="btn-ghost ann-back" id="annBack">← Quay lại danh sách</button>';
+        var bodyHtml='<p class="ann-body">'+escapeHtml(a.body||'').replace(/\n/g,'<br>')+'</p>';
+        if(!a.is_open||annExpired(a)){
+          /* đã đóng / hết hạn: chỉ xem nội dung + kết quả cũ (nếu đã làm) */
+          box.innerHTML=backBtn+'<div class="ann-detail"><h3>'+escapeHtml(a.title)+'</h3>'+bodyHtml+'<p class="ann-closed-note">Bộ khảo sát này '+(annExpired(a)?'đã hết hạn':'đang đóng')+' nên không làm bài được nữa.'+(att?' Bạn đã làm: '+(att.total?att.score+'/'+att.total:'đã gửi')+' · +'+(att.xp_earned||0)+' XP.':'')+'</p></div>';
+          document.getElementById('annBack').addEventListener('click',renderAnnList);
+          return;
+        }
+        box.innerHTML='<p class="muted-center">Đang tải bộ câu hỏi…</p>';
+        var qs;
+        try{qs=await loadAnnQuestions(annId)}catch(e){box.innerHTML=backBtn+'<p class="muted-center">Chưa tải được bộ câu hỏi — kiểm tra mạng rồi thử lại.</p>';document.getElementById('annBack').addEventListener('click',renderAnnList);return}
+        if(!qs.length){
+          box.innerHTML=backBtn+'<div class="ann-detail"><h3>'+escapeHtml(a.title)+'</h3>'+bodyHtml+'<p class="ann-closed-note">Thông báo này chưa có câu hỏi khảo sát.</p></div>';
+          document.getElementById('annBack').addEventListener('click',renderAnnList);
+          return;
+        }
+        var html=backBtn+'<div class="ann-detail"><h3>'+escapeHtml(a.title)+'</h3>';
+        var ms=annDeadlineMs(a);
+        if(ms)html+='<p class="ann-dl">'+escapeHtml(fmtDeadlineLeft(ms-Date.now()))+' · hết hạn '+escapeHtml(fmtDeadlineDate(a.deadline))+'</p>';
+        html+=bodyHtml;
+        if(att)html+='<p class="ann-done-note">Bạn đã làm bộ này'+(att.total?' — điểm cao nhất: '+att.score+'/'+att.total:'')+'. Làm lại được đến khi hết hạn (điểm lấy cao nhất, XP chỉ tính 1 lần).</p>';
+        html+='<div id="annQuiz">'+qs.map(function(q,qi){
+          return '<div class="ann-q"><p class="ann-q-text"><strong>Câu '+(qi+1)+'.</strong> '+escapeHtml(q.question)+(q.correct_index===null?' <span class="ann-opinion">(câu hỏi ý kiến)</span>':'')+'</p>'+
+            q.options.map(function(op,oi){
+              return '<label class="ann-opt"><input type="radio" name="ann-q-'+qi+'" value="'+oi+'"> <span>'+escapeHtml(String.fromCharCode(65+oi))+'. '+escapeHtml(op)+'</span></label>';
+            }).join('')+'</div>';
+        }).join('')+'</div>'+
+        '<p class="ann-progress" id="annProgress"></p>'+
+        '<button type="button" class="btn-primary" id="annSubmit">'+(att?'Nộp lại bài':'Nộp bài')+'</button>'+
+        '<div id="annResult" style="margin-top:12px"></div></div>';
+        box.innerHTML=html;
+        document.getElementById('annBack').addEventListener('click',renderAnnList);
+        var updateProg=function(){
+          var answered=0;
+          qs.forEach(function(q,qi){if(box.querySelector('input[name="ann-q-'+qi+'"]:checked'))answered++});
+          var p=document.getElementById('annProgress');
+          if(p)p.textContent='Đã trả lời '+answered+'/'+qs.length+' câu';
+        };
+        box.querySelectorAll('input[type="radio"]').forEach(function(r){r.addEventListener('change',updateProg)});
+        updateProg();
+        document.getElementById('annSubmit').addEventListener('click',function(){submitAnnSurvey(a,qs)});
+      }
+      async function submitAnnSurvey(a,qs){
+        var box=document.getElementById('annBody');
+        if(!box||!currentUser)return;
+        var answers=[],missing=false;
+        qs.forEach(function(q,qi){
+          var sel=box.querySelector('input[name="ann-q-'+qi+'"]:checked');
+          if(!sel){missing=true;answers.push(null)}
+          else answers.push(Number(sel.value));
+        });
+        if(missing){showToast('Bạn còn câu chưa trả lời — trả lời hết rồi nộp nhé');return}
+        var total=annScoredTotal(qs),score=0;
+        qs.forEach(function(q,qi){if(q.correct_index!==null&&answers[qi]===q.correct_index)score++});
+        var prev=annMyAttempt(a);
+        var sameTotal=prev&&prev.total===total;
+        var xp=prev?prev.xp_earned:(a.xp_reward||10);
+        var bestScore=(prev&&sameTotal)?Math.max(prev.score,score):score;
+        var bestAnswers=(prev&&sameTotal&&prev.score>score)?prev.answers:answers;
+        var row={user_id:currentUser.id,announcement_id:a.id,answers:bestAnswers,score:bestScore,total:total,xp_earned:xp,updated_at:new Date().toISOString()};
+        var btn=document.getElementById('annSubmit');
+        if(btn)btn.disabled=true;
+        try{
+          var res=await sb.from('announcement_attempts').upsert(row,{onConflict:'user_id,announcement_id'});
+          if(res.error)throw res.error;
+          myAnnAttempts[a.id]={announcement_id:a.id,answers:bestAnswers,score:bestScore,total:total,xp_earned:xp,created_at:(prev&&prev.created_at)||new Date().toISOString(),updated_at:row.updated_at};
+          var resBox=document.getElementById('annResult');
+          var first=!prev;
+          if(resBox){
+            resBox.innerHTML='<div class="ann-result"><strong>'+(total?('Số điểm của bạn: '+bestScore+'/'+total):'Đã gửi khảo sát!')+'</strong><p>'+(first?'+'+xp+' XP — đã cộng vào tổng XP của bạn.':'XP đã cộng từ lần làm đầu, làm lại không cộng thêm.')+(bestScore===total&&total>0?' Hoàn hảo!':'')+'</p></div>';
+          }
+          if(btn)btn.textContent='Đã nộp bài';
+          await refreshMyStats(); /* refreshMyStats đã gọi renderReminders() */
+        }catch(e){
+          showToast('Chưa nộp được — kiểm tra mạng rồi thử lại');
+          if(btn)btn.disabled=false;
+        }
+      }
+      function annReminderItems(){
+        var items=[];
+        if(!annLoaded)return items;
+        annList.forEach(function(a){
+          if(!a.is_open)return; /* bản nháp không nhắc */
+          if(annMyAttempt(a))return; /* đã làm thì không nhắc */
+          var ms=annDeadlineMs(a);
+          if(ms===null)return;
+          var left=ms-Date.now();
+          items.push({kind:'ann',annId:a.id,name:a.title,deadline:a.deadline,ms:left,expired:left<=0,urgent:left>0&&left<=URGENT_DAYS*24*3600*1000});
+        });
+        return items;
+      }
+      /* ============ Quản trị: Thông báo / Khảo sát ============ */
+      async function renderAnnAdmin(){
+        var box=document.getElementById('annTable');
+        if(!box||userRole!=='admin')return;
+        var nb=document.getElementById('annNewBtn');
+        if(nb&&!nb._wired){nb._wired=true;nb.addEventListener('click',function(){openAnnEditor(null)})}
+        if(!annLoaded){box.innerHTML='<p class="muted-center">Đang tải thông báo…</p>';return}
+        try{
+          var res=await sb.from('announcement_attempts').select('announcement_id,user_id');
+          if(!res.error)annAllAttempts=res.data||[];
+        }catch(e){annAllAttempts=[]}
+        if(!annList.length){
+          box.innerHTML='<p class="muted-center">Chưa có thông báo nào — bấm “+ Tạo thông báo mới” để tạo đợt đầu tiên.</p>';
+          return;
+        }
+        box.innerHTML='<div class="pt-wrap"><table class="pt-table"><thead><tr><th>Thông báo</th><th>Trạng thái</th><th>Hạn nộp</th><th>Đã làm</th><th></th></tr></thead><tbody>'+
+          annList.map(function(a){
+            var done={};annAllAttempts.forEach(function(r){if(r.announcement_id===a.id)done[r.user_id]=1});
+            var nDone=Object.keys(done).length;
+            var st=!a.is_open?'Bản nháp':annExpired(a)?'Đã hết hạn':'Đang mở';
+            var dl=a.deadline?escapeHtml(fmtDeadlineDate(a.deadline)):'Không hạn';
+            return '<tr><td><strong>'+escapeHtml(a.title)+'</strong><br><span style="color:var(--muted);font-size:12px">'+escapeHtml((a.body||'').slice(0,80))+'</span></td>'+
+              '<td style="font-size:13px;font-weight:600">'+st+'</td>'+
+              '<td style="font-size:13px">'+dl+'</td>'+
+              '<td style="font-size:13px;font-weight:600">'+nDone+' người</td>'+
+              '<td style="white-space:nowrap"><button type="button" class="restore-btn" data-ann-edit="'+a.id+'">Sửa</button> <button type="button" class="restore-btn" data-ann-results="'+a.id+'">Kết quả</button> <button type="button" class="restore-btn" data-ann-del="'+a.id+'">Xoá</button></td></tr>';
+          }).join('')+'</tbody></table></div>';
+        box.querySelectorAll('[data-ann-edit]').forEach(function(b){b.addEventListener('click',function(){openAnnEditor(b.getAttribute('data-ann-edit'))})});
+        box.querySelectorAll('[data-ann-results]').forEach(function(b){b.addEventListener('click',function(){renderAnnResults(b.getAttribute('data-ann-results'))})});
+        box.querySelectorAll('[data-ann-del]').forEach(function(b){b.addEventListener('click',function(){deleteAnn(b.getAttribute('data-ann-del'))})});
+      }
+      async function openAnnEditor(annId){
+        var ed=document.getElementById('annEditor');
+        var rs=document.getElementById('annResults');
+        if(!ed)return;
+        if(rs)rs.hidden=true;
+        ed.hidden=false;
+        if(annId){
+          var a=null;annList.forEach(function(x){if(x.id===annId)a=x});
+          if(!a){ed.hidden=true;return}
+          var qs=await loadAnnQuestions(annId);
+          annEditor={id:a.id,title:a.title,body:a.body||'',is_open:!!a.is_open,deadline:deadlineToDdMmYyyy(a.deadline),questions:qs.map(function(q){return{question:q.question,options:q.options.slice(),correct_index:q.correct_index}})};
+          if(!annEditor.questions.length)annEditor.questions.push({question:'',options:['','','',''],correct_index:0});
+        }else{
+          annEditor={id:null,title:'',body:'',is_open:true,deadline:'',questions:[{question:'',options:['','','',''],correct_index:0}]};
+        }
+        renderAnnEditor();
+        ed.scrollIntoView({behavior:'smooth',block:'start'});
+      }
+      function renderAnnEditor(){
+        var ed=document.getElementById('annEditor');
+        if(!ed||!annEditor)return;
+        var e=annEditor;
+        var html='<div class="ann-editor"><h3>'+(e.id?'Sửa thông báo':'Tạo thông báo mới')+'</h3>'+
+          '<label class="ann-label">Tiêu đề *<input type="text" id="annEdTitle" value="'+escapeHtml(e.title)+'" placeholder="VD: Nhắc lại quy tắc 4C — đợt tháng 11"></label>'+
+          '<label class="ann-label">Nội dung thông báo<textarea id="annEdBody" rows="4" placeholder="Nội dung nhân sự cần đọc trước khi làm khảo sát…">'+escapeHtml(e.body)+'</textarea></label>'+
+          '<div class="ann-ed-row"><label class="ann-check"><input type="checkbox" id="annEdOpen"'+(e.is_open?' checked':'')+'> Mở (nhân sự thấy và làm được)</label>'+
+          '<label class="ann-label" style="flex:1">Hạn nộp<input type="text" id="annEdDeadline" class="ls-date" inputmode="numeric" maxlength="10" autocomplete="off" placeholder="dd/mm/yyyy" value="'+escapeHtml(e.deadline)+'"></label></div>'+
+          '<p class="perm-sub">Bỏ tick “Mở” = bản nháp, nhân sự không thấy. Hết hạn thì bộ tự đóng. Để trống hạn nộp là không giới hạn.</p>'+
+          '<h4>Câu hỏi khảo sát ('+e.questions.length+')</h4>'+
+          e.questions.map(function(q,qi){
+            return '<div class="ann-q-edit"><div class="ann-q-edit-head"><strong>Câu '+(qi+1)+'</strong><button type="button" class="restore-btn" data-ann-rmq="'+qi+'">Xoá câu</button></div>'+
+              '<input type="text" class="ann-q-text-input" data-ann-q="'+qi+'" value="'+escapeHtml(q.question)+'" placeholder="Nhập câu hỏi…">'+
+              q.options.map(function(op,oi){
+                return '<label class="ann-opt-edit"><input type="radio" name="ann-ed-correct-'+qi+'" value="'+oi+'"'+(q.correct_index===oi?' checked':'')+'> <span>'+String.fromCharCode(65+oi)+'.</span><input type="text" data-ann-opt="'+qi+'-'+oi+'" value="'+escapeHtml(op)+'" placeholder="Đáp án '+String.fromCharCode(65+oi)+'"></label>';
+              }).join('')+
+              '<label class="ann-opinion-check"><input type="checkbox" data-ann-opinion="'+qi+'"'+(q.correct_index===null?' checked':'')+'> Câu hỏi ý kiến — không chấm điểm (không có đáp án đúng)</label></div>';
+          }).join('')+
+          '<div style="margin:10px 0"><button type="button" class="btn-ghost" id="annAddQ">+ Thêm câu hỏi</button></div>'+
+          '<div class="pt-save-row"><button type="button" class="btn-primary" id="annSave">Lưu thông báo</button><button type="button" class="btn-ghost" id="annCancel">Huỷ</button><span id="annEdMsg" style="font-size:13px;color:var(--muted);font-weight:600"></span></div></div>';
+        ed.innerHTML=html;
+        document.getElementById('annEdTitle').addEventListener('input',function(ev){annEditor.title=ev.target.value});
+        document.getElementById('annEdBody').addEventListener('input',function(ev){annEditor.body=ev.target.value});
+        document.getElementById('annEdOpen').addEventListener('change',function(ev){annEditor.is_open=ev.target.checked});
+        document.getElementById('annEdDeadline').addEventListener('change',function(ev){
+          var v=(ev.target.value||'').trim();
+          if(v&&!isValidDdMmYyyy(v)){showToast('Ngày không hợp lệ — nhập theo dạng dd/mm/yyyy, ví dụ 10/11/2026');ev.target.value=annEditor.deadline||'';return}
+          if(v){var pp=v.split('/');v=String(Number(pp[0])).padStart(2,'0')+'/'+String(Number(pp[1])).padStart(2,'0')+'/'+pp[2];ev.target.value=v}
+          annEditor.deadline=v;
+        });
+        ed.querySelectorAll('[data-ann-q]').forEach(function(inp){inp.addEventListener('input',function(){annEditor.questions[Number(inp.getAttribute('data-ann-q'))].question=inp.value})});
+        ed.querySelectorAll('[data-ann-opt]').forEach(function(inp){inp.addEventListener('input',function(){var p=inp.getAttribute('data-ann-opt').split('-');annEditor.questions[Number(p[0])].options[Number(p[1])]=inp.value})});
+        ed.querySelectorAll('input[type="radio"][name^="ann-ed-correct-"]').forEach(function(r){r.addEventListener('change',function(){var qi=Number(r.name.replace('ann-ed-correct-',''));annEditor.questions[qi].correct_index=Number(r.value);var cb=ed.querySelector('[data-ann-opinion="'+qi+'"]');if(cb)cb.checked=false})});
+        ed.querySelectorAll('[data-ann-opinion]').forEach(function(cb){cb.addEventListener('change',function(){
+          var qi=Number(cb.getAttribute('data-ann-opinion'));
+          if(cb.checked){annEditor.questions[qi].correct_index=null;ed.querySelectorAll('input[name="ann-ed-correct-'+qi+'"]').forEach(function(r){r.checked=false})}
+          else{annEditor.questions[qi].correct_index=0;var first=ed.querySelector('input[name="ann-ed-correct-'+qi+'"][value="0"]');if(first)first.checked=true}
+        })});
+        ed.querySelectorAll('[data-ann-rmq]').forEach(function(b){b.addEventListener('click',function(){annEditor.questions.splice(Number(b.getAttribute('data-ann-rmq')),1);renderAnnEditor()})});
+        document.getElementById('annAddQ').addEventListener('click',function(){annEditor.questions.push({question:'',options:['','','',''],correct_index:0});renderAnnEditor()});
+        document.getElementById('annCancel').addEventListener('click',function(){annEditor=null;ed.hidden=true});
+        document.getElementById('annSave').addEventListener('click',saveAnnEditor);
+      }
+      async function saveAnnEditor(){
+        var e=annEditor;if(!e)return;
+        var msg=document.getElementById('annEdMsg');
+        if(!e.title.trim()){showToast('Nhập tiêu đề thông báo');return}
+        var qs=e.questions.map(function(q){return{question:String(q.question||'').trim(),options:(q.options||[]).map(function(o){return String(o||'').trim()}),correct_index:q.correct_index}}).filter(function(q){return q.question});
+        for(var i=0;i<qs.length;i++){
+          if(qs[i].options.length!==4||qs[i].options.some(function(o){return !o})){showToast('Câu '+(i+1)+' cần đủ 4 đáp án (A–D) — điền hết rồi lưu nhé');return}
+        }
+        if(!qs.length){showToast('Thêm ít nhất 1 câu hỏi rồi lưu nhé');return}
+        var btn=document.getElementById('annSave');
+        if(btn)btn.disabled=true;
+        if(msg)msg.textContent='Đang lưu…';
+        try{
+          var payload={title:e.title.trim(),body:e.body.trim(),is_open:!!e.is_open,deadline:ddMmYyyyToDeadline(e.deadline),xp_reward:10};
+          var annId=e.id;
+          if(annId){
+            var up=await sb.from('announcements').update(payload).eq('id',annId);
+            if(up.error)throw up.error;
+          }else{
+            payload.created_by=currentUser?currentUser.id:null;
+            var ins=await sb.from('announcements').insert(payload).select('id').single();
+            if(ins.error)throw ins.error;
+            annId=ins.data.id;
+          }
+          var del=await sb.from('announcement_questions').delete().eq('announcement_id',annId);
+          if(del.error)throw del.error;
+          var rows=qs.map(function(q,qi){return{announcement_id:annId,position:qi,question:q.question,options:q.options,correct_index:q.correct_index}});
+          var iq=await sb.from('announcement_questions').insert(rows);
+          if(iq.error)throw iq.error;
+          delete annQuestionsCache[annId];
+          annEditor=null;
+          document.getElementById('annEditor').hidden=true;
+          await loadAnnouncements();
+          renderAnnAdmin();
+          showToast('Đã lưu thông báo');
+        }catch(err){
+          showToast('Chưa lưu được — kiểm tra lại rồi thử lại');
+          if(btn)btn.disabled=false;
+          if(msg)msg.textContent='';
+        }
+      }
+      async function deleteAnn(annId){
+        var a=null;annList.forEach(function(x){if(x.id===annId)a=x});
+        if(!a)return;
+        if(!confirm('Xoá thông báo “'+a.title+'”?\nTất cả câu hỏi và bài làm của thông báo này cũng sẽ bị xoá.'))return;
+        try{
+          var res=await sb.from('announcements').delete().eq('id',annId);
+          if(res.error)throw res.error;
+          delete annQuestionsCache[annId];
+          await loadAnnouncements();
+          renderAnnAdmin();
+          showToast('Đã xoá thông báo');
+        }catch(e){showToast('Chưa xoá được — thử lại sau')}
+      }
+      async function renderAnnResults(annId){
+        var box=document.getElementById('annResults');
+        var ed=document.getElementById('annEditor');
+        if(!box)return;
+        if(ed)ed.hidden=true;
+        box.hidden=false;
+        var a=null;annList.forEach(function(x){if(x.id===annId)a=x});
+        if(!a){box.hidden=true;return}
+        box.innerHTML='<h3>Kết quả — '+escapeHtml(a.title)+'</h3><p class="muted-center">Đang tải kết quả…</p>';
+        try{
+          var res=await sb.from('announcement_attempts').select('user_id,score,total,xp_earned,created_at,updated_at').eq('announcement_id',annId).order('updated_at',{ascending:false});
+          if(res.error)throw res.error;
+          var rows=res.data||[];
+          var profs=await sb.from('profiles').select('id,full_name,department,employee_code');
+          var pmap={};(profs.data||[]).forEach(function(p){pmap[p.id]=p});
+          var closeBtn='<button type="button" class="btn-ghost" id="annResClose">Đóng</button>';
+          if(!rows.length){
+            box.innerHTML='<h3>Kết quả — '+escapeHtml(a.title)+'</h3><p class="muted-center">Chưa có ai làm bộ này.</p>'+closeBtn;
+          }else{
+            box.innerHTML='<h3>Kết quả — '+escapeHtml(a.title)+' ('+rows.length+' người đã làm)</h3><div class="pt-wrap"><table class="pt-table"><thead><tr><th>Nhân sự</th><th>Điểm</th><th>XP</th><th>Làm lúc</th></tr></thead><tbody>'+
+              rows.map(function(r){
+                var p=pmap[r.user_id]||{};
+                return '<tr><td><strong>'+escapeHtml(p.full_name||'—')+'</strong><br><span style="color:var(--muted);font-size:12px">'+escapeHtml(p.department||'')+' · '+escapeHtml(p.employee_code||'')+'</span></td><td style="font-weight:600">'+(r.total?r.score+'/'+r.total:'Đã gửi')+'</td><td>'+(r.xp_earned||0)+' XP</td><td style="font-size:13px">'+escapeHtml(fmtDeadlineDate(r.updated_at||r.created_at))+'</td></tr>';
+              }).join('')+'</tbody></table></div>'+closeBtn;
+          }
+          document.getElementById('annResClose').addEventListener('click',function(){box.hidden=true});
+        }catch(e){
+          box.innerHTML='<h3>Kết quả — '+escapeHtml(a.title)+'</h3><p class="muted-center">Chưa tải được kết quả — thử lại sau.</p><button type="button" class="btn-ghost" id="annResClose">Đóng</button>';
+          document.getElementById('annResClose').addEventListener('click',function(){box.hidden=true});
+        }
       }
       var COMMON_LESSONS=[
         {id:'khao-sat-module-01',name:'Chào mừng đến với FASTCARE',desc:'Văn hoá, lịch sử hình thành · +10 XP',kind:'deck'},
@@ -2263,9 +2636,6 @@
         if(c)c.addEventListener('click',closeDevModal);
       }
       function closeDevModal(){var m=document.getElementById('devModal');if(m)m.classList.remove('open')}
-      function openDevDocModal(){
-        openDevModal('<span class="dev-stage-type" style="color:var(--teal)">Thông báo/Truyền thông chung</span><h3>Luồng này giữ nguyên như web hiện tại</h3><p>Bản cập nhật này chỉ thêm phần Lộ trình phát triển cho Khối Cửa hàng. Luồng Thông báo/Truyền thông chung (bài test ngắn theo đợt truyền thông, dành cho toàn thể nhân sự) không thay đổi — các bài test vẫn xuất hiện tại Trang học.</p><div class="dev-modal-actions"><button class="btn-ghost" id="devModalClose" type="button">Đóng</button></div>');
-      }
       (function initDevPaths(){
         var cardsEl=document.getElementById('devCards');
         if(cardsEl)cardsEl.addEventListener('click',function(e){
@@ -2273,7 +2643,7 @@
           if(!b)return;
           var k=b.getAttribute('data-dev-open');
           if(k==='common')showDevScreen('common');
-          else if(k==='doc')openDevDocModal();
+          else if(k==='doc')openAnnView();
           else if(k.indexOf('career:')===0)showDevScreen('career',k.slice(7));
         });
         var homeEl=document.getElementById('homeDevCards');
@@ -2283,7 +2653,7 @@
           var k=b.getAttribute('data-dev-open');
           switchView('route');
           if(k==='common')showDevScreen('common');
-          else if(k==='doc')openDevDocModal();
+          else if(k==='doc')openAnnView();
           else if(k.indexOf('career:')===0)showDevScreen('career',k.slice(7));
         });
         var bk=document.getElementById('devBackCareer');
@@ -2294,7 +2664,7 @@
           if(!b)return;
           var k=b.getAttribute('data-dev-tab');
           if(k==='common')showDevScreen('common');
-          else if(k==='doc')openDevDocModal();
+          else if(k==='doc')openAnnView();
           else if(k.indexOf('career:')===0)showDevScreen('career',k.slice(7));
         });
         var dm=document.getElementById('devModal');
