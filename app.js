@@ -875,7 +875,12 @@
             var id=el.getAttribute('data-ls-for');if(!id)return;
             var st=lsState[id];if(!st)return;
             if(el.getAttribute('data-ls-kind')==='open')st.open=el.checked;
-            else if(el.getAttribute('data-ls-kind')==='deadline')st.deadline=el.value||'';
+            else if(el.getAttribute('data-ls-kind')==='deadline'){
+              var v=(el.value||'').trim();
+              if(v&&!isValidDdMmYyyy(v)){showToast('Ngày không hợp lệ — nhập theo dạng dd/mm/yyyy, ví dụ 10/11/2026');el.value=st.deadline||'';return;}
+              if(v){var pp=v.split('/');v=String(Number(pp[0])).padStart(2,'0')+'/'+String(Number(pp[1])).padStart(2,'0')+'/'+pp[2];el.value=v;}
+              st.deadline=v;
+            }
             else return;
             lsRefreshSaveBtn();
           });
@@ -890,7 +895,7 @@
           COMMON_LESSONS.forEach(function(L,i){
             var r=map[L.id];
             var st;
-            if(r)st={open:!!r.is_open,deadline:deadlineToDateInput(r.deadline)};
+            if(r)st={open:!!r.is_open,deadline:deadlineToDdMmYyyy(r.deadline)};
             else st={open:i===0||i===3,deadline:''}; /* mặc định khớp seed v12: chặng 1 + 4 mở */
             lsState[L.id]=st;lsBase[L.id]=lsVal(st);
           });
@@ -909,12 +914,12 @@
             var st=lsState[L.id]||{open:false,deadline:''};
             var cur;
             if(commonLessonDone(i))cur='Đã hoàn thành';
-            else if(st.deadline&&new Date(dateInputToDeadline(st.deadline)).getTime()<Date.now())cur='Đã hết hạn — sẽ khóa';
+            else if(st.deadline&&new Date(ddMmYyyyToDeadline(st.deadline)).getTime()<Date.now())cur='Đã hết hạn — sẽ khóa';
             else if(!st.open)cur='Chưa mở';
-            else cur='Đang mở'+(st.deadline?' · hết hạn '+fmtDeadlineDate(dateInputToDeadline(st.deadline)):' · không hạn nộp');
+            else cur='Đang mở'+(st.deadline?' · hết hạn '+fmtDeadlineDate(ddMmYyyyToDeadline(st.deadline)):' · không hạn nộp');
             return '<tr><td><strong>Chặng '+(i+1)+' · '+escapeHtml(L.name)+'</strong><br><span style="color:var(--muted);font-size:12px">'+escapeHtml(L.desc)+'</span></td>'+
               '<td><input type="checkbox" data-ls-for="'+L.id+'" data-ls-kind="open"'+(st.open?' checked':'')+' aria-label="Mở chặng '+(i+1)+'"></td>'+
-              '<td><input type="date" class="ls-date" data-ls-for="'+L.id+'" data-ls-kind="deadline" value="'+escapeHtml(st.deadline)+'" aria-label="Hạn nộp chặng '+(i+1)+'"></td>'+
+              '<td><input type="text" class="ls-date" inputmode="numeric" maxlength="10" autocomplete="off" placeholder="dd/mm/yyyy" data-ls-for="'+L.id+'" data-ls-kind="deadline" value="'+escapeHtml(st.deadline)+'" aria-label="Hạn nộp chặng '+(i+1)+' (dd/mm/yyyy)"></td>'+
               '<td style="font-size:13px;font-weight:600">'+escapeHtml(cur)+'</td></tr>';
           }).join('')+'</tbody></table></div>'+
           '<p class="perm-sub" style="margin-top:10px">Hạn nộp tính đến cuối ngày đã chọn (23:59). Quá hạn mà nhân sự chưa làm xong thì bài tự khóa. Để trống hạn nộp là không giới hạn.</p>';
@@ -926,7 +931,7 @@
         try{
           var rows=COMMON_LESSONS.map(function(L){
             var st=lsState[L.id]||{open:false,deadline:''};
-            return{lesson_id:L.id,is_open:!!st.open,deadline:dateInputToDeadline(st.deadline)};
+            return{lesson_id:L.id,is_open:!!st.open,deadline:ddMmYyyyToDeadline(st.deadline)};
           });
           var res=await sb.from('lesson_settings').upsert(rows,{onConflict:'lesson_id'});
           if(res.error)throw res.error;
@@ -1302,16 +1307,30 @@
         }catch(e){/* bang chua co (chua chay SQL v12) — dung mac dinh, khong crash */}
         renderReminders();
       }
-      /* Han nop: o ngay trong Quan tri luu cuoi ngay (23:59 gio Sai Gon) de ca ngay do van lam duoc. */
-      function dateInputToDeadline(v){
-        if(!v)return null;
-        return v+'T23:59:59+07:00';
+      /* Han nop: o ngay trong Quan tri luu cuoi ngay (23:59 gio Sai Gon) de ca ngay do van lam duoc.
+         O nhap hien dd/mm/yyyy (Kem chot 05/11) — o date mac dinh cua trinh duyet hien
+         mm/dd/yyyy theo ngon ngu trinh duyet nen khong dung duoc, phai dung o text + tu kiem tra. */
+      function isValidDdMmYyyy(v){
+        var m=/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(String(v||'').trim());
+        if(!m)return false;
+        var d=Number(m[1]),mo=Number(m[2]),y=Number(m[3]);
+        if(mo<1||mo>12||d<1||d>31)return false;
+        var dt=new Date(y,mo-1,d);
+        return dt.getFullYear()===y&&dt.getMonth()===mo-1&&dt.getDate()===d;
       }
-      function deadlineToDateInput(iso){
+      function ddMmYyyyToDeadline(v){
+        if(!v)return null;
+        v=String(v).trim();
+        if(!isValidDdMmYyyy(v))return null;
+        var p=v.split('/');
+        var dd=String(Number(p[0])).padStart(2,'0'),mm=String(Number(p[1])).padStart(2,'0');
+        return p[2]+'-'+mm+'-'+dd+'T23:59:59+07:00';
+      }
+      function deadlineToDdMmYyyy(iso){
         if(!iso)return '';
         var d=new Date(iso);if(isNaN(d.getTime()))return '';
-        var m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');
-        return d.getFullYear()+'-'+m+'-'+day;
+        var dd=String(d.getDate()).padStart(2,'0'),mm=String(d.getMonth()+1).padStart(2,'0');
+        return dd+'/'+mm+'/'+d.getFullYear();
       }
       function fmtDeadlineDate(iso){
         var d=new Date(iso);if(isNaN(d.getTime()))return '';
