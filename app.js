@@ -879,8 +879,8 @@
             if(el.getAttribute('data-ls-kind')==='open')st.open=el.checked;
             else if(el.getAttribute('data-ls-kind')==='deadline'){
               var v=(el.value||'').trim();
-              if(v&&!isValidDdMmYyyy(v)){showToast('Ngày không hợp lệ — nhập theo dạng dd/mm/yyyy, ví dụ 10/11/2026');el.value=st.deadline||'';return;}
-              if(v){var pp=v.split('/');v=String(Number(pp[0])).padStart(2,'0')+'/'+String(Number(pp[1])).padStart(2,'0')+'/'+pp[2];el.value=v;}
+              if(v&&!isValidDeadlineInput(v)){showToast('Ngày không hợp lệ — nhập theo dạng dd/mm/yyyy, thêm giờ nếu muốn khóa đúng giờ (ví dụ 12/11/2026 17:00)');el.value=st.deadline||'';return;}
+              if(v){v=normalizeDeadlineInput(v);el.value=v;}
               st.deadline=v;
             }
             else return;
@@ -897,7 +897,7 @@
           COMMON_LESSONS.forEach(function(L,i){
             var r=map[L.id];
             var st;
-            if(r)st={open:!!r.is_open,deadline:deadlineToDdMmYyyy(r.deadline)};
+            if(r)st={open:!!r.is_open,deadline:deadlineIsoToInput(r.deadline)};
             else st={open:i===0||i===3,deadline:''}; /* mặc định khớp seed v12: chặng 1 + 4 mở */
             lsState[L.id]=st;lsBase[L.id]=lsVal(st);
           });
@@ -916,15 +916,15 @@
             var st=lsState[L.id]||{open:false,deadline:''};
             var cur;
             if(commonLessonDone(i))cur='Đã hoàn thành';
-            else if(st.deadline&&new Date(ddMmYyyyToDeadline(st.deadline)).getTime()<Date.now())cur='Đã hết hạn — sẽ khóa';
+            else if(st.deadline&&new Date(deadlineInputToIso(st.deadline)).getTime()<Date.now())cur='Đã hết hạn — sẽ khóa';
             else if(!st.open)cur='Chưa mở';
-            else cur='Đang mở'+(st.deadline?' · hết hạn '+fmtDeadlineDate(ddMmYyyyToDeadline(st.deadline)):' · không hạn nộp');
+            else cur='Đang mở'+(st.deadline?' · hết hạn '+fmtDeadlineDate(deadlineInputToIso(st.deadline)):' · không hạn nộp');
             return '<tr><td><strong>Chặng '+(i+1)+' · '+escapeHtml(L.name)+'</strong><br><span style="color:var(--muted);font-size:12px">'+escapeHtml(L.desc)+'</span></td>'+
               '<td><input type="checkbox" data-ls-for="'+L.id+'" data-ls-kind="open"'+(st.open?' checked':'')+' aria-label="Mở chặng '+(i+1)+'"></td>'+
-              '<td><input type="text" class="ls-date" inputmode="numeric" maxlength="10" autocomplete="off" placeholder="dd/mm/yyyy" data-ls-for="'+L.id+'" data-ls-kind="deadline" value="'+escapeHtml(st.deadline)+'" aria-label="Hạn nộp chặng '+(i+1)+' (dd/mm/yyyy)"></td>'+
+              '<td><input type="text" class="ls-date" inputmode="numeric" maxlength="16" autocomplete="off" placeholder="dd/mm/yyyy HH:MM" data-ls-for="'+L.id+'" data-ls-kind="deadline" value="'+escapeHtml(st.deadline)+'" aria-label="Hạn nộp chặng '+(i+1)+' (dd/mm/yyyy HH:MM)"></td>'+
               '<td style="font-size:13px;font-weight:600">'+escapeHtml(cur)+'</td></tr>';
           }).join('')+'</tbody></table></div>'+
-          '<p class="perm-sub" style="margin-top:10px">Hạn nộp tính đến cuối ngày đã chọn (23:59). Quá hạn mà nhân sự chưa làm xong thì bài tự khóa. Để trống hạn nộp là không giới hạn.</p>';
+          '<p class="perm-sub" style="margin-top:10px">Nhập ngày theo dạng dd/mm/yyyy, thêm giờ nếu muốn khóa đúng giờ (ví dụ 12/11/2026 17:00 thì đúng 17:00 hôm đó sẽ khóa). Không nhập giờ thì tính đến cuối ngày (23:59). Quá hạn mà nhân sự chưa làm xong thì bài tự khóa. Để trống hạn nộp là không giới hạn.</p>';
         lsRefreshSaveBtn();
       }
       async function saveLessonSettings(){
@@ -933,7 +933,7 @@
         try{
           var rows=COMMON_LESSONS.map(function(L){
             var st=lsState[L.id]||{open:false,deadline:''};
-            return{lesson_id:L.id,is_open:!!st.open,deadline:ddMmYyyyToDeadline(st.deadline)};
+            return{lesson_id:L.id,is_open:!!st.open,deadline:deadlineInputToIso(st.deadline)};
           });
           var res=await sb.from('lesson_settings').upsert(rows,{onConflict:'lesson_id'});
           if(res.error)throw res.error;
@@ -1313,30 +1313,44 @@
         }catch(e){/* bang chua co (chua chay SQL v12) — dung mac dinh, khong crash */}
         renderReminders();
       }
-      /* Han nop: o ngay trong Quan tri luu cuoi ngay (23:59 gio Sai Gon) de ca ngay do van lam duoc.
-         O nhap hien dd/mm/yyyy (Kem chot 05/11) — o date mac dinh cua trinh duyet hien
-         mm/dd/yyyy theo ngon ngu trinh duyet nen khong dung duoc, phai dung o text + tu kiem tra. */
-      function isValidDdMmYyyy(v){
-        var m=/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(String(v||'').trim());
-        if(!m)return false;
+      /* Hạn nộp: ô nhập dạng dd/mm/yyyy, thêm giờ nếu muốn khóa đúng giờ
+         (vd 12/11/2026 17:00 — Kem chốt 05/11). Không nhập giờ thì tính đến
+         cuối ngày (23:59) để cả ngày đó vẫn làm được. Ô date mặc định của
+         trình duyệt hiện mm/dd/yyyy theo ngôn ngữ trình duyệt nên không dùng
+         được, phải dùng ô text + tự kiểm tra. */
+      function parseDeadlineInput(v){
+        var m=/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{1,2}))?$/.exec(String(v||'').trim());
+        if(!m)return null;
         var d=Number(m[1]),mo=Number(m[2]),y=Number(m[3]);
-        if(mo<1||mo>12||d<1||d>31)return false;
-        var dt=new Date(y,mo-1,d);
-        return dt.getFullYear()===y&&dt.getMonth()===mo-1&&dt.getDate()===d;
+        var hh=m[4]===undefined?23:Number(m[4]),mi=m[5]===undefined?59:Number(m[5]);
+        if(mo<1||mo>12||d<1||d>31||hh<0||hh>23||mi<0||mi>59)return null;
+        var dt=new Date(y,mo-1,d,hh,mi);
+        if(dt.getFullYear()!==y||dt.getMonth()!==mo-1||dt.getDate()!==d||dt.getHours()!==hh||dt.getMinutes()!==mi)return null;
+        return{day:d,month:mo,year:y,hour:hh,minute:mi};
       }
-      function ddMmYyyyToDeadline(v){
+      function isValidDeadlineInput(v){
+        return !!parseDeadlineInput(v);
+      }
+      function normalizeDeadlineInput(v){
+        var p=parseDeadlineInput(v);
+        if(!p)return v;
+        return String(p.day).padStart(2,'0')+'/'+String(p.month).padStart(2,'0')+'/'+p.year+' '+String(p.hour).padStart(2,'0')+':'+String(p.minute).padStart(2,'0');
+      }
+      function deadlineInputToIso(v){
         if(!v)return null;
-        v=String(v).trim();
-        if(!isValidDdMmYyyy(v))return null;
-        var p=v.split('/');
-        var dd=String(Number(p[0])).padStart(2,'0'),mm=String(Number(p[1])).padStart(2,'0');
-        return p[2]+'-'+mm+'-'+dd+'T23:59:59+07:00';
+        var p=parseDeadlineInput(v);
+        if(!p)return null;
+        var dd=String(p.day).padStart(2,'0'),mm=String(p.month).padStart(2,'0');
+        var hh=String(p.hour).padStart(2,'0'),mi=String(p.minute).padStart(2,'0');
+        var ss=(p.hour===23&&p.minute===59)?'59':'00';
+        return p.year+'-'+mm+'-'+dd+'T'+hh+':'+mi+':'+ss+'+07:00';
       }
-      function deadlineToDdMmYyyy(iso){
+      function deadlineIsoToInput(iso){
         if(!iso)return '';
         var d=new Date(iso);if(isNaN(d.getTime()))return '';
         var dd=String(d.getDate()).padStart(2,'0'),mm=String(d.getMonth()+1).padStart(2,'0');
-        return dd+'/'+mm+'/'+d.getFullYear();
+        var hh=String(d.getHours()).padStart(2,'0'),mi=String(d.getMinutes()).padStart(2,'0');
+        return dd+'/'+mm+'/'+d.getFullYear()+' '+hh+':'+mi;
       }
       function fmtDeadlineDate(iso){
         var d=new Date(iso);if(isNaN(d.getTime()))return '';
@@ -1632,7 +1646,7 @@
           var a=null;annList.forEach(function(x){if(x.id===annId)a=x});
           if(!a){ed.hidden=true;return}
           var qs=await loadAnnQuestions(annId);
-          annEditor={id:a.id,title:a.title,body:a.body||'',is_open:!!a.is_open,deadline:deadlineToDdMmYyyy(a.deadline),questions:qs.map(function(q){return{question:q.question,options:q.options.slice(),correct_index:q.correct_index}})};
+          annEditor={id:a.id,title:a.title,body:a.body||'',is_open:!!a.is_open,deadline:deadlineIsoToInput(a.deadline),questions:qs.map(function(q){return{question:q.question,options:q.options.slice(),correct_index:q.correct_index}})};
           if(!annEditor.questions.length)annEditor.questions.push({question:'',options:['','','',''],correct_index:0});
         }else{
           annEditor={id:null,title:'',body:'',is_open:true,deadline:'',questions:[{question:'',options:['','','',''],correct_index:0}]};
@@ -1648,8 +1662,8 @@
           '<label class="ann-label">Tiêu đề *<input type="text" id="annEdTitle" value="'+escapeHtml(e.title)+'" placeholder="VD: Nhắc lại quy tắc 4C — đợt tháng 11"></label>'+
           '<label class="ann-label">Nội dung thông báo<textarea id="annEdBody" rows="4" placeholder="Nội dung nhân sự cần đọc trước khi làm khảo sát…">'+escapeHtml(e.body)+'</textarea></label>'+
           '<div class="ann-ed-row"><label class="ann-check"><input type="checkbox" id="annEdOpen"'+(e.is_open?' checked':'')+'> Mở (nhân sự thấy và làm được)</label>'+
-          '<label class="ann-label" style="flex:1">Hạn nộp<input type="text" id="annEdDeadline" class="ls-date" inputmode="numeric" maxlength="10" autocomplete="off" placeholder="dd/mm/yyyy" value="'+escapeHtml(e.deadline)+'"></label></div>'+
-          '<p class="perm-sub">Bỏ tick “Mở” = bản nháp, nhân sự không thấy. Hết hạn thì bộ tự đóng. Để trống hạn nộp là không giới hạn.</p>'+
+          '<label class="ann-label" style="flex:1">Hạn nộp<input type="text" id="annEdDeadline" class="ls-date" inputmode="numeric" maxlength="16" autocomplete="off" placeholder="dd/mm/yyyy HH:MM" value="'+escapeHtml(e.deadline)+'"></label></div>'+
+          '<p class="perm-sub">Bỏ tick “Mở” = bản nháp, nhân sự không thấy. Hạn nộp: nhập dd/mm/yyyy, thêm giờ nếu muốn khóa đúng giờ (ví dụ 12/11/2026 17:00 thì đúng 17:00 hôm đó sẽ khóa). Không nhập giờ thì tính đến cuối ngày (23:59). Để trống hạn nộp là không giới hạn.</p>'+
           '<h4>Câu hỏi khảo sát ('+e.questions.length+')</h4>'+
           e.questions.map(function(q,qi){
             return '<div class="ann-q-edit"><div class="ann-q-edit-head"><strong>Câu '+(qi+1)+'</strong><button type="button" class="restore-btn" data-ann-rmq="'+qi+'">Xoá câu</button></div>'+
@@ -1667,8 +1681,8 @@
         document.getElementById('annEdOpen').addEventListener('change',function(ev){annEditor.is_open=ev.target.checked});
         document.getElementById('annEdDeadline').addEventListener('change',function(ev){
           var v=(ev.target.value||'').trim();
-          if(v&&!isValidDdMmYyyy(v)){showToast('Ngày không hợp lệ — nhập theo dạng dd/mm/yyyy, ví dụ 10/11/2026');ev.target.value=annEditor.deadline||'';return}
-          if(v){var pp=v.split('/');v=String(Number(pp[0])).padStart(2,'0')+'/'+String(Number(pp[1])).padStart(2,'0')+'/'+pp[2];ev.target.value=v}
+          if(v&&!isValidDeadlineInput(v)){showToast('Ngày không hợp lệ — nhập theo dạng dd/mm/yyyy, thêm giờ nếu muốn khóa đúng giờ (ví dụ 12/11/2026 17:00)');ev.target.value=annEditor.deadline||'';return}
+          if(v){v=normalizeDeadlineInput(v);ev.target.value=v}
           annEditor.deadline=v;
         });
         ed.querySelectorAll('[data-ann-q]').forEach(function(inp){inp.addEventListener('input',function(){annEditor.questions[Number(inp.getAttribute('data-ann-q'))].question=inp.value})});
@@ -1697,7 +1711,7 @@
         if(btn)btn.disabled=true;
         if(msg)msg.textContent='Đang lưu…';
         try{
-          var payload={title:e.title.trim(),body:e.body.trim(),is_open:!!e.is_open,deadline:ddMmYyyyToDeadline(e.deadline),xp_reward:10};
+          var payload={title:e.title.trim(),body:e.body.trim(),is_open:!!e.is_open,deadline:deadlineInputToIso(e.deadline),xp_reward:10};
           var annId=e.id;
           if(annId){
             var up=await sb.from('announcements').update(payload).eq('id',annId);
