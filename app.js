@@ -456,7 +456,7 @@
         else if(key==='dir')renderDirRows();
         else if(key==='admin')renderAdminRows();
         else if(key==='dash')renderDashRows();
-        else if(key==='dashAnn')renderDashAnnDetail();
+        else if(key==='dashAnn')renderAnnReportRows();
       }
       document.addEventListener('click',function(e){
         var b=e.target&&e.target.closest?e.target.closest('[data-pager]'):null;
@@ -1056,7 +1056,6 @@
           unitSel.addEventListener('change',function(){pagerState.dash.page=1;renderDashRows()});
           document.getElementById('dashReload').addEventListener('click',async function(){await renderDashboard();showToast('Đã tải lại Dashboard')});
           renderDashRows();
-          dashAnnOpenId=null;dashAnnDetailAnn=null;dashAnnDetailRows=[];
           renderDashAnnFolders();
         }catch(e){
           body.innerHTML='<p class="muted-center">Chưa tải được Dashboard. Nếu đây là lần đầu dùng mục này, hãy chạy file SQL v13 (supabase-v13-dashboard-progress.sql) rồi tải lại trang.</p>';
@@ -1081,7 +1080,7 @@
         }).join('')+pagerHTML('dash',rows.length);
       }
 
-      var dashAnnReport=[],dashAnnOpenId=null,dashAnnDetailAnn=null,dashAnnDetailRows=[];
+      var dashAnnReport=[],dashAnnOpenId=null,annReportAnn=null,annReportDetail=[],annReportInScope=[];
       function dashAnnStatus(a){
         if(!a.is_open)return 'Bản nháp';
         if(a.deadline&&new Date(a.deadline).getTime()<Date.now())return 'Đã hết hạn';
@@ -1115,54 +1114,116 @@
               +'<span class="dash-ann-folder-bar"><i style="width:'+pct+'%"></i></span>'
               +'<span class="dash-ann-folder-meta">'+dashAnnAvgText(a)+'</span></span></button>';
           }).join('')+'</div>';
-          box.querySelectorAll('[data-ann-folder]').forEach(function(b){b.addEventListener('click',function(){openDashAnnFolder(b.getAttribute('data-ann-folder'))})});
+          box.querySelectorAll('[data-ann-folder]').forEach(function(b){b.addEventListener('click',function(){openAnnReport(b.getAttribute('data-ann-folder'))})});
         }catch(e){
           box.innerHTML='<p class="muted-center">Chưa tải được báo cáo từng bộ khảo sát. Nếu đây là lần đầu dùng mục này, hãy chạy file SQL v15 (supabase-v15-announcement-report.sql) rồi bấm "↻ Tải lại".</p>';
         }
       }
-      async function openDashAnnFolder(annId){
+      function annBranchStats(inScope,detailById,keyFn){
+        var g={};
+        inScope.forEach(function(p){var k=keyFn(p);if(!k)return;if(!g[k])g[k]={name:k,n:0,done:0};g[k].n++;if(detailById[p.user_id])g[k].done++;});
+        return Object.keys(g).map(function(k){var x=g[k];x.pct=x.n?Math.round(x.done*100/x.n):0;return x}).sort(function(a,b){return b.pct-a.pct||b.done-a.done||a.name.localeCompare(b.name,'vi')});
+      }
+      function annScoreBands(detailRows){
+        var bands=[
+          {label:'Dưới 50%',min:0,max:50,n:0},
+          {label:'50–69%',min:50,max:70,n:0},
+          {label:'70–89%',min:70,max:90,n:0},
+          {label:'90–100%',min:90,max:101,n:0}
+        ];
+        detailRows.forEach(function(r){
+          if(!r.total||r.total<=0)return;
+          var pct=r.score*100/r.total;
+          for(var i=0;i<bands.length;i++){if(pct>=bands[i].min&&pct<bands[i].max){bands[i].n++;break}}
+        });
+        return bands;
+      }
+      function annRankRows(detailRows,inScope){
+        var byId={};detailRows.forEach(function(r){byId[r.user_id]=r});
+        var done=detailRows.slice().sort(function(a,b){
+          if(b.score!==a.score)return b.score-a.score;
+          return new Date(a.updated_at).getTime()-new Date(b.updated_at).getTime();
+        });
+        var notDone=inScope.filter(function(p){return !byId[p.user_id]}).map(function(p){return{user_id:p.user_id,full_name:p.full_name,department:p.department,employee_code:p.employee_code,score:null,total:null,xp_earned:null,updated_at:null}});
+        notDone.sort(function(a,b){return String(a.full_name||'').localeCompare(String(b.full_name||''),'vi')});
+        return{done:done,notDone:notDone};
+      }
+      async function openAnnReport(annId){
         var ann=null;dashAnnReport.forEach(function(a){if(a.announcement_id===annId)ann=a});
         if(!ann)return;
-        var detail=document.getElementById('dashAnnDetail');
-        if(!detail)return;
         dashAnnOpenId=annId;
         document.querySelectorAll('[data-ann-folder]').forEach(function(b){b.classList.toggle('open',b.getAttribute('data-ann-folder')===annId)});
-        detail.innerHTML='<p class="muted-center">Đang tải báo cáo chi tiết…</p>';
+        var body=document.getElementById('annReportBody');
+        if(body)body.innerHTML='<p class="muted-center">Đang tải báo cáo…</p>';
+        switchView('annReport');
         try{
           var res=await sb.rpc('get_announcement_detail',{p_announcement_id:annId});
           if(res.error)throw res.error;
-          var rows=res.data||[];
-          var byId={};rows.forEach(function(r){byId[r.user_id]=r});
-          var notDone=(dashRows||[]).filter(function(p){return !byId[p.user_id]}).map(function(p){return{user_id:p.user_id,full_name:p.full_name,department:p.department,employee_code:p.employee_code,score:null,total:null,xp_earned:null,updated_at:null}});
-          notDone.sort(function(a,b){return String(a.full_name||'').localeCompare(String(b.full_name||''),'vi')});
-          dashAnnDetailAnn=ann;dashAnnDetailRows=rows.concat(notDone);
+          annReportAnn=ann;annReportDetail=res.data||[];annReportInScope=(dashRows||[]).slice();
           pagerState.dashAnn.page=1;
-          renderDashAnnDetail(true);
+          renderAnnReport();
         }catch(e){
-          detail.innerHTML='<p class="muted-center">Chưa tải được báo cáo chi tiết. Hãy chạy file SQL v15 rồi bấm "↻ Tải lại" Dashboard.</p>';
+          if(body)body.innerHTML='<p class="muted-center">Chưa tải được báo cáo chi tiết. Hãy chạy file SQL v15 rồi thử lại.</p>';
         }
       }
-      function renderDashAnnDetail(doScroll){
-        var detail=document.getElementById('dashAnnDetail');
-        if(!detail||!dashAnnDetailAnn)return;
-        var ann=dashAnnDetailAnn,rows=dashAnnDetailRows;
+      function renderAnnReport(){
+        var body=document.getElementById('annReportBody');
+        var titleEl=document.getElementById('annReportTitle');
+        var subEl=document.getElementById('annReportSub');
+        if(!body||!annReportAnn)return;
+        var ann=annReportAnn,detail=annReportDetail,inScope=annReportInScope;
         var total=Number(ann.in_scope_total)||0,done=Number(ann.done_count)||0;
-        var page=pagerSlice(rows,'dashAnn');
-        var h='<div class="dash-ann-detail-head"><div><strong>'+escapeHtml(ann.title)+'</strong><span>'+done+'/'+total+' người đã làm · '+dashAnnAvgText(ann)+'</span></div><button type="button" class="btn-ghost" id="dashAnnClose">Đóng</button></div>';
-        if(!rows.length){h+='<p class="muted-center">Không có nhân sự nào trong phạm vi của bạn.</p>'}
+        var pct=total?Math.round(done*100/total):0;
+        var dl=ann.deadline?fmtDeadlineDate(ann.deadline):'Không hạn nộp';
+        if(titleEl)titleEl.textContent=ann.title;
+        if(subEl)subEl.textContent=dashAnnStatus(ann)+' · Hạn nộp '+dl+' · '+dashAnnAvgText(ann);
+        var byId={};detail.forEach(function(r){byId[r.user_id]=r});
+        var stores=inScope.filter(function(p){return isStoreDept(p.department)});
+        var office=inScope.filter(function(p){return !isStoreDept(p.department)});
+        var byBranch=annBranchStats(stores,byId,function(p){return p.department});
+        var byDept=annBranchStats(office,byId,function(p){return p.department});
+        var topBranch=byBranch.length?byBranch[0]:null;
+        var bands=annScoreBands(detail);
+        var scoredN=detail.filter(function(r){return r.total>0}).length;
+        var avgBig,avgSmall;
+        if(!scoredN){avgBig='—';avgSmall='Chỉ có câu hỏi ý kiến'}
+        else{avgBig=(Math.round(Number(ann.avg_score)*10)/10)+'/'+(Math.round(Number(ann.avg_total)*10)/10);avgSmall=scoredN+' bài làm có chấm điểm'}
+        var h='';
+        h+='<div class="dash-summary"><div class="dash-donut-card">'+dashDonut(pct)+'<div><b style="font-size:17px">Tỉ lệ hoàn thành</b><p style="margin:6px 0 0;color:var(--muted);font-size:13px;font-weight:600">'+done+'/'+total+' người đã làm bộ này.</p></div></div>'
+          +'<div class="dash-stat"><b>'+avgBig+'</b><span>Điểm trung bình</span><small>'+avgSmall+'</small></div>'
+          +'<div class="dash-stat"><b>'+(topBranch?escapeHtml(topBranch.name.replace(/^Chi nhánh\s*/,'')):'—')+'</b><span>Chi nhánh dẫn đầu</span><small>'+(topBranch?topBranch.done+'/'+topBranch.n+' người · '+topBranch.pct+'%':'Chưa có chi nhánh nào')+'</small></div>'
+          +'<div class="dash-stat"><b>'+done+'/'+total+'</b><span>Đã làm / Trong phạm vi</span><small>'+(total-done)+' người chưa làm</small></div></div>';
+        if(byBranch.length){
+          h+='<div class="dash-sec"><h3>Tỉ lệ hoàn thành theo chi nhánh</h3><p>Chi nhánh nào làm nhiều nhất — xếp từ cao đến thấp.</p>'+byBranch.map(function(b){return dashBarRow(b.name.replace(/^Chi nhánh\s*/,''),b.done+'/'+b.n+' người đã làm',b.pct)}).join('')+'</div>';
+        }
+        if(byDept.length){
+          h+='<div class="dash-sec"><h3>Tỉ lệ hoàn thành theo phòng ban</h3><p>Khối Văn phòng — xếp từ cao đến thấp.</p>'+byDept.map(function(b){return dashBarRow(b.name,b.done+'/'+b.n+' người đã làm',b.pct)}).join('')+'</div>';
+        }
+        h+='<div class="dash-sec"><h3>Phân bố điểm</h3><p>Tỉ lệ từng mốc điểm trong số '+scoredN+' bài làm có chấm điểm.</p>'+bands.map(function(bd){var p=scoredN?Math.round(bd.n*100/scoredN):0;return dashBarRow(bd.label,bd.n+' người',p)}).join('')+'</div>';
+        h+='<div class="dash-sec"><h3>Thứ hạng</h3><p>Xếp từ cao đến thấp theo điểm; cùng điểm thì người làm sớm hơn xếp trước. Người chưa làm ở cuối bảng.</p><div id="annReportRows"></div></div>';
+        body.innerHTML=h;
+        renderAnnReportRows();
+      }
+      function renderAnnReportRows(){
+        var box=document.getElementById('annReportRows');
+        if(!box||!annReportAnn)return;
+        var ranked=annRankRows(annReportDetail,annReportInScope);
+        var all=ranked.done.concat(ranked.notDone);
+        var page=pagerSlice(all,'dashAnn');
+        var h='';
+        if(!all.length){h='<p class="muted-center">Không có nhân sự nào trong phạm vi của bạn.</p>'}
         else{
-          h+='<div class="dash-row dash-row-head"><span>Nhân sự ('+rows.length+')</span><span>Điểm</span><span class="xp">XP</span><span class="dash-last">Làm lúc</span></div>'
-            +page.map(function(r){
+          h+='<div class="dash-row dash-row-head"><span>Nhân sự ('+all.length+')</span><span>Điểm</span><span class="xp">XP</span><span class="dash-last">Làm lúc</span></div>'
+            +page.map(function(r,idx){
+              var globalIdx=(pagerState.dashAnn.page-1)*pagerState.dashAnn.size+idx;
+              var rank=globalIdx<ranked.done.length?String(globalIdx+1):'—';
               var score=(r.score===null||r.score===undefined)?'Chưa làm':(r.score+'/'+r.total);
               var xp=(r.xp_earned===null||r.xp_earned===undefined)?'—':fmt(r.xp_earned);
               var when=r.updated_at?new Date(r.updated_at).toLocaleDateString('vi-VN'):'—';
-              return '<div class="dash-row"><div class="person"><div class="person-dot">'+dotAvatar(null,r.full_name)+'</div><div><strong>'+escapeHtml(r.full_name||'Học viên')+'</strong><span>'+escapeHtml(r.department||'')+(r.employee_code?' · '+escapeHtml(r.employee_code):'')+'</span></div></div><div class="dash-pct"><b>'+score+'</b></div><span class="xp"><b>'+xp+'</b></span><span class="dash-last">'+when+'</span></div>';
-            }).join('')+pagerHTML('dashAnn',rows.length);
+              return '<div class="dash-row"><div class="person"><div class="person-dot">'+rank+'</div><div><strong>'+escapeHtml(r.full_name||'Học viên')+'</strong><span>'+escapeHtml(r.department||'')+(r.employee_code?' · '+escapeHtml(r.employee_code):'')+'</span></div></div><div class="dash-pct"><b>'+score+'</b></div><span class="xp"><b>'+xp+'</b></span><span class="dash-last">'+when+'</span></div>';
+            }).join('')+pagerHTML('dashAnn',all.length);
         }
-        detail.innerHTML=h;
-        var cb=document.getElementById('dashAnnClose');
-        if(cb)cb.addEventListener('click',function(){dashAnnOpenId=null;dashAnnDetailAnn=null;dashAnnDetailRows=[];detail.innerHTML='';document.querySelectorAll('[data-ann-folder]').forEach(function(b){b.classList.remove('open')})});
-        if(doScroll)detail.scrollIntoView({behavior:'smooth',block:'nearest'});
+        box.innerHTML=h;
       }
 
       function openAdminView(){
@@ -1338,6 +1399,8 @@
       navButtons.forEach(function(btn){btn.addEventListener('click',function(){var v=btn.getAttribute('data-view');switchView(v);if(v==='route')showDevScreen('common');if(v==='admin')openAdminView();if(v==='dash')renderDashboard();if(v==='rank'){var sc=document.querySelector('.segmented[data-group="scope"] button.active');renderRanking(sc?sc.getAttribute('data-scope'):'individual')}})});
       document.querySelectorAll('[data-admintab]').forEach(function(b){b.addEventListener('click',function(){switchAdminTab(b.getAttribute('data-admintab'))})});
       document.querySelectorAll('[data-goto]').forEach(function(btn){btn.addEventListener('click',function(){switchView(btn.getAttribute('data-goto'));if(btn.getAttribute('data-goto')==='route')showDevScreen('common')})});
+      var annReportBack=document.getElementById('annReportBack');
+      if(annReportBack)annReportBack.addEventListener('click',function(){switchView('dash');renderDashboard()});
 
       var overlay=document.getElementById('lessonOverlay');
       var lastFocus=null;
