@@ -111,6 +111,7 @@
           var _g4=false;atts.forEach(function(a){if(a.lesson_id==='mini-game-vuot-ai-4c')_g4=true});game4cDone=_g4;
           renderDevHub();
           renderCommonLessons();
+          renderReminders();
           if(devScreen==='career'&&devCareerPath)renderDevCareer();
         }catch(e){/* giữ số liệu hiện tại, không crash */}
       }
@@ -850,6 +851,96 @@
           box.innerHTML='<div class="side-card"><h3>Bài làm</h3><p class="muted-center">Chưa tải được bài làm. Có thể database chưa có hàm get_user_attempts — hãy chạy file SQL v11 rồi thử lại.</p></div>';
         }
       }
+      /* ===== Quản trị công cụ · Cài đặt bài học (SQL v12) =====
+         1 dòng / chặng: công tắc Mở + hạn nộp. Lưu bằng upsert toàn bộ 5 dòng.
+         Chưa chạy SQL v12 thì hiện hướng dẫn, không crash. */
+      var lsState={},lsBase={},lsWired=false;
+      function lsVal(st){return{open:!!st.open,deadline:st.deadline||''}}
+      function lsIsDirty(id){return lsState[id]&&lsBase[id]&&JSON.stringify(lsVal(lsState[id]))!==JSON.stringify(lsBase[id])}
+      function lsDirtyCount(){return COMMON_LESSONS.filter(function(L){return lsIsDirty(L.id)}).length}
+      function lsRefreshSaveBtn(){
+        var btn=document.getElementById('lsSave'),msg=document.getElementById('lsSaveMsg');
+        var n=lsDirtyCount();
+        if(btn)btn.textContent=n?('Lưu cài đặt bài học ('+n+' thay đổi)'):'Lưu cài đặt bài học';
+        if(msg)msg.textContent=n?('Có '+n+' chặng chưa lưu — bấm Lưu để áp dụng.'):'';
+      }
+      async function renderLessonSettings(){
+        var box=document.getElementById('lsTable');
+        var saveBtn=document.getElementById('lsSave');
+        if(!box||userRole!=='admin')return;
+        if(!lsWired){
+          lsWired=true;
+          box.addEventListener('change',function(e){
+            var el=e.target;if(!el||!el.getAttribute)return;
+            var id=el.getAttribute('data-ls-for');if(!id)return;
+            var st=lsState[id];if(!st)return;
+            if(el.getAttribute('data-ls-kind')==='open')st.open=el.checked;
+            else if(el.getAttribute('data-ls-kind')==='deadline')st.deadline=el.value||'';
+            else return;
+            lsRefreshSaveBtn();
+          });
+          if(saveBtn)saveBtn.addEventListener('click',saveLessonSettings);
+        }
+        box.innerHTML='<p class="muted-center">Đang tải cài đặt bài học…</p>';
+        try{
+          var res=await sb.from('lesson_settings').select('lesson_id,is_open,deadline');
+          if(res.error)throw res.error;
+          var map={};(res.data||[]).forEach(function(r){map[r.lesson_id]=r});
+          lsState={};lsBase={};
+          COMMON_LESSONS.forEach(function(L,i){
+            var r=map[L.id];
+            var st;
+            if(r)st={open:!!r.is_open,deadline:deadlineToDateInput(r.deadline)};
+            else st={open:i===0||i===3,deadline:''}; /* mặc định khớp seed v12: chặng 1 + 4 mở */
+            lsState[L.id]=st;lsBase[L.id]=lsVal(st);
+          });
+          if(saveBtn)saveBtn.disabled=false;
+          renderLsRows();
+        }catch(e){
+          box.innerHTML='<p class="muted-center">Chưa tải được cài đặt bài học. Nếu đây là lần đầu dùng mục này, hãy chạy file SQL v12 (supabase-v12-lesson-settings-5-chang.sql) rồi tải lại trang.</p>';
+          if(saveBtn)saveBtn.disabled=true;
+        }
+      }
+      function renderLsRows(){
+        var box=document.getElementById('lsTable');
+        if(!box)return;
+        box.innerHTML='<div class="pt-wrap"><table class="pt-table"><thead><tr><th>Chặng</th><th>Mở</th><th>Hạn nộp</th><th>Trạng thái hiện tại</th></tr></thead><tbody>'+
+          COMMON_LESSONS.map(function(L,i){
+            var st=lsState[L.id]||{open:false,deadline:''};
+            var cur;
+            if(commonLessonDone(i))cur='Đã hoàn thành';
+            else if(st.deadline&&new Date(dateInputToDeadline(st.deadline)).getTime()<Date.now())cur='Đã hết hạn — sẽ khóa';
+            else if(!st.open)cur='Chưa mở';
+            else cur='Đang mở'+(st.deadline?' · hết hạn '+fmtDeadlineDate(dateInputToDeadline(st.deadline)):' · không hạn nộp');
+            return '<tr><td><strong>Chặng '+(i+1)+' · '+escapeHtml(L.name)+'</strong><br><span style="color:var(--muted);font-size:12px">'+escapeHtml(L.desc)+'</span></td>'+
+              '<td><input type="checkbox" data-ls-for="'+L.id+'" data-ls-kind="open"'+(st.open?' checked':'')+' aria-label="Mở chặng '+(i+1)+'"></td>'+
+              '<td><input type="date" class="ls-date" data-ls-for="'+L.id+'" data-ls-kind="deadline" value="'+escapeHtml(st.deadline)+'" aria-label="Hạn nộp chặng '+(i+1)+'"></td>'+
+              '<td style="font-size:13px;font-weight:600">'+escapeHtml(cur)+'</td></tr>';
+          }).join('')+'</tbody></table></div>'+
+          '<p class="perm-sub" style="margin-top:10px">Hạn nộp tính đến cuối ngày đã chọn (23:59). Quá hạn mà nhân sự chưa làm xong thì bài tự khóa. Để trống hạn nộp là không giới hạn.</p>';
+        lsRefreshSaveBtn();
+      }
+      async function saveLessonSettings(){
+        var btn=document.getElementById('lsSave');
+        if(btn)btn.disabled=true;
+        try{
+          var rows=COMMON_LESSONS.map(function(L){
+            var st=lsState[L.id]||{open:false,deadline:''};
+            return{lesson_id:L.id,is_open:!!st.open,deadline:dateInputToDeadline(st.deadline)};
+          });
+          var res=await sb.from('lesson_settings').upsert(rows,{onConflict:'lesson_id'});
+          if(res.error)throw res.error;
+          COMMON_LESSONS.forEach(function(L){lsBase[L.id]=lsVal(lsState[L.id])});
+          lsRefreshSaveBtn();
+          await loadLessonSettings();
+          renderCommonLessons();
+          showToast('Đã lưu cài đặt bài học');
+        }catch(e){
+          showToast('Chưa lưu được — kiểm tra lại rồi thử lại');
+        }finally{
+          if(btn)btn.disabled=false;
+        }
+      }
       function switchAdminTab(name){
         adminTab=name;
         var st=document.getElementById('adminStudents'),tl=document.getElementById('adminTools');
@@ -859,8 +950,11 @@
         if(name==='tools'){
           var pts=document.getElementById('permToolSection');
           if(pts)pts.hidden=userRole!=='admin';
+          var lss=document.getElementById('lessonSettingsSection');
+          if(lss)lss.hidden=userRole!=='admin';
           renderPermTool();
           renderScopeProgress();
+          renderLessonSettings();
         }else if(canModerate()){
           renderPendingApprovals();
           if(userRole==='admin'){renderPermissions();renderDirectory()}
@@ -991,6 +1085,7 @@
           unlockApp();
           var profile=await fetchMyProfile();
           await loadMyPerms();
+          await loadLessonSettings();
           applyProfileToUI(profile);
           if(profile&&profile.role!=='admin'&&profile.is_rejected===true){
             showRejected();return;
@@ -1179,6 +1274,109 @@
          Bài 1–3 đã có nội dung thật (deck Canva + khảo sát, clip + quiz, game 4C);
          Bài 4–12 là nội dung sẽ bổ sung sau (chưa có nội dung nên mặc định CHƯA MỞ,
          sau này Kem mở bằng công tắc trong Quản trị học viên — bảng lesson_settings, SQL v12). */
+      /* ===== Cai dat bai hoc + Nhac hen theo deadline that (SQL v12) =====
+         Bang lesson_settings (1 dong / chang): is_open + deadline (timestamptz, null = khong han).
+         Kem dat trong Quan tri cong cu -> "Cai dat bai hoc". Chua chay SQL v12 thi
+         lessonSettings={} va moi ham duoi dung mac dinh ghi cung cu, khong crash.
+         Quy tac Kem chot 04/11: deadline dat tung chang; qua han ma chua xong thi KHOA
+         (loi Kem: "se khoa/se het han"); nguong "sap het han" = 3 ngay; nhac trong web
+         (khung Nhac nho + chuong), chua co push khi dong web. */
+      var lessonSettings={};
+      var lessonSettingsLoaded=false;
+      var URGENT_DAYS=3;
+      function lessonSetting(id){return lessonSettings[id]||null}
+      function lessonDeadlineMs(id){var s=lessonSetting(id);if(!s||!s.deadline)return null;var t=new Date(s.deadline).getTime();return isNaN(t)?null:t}
+      function commonLessonExpired(i){
+        if(commonLessonDone(i))return false;
+        var ms=lessonDeadlineMs(COMMON_LESSONS[i].id);
+        return ms!==null&&Date.now()>ms;
+      }
+      async function loadLessonSettings(){
+        lessonSettings={};lessonSettingsLoaded=false;
+        if(!sb)return;
+        try{
+          var res=await sb.from('lesson_settings').select('lesson_id,is_open,deadline');
+          if(res.error)throw res.error;
+          (res.data||[]).forEach(function(r){lessonSettings[r.lesson_id]={is_open:!!r.is_open,deadline:r.deadline||null}});
+          lessonSettingsLoaded=true;
+        }catch(e){/* bang chua co (chua chay SQL v12) — dung mac dinh, khong crash */}
+        renderReminders();
+      }
+      /* Han nop: o ngay trong Quan tri luu cuoi ngay (23:59 gio Sai Gon) de ca ngay do van lam duoc. */
+      function dateInputToDeadline(v){
+        if(!v)return null;
+        return v+'T23:59:59+07:00';
+      }
+      function deadlineToDateInput(iso){
+        if(!iso)return '';
+        var d=new Date(iso);if(isNaN(d.getTime()))return '';
+        var m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');
+        return d.getFullYear()+'-'+m+'-'+day;
+      }
+      function fmtDeadlineDate(iso){
+        var d=new Date(iso);if(isNaN(d.getTime()))return '';
+        var s=d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear();
+        if(d.getHours()||d.getMinutes())s+=' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+        return s;
+      }
+      function fmtDeadlineLeft(ms){
+        if(ms<=0)return 'Da het han';
+        if(ms<24*3600*1000){var h=Math.max(1,Math.ceil(ms/(3600*1000)));return 'Con '+h+' gio nua se khoa'}
+        var d=Math.ceil(ms/(24*3600*1000));
+        return 'Con '+d+' ngay nua se khoa';
+      }
+      function reminderItems(){
+        var items=[];
+        for(var i=0;i<COMMON_LESSONS.length;i++){
+          if(commonLessonDone(i))continue;
+          var _s=lessonSetting(COMMON_LESSONS[i].id);
+          if(_s&&!_s.is_open)continue; /* admin đã đóng chặng này thì không nhắc */
+          var ms=lessonDeadlineMs(COMMON_LESSONS[i].id);
+          if(ms===null)continue;
+          var left=ms-Date.now();
+          items.push({idx:i,id:COMMON_LESSONS[i].id,name:COMMON_LESSONS[i].name,deadline:lessonSetting(COMMON_LESSONS[i].id).deadline,ms:left,expired:left<=0,urgent:left>0&&left<=URGENT_DAYS*24*3600*1000});
+        }
+        items.sort(function(a,b){return a.ms-b.ms});
+        return items;
+      }
+      function updateNotifyBadge(){
+        var dot=document.getElementById('notifyDot');
+        if(!dot)return;
+        var n=reminderItems().filter(function(it){return it.urgent||it.expired}).length;
+        if(n>0){dot.className='notify-badge';dot.textContent=n>9?'9+':String(n)}
+        else{dot.className='notify-dot';dot.textContent=''}
+      }
+      function renderReminders(){
+        var list=document.getElementById('reminderList');
+        if(!list)return;
+        var items=reminderItems();
+        updateNotifyBadge();
+        if(!items.length){
+          var openLeft=0;
+          for(var i=0;i<COMMON_LESSONS.length;i++){if(!commonLessonDone(i)&&commonLessonOpen(i))openLeft++}
+          if(openLeft===0){
+            list.innerHTML='<div class="reminder-item"><div class="reminder-icon">\u2713</div><div><strong>Da hoan thanh het!</strong><p>Ban da lam xong tat ca cac bai dang mo. Fastie tu hao ve ban!</p></div></div>';
+          }else{
+            list.innerHTML='<button type="button" class="reminder-item" id="reminderGoRoute"><div class="reminder-icon">'+openLeft+'</div><div><strong>Ban con '+openLeft+' bai chua lam</strong><p>Cac bai nay chua co han nop — bam de mo Lo trinh lam ngay.</p></div></button>';
+            var gr=document.getElementById('reminderGoRoute');
+            if(gr)gr.addEventListener('click',function(){document.getElementById('reminderPanel').classList.remove('open');switchView('route');showDevScreen('common')});
+          }
+          return;
+        }
+        list.innerHTML=items.map(function(it){
+          if(it.expired){
+            return '<div class="reminder-item expired"><div class="reminder-icon">\uD83D\uDD12</div><div><strong>'+escapeHtml(it.name)+' — Da het han</strong><p>Bai da khoa tu '+escapeHtml(fmtDeadlineDate(it.deadline))+'. Lien he Quan tri vien neu can mo lai.</p></div></div>';
+          }
+          var icon=it.urgent?'!':'\uD83D\uDD50';
+          return '<button type="button" class="reminder-item'+(it.urgent?' urgent':'')+'" data-remind="'+it.idx+'"><div class="reminder-icon">'+icon+'</div><div><strong>'+escapeHtml(it.name)+' — '+escapeHtml(fmtDeadlineLeft(it.ms))+'</strong><p>Het han '+escapeHtml(fmtDeadlineDate(it.deadline))+' \u00b7 Bam de lam bai ngay.</p></div></button>';
+        }).join('');
+        list.querySelectorAll('[data-remind]').forEach(function(el){
+          el.addEventListener('click',function(){
+            document.getElementById('reminderPanel').classList.remove('open');
+            openCommonLesson(Number(el.getAttribute('data-remind')),el);
+          });
+        });
+      }
       var COMMON_LESSONS=[
         {id:'khao-sat-module-01',name:'Chào mừng đến với FASTCARE',desc:'Văn hoá, lịch sử hình thành · +10 XP',kind:'deck'},
         {id:'quy-dinh-noi-quy',name:'Quy định - Nội quy',desc:'Nội quy, quy định làm việc tại FASTCARE.',kind:'placeholder'},
@@ -1192,6 +1390,15 @@
         return false;
       }
       function commonLessonOpen(i){
+        if(commonLessonDone(i))return true; /* đã xong thì vẫn mở để xem lại / chơi lại */
+        var s=lessonSetting(COMMON_LESSONS[i].id);
+        if(s){
+          if(!s.is_open)return false;
+          if(commonLessonExpired(i))return false; /* quá hạn mà chưa xong → khóa */
+          if(i===3)return commonLessonDone(0); /* chặng 4C vẫn cần xong chặng 1 (quy tắc 04/11) */
+          return true;
+        }
+        /* Chưa có dòng trong bảng (chưa chạy SQL v12) → mặc định cũ. */
         if(i===0)return true;
         if(COMMON_LESSONS[i].kind==='placeholder')return false;
         return commonLessonDone(0); /* chặng 4C mở sau khi xong chặng 1 — không bị kẹt sau các chặng chưa có nội dung */
@@ -1217,6 +1424,7 @@
           var nodeCls=st==='done'?'done':st==='locked'?'locked':(i===cur?'current':'');
           var action;
           if(st==='done')action='<span class="act">Đã hoàn thành</span>';
+          else if(commonLessonExpired(i))action='<span>Đã hết hạn — bài đã khóa</span>';
           else if(st==='locked')action='<span>Chưa mở — nội dung đang được chuẩn bị</span>';
           else if(i===3&&lessonCompleted&&!game4cDone)action='<span class="act">Chơi game 4C →</span>';
           else if(i===3)action='<span class="act">Học lý thuyết →</span>';
@@ -1255,8 +1463,11 @@
       }
       function openCommonLesson(i,btn){
         if(i<0||i>=COMMON_LESSONS.length)return;
+        if(commonLessonExpired(i)){showToast('Chặng này đã hết hạn — bài đã khóa');return;}
+        if(i===3&&!commonLessonDone(0)){var _s3=lessonSetting(COMMON_LESSONS[3].id);if(!_s3||_s3.is_open){showToast('Hoàn thành Chặng 1 trước để mở chặng này');return;}}
         if(!commonLessonOpen(i)){showToast('Chặng này chưa mở — nội dung đang được chuẩn bị');return;}
         var L=COMMON_LESSONS[i];
+        if(L.kind==='placeholder'){showToast('Nội dung chặng này đang được chuẩn bị');return;}
         if(L.kind==='deck'){openWelcome();return;}
         if(L.kind==='lesson4c'){
           if(!lessonCompleted){openLesson(btn||null);return;}
@@ -1380,7 +1591,7 @@
       document.querySelectorAll('[data-toast]').forEach(function(btn){btn.addEventListener('click',function(){showToast(btn.getAttribute('data-toast'))})});
 
       var reminder=document.getElementById('reminderPanel');
-      document.getElementById('notifyBtn').addEventListener('click',function(e){e.stopPropagation();reminder.classList.toggle('open')});
+      document.getElementById('notifyBtn').addEventListener('click',function(e){e.stopPropagation();renderReminders();reminder.classList.toggle('open')});
       document.getElementById('reminderClose').addEventListener('click',function(){reminder.classList.remove('open')});
       document.addEventListener('click',function(e){if(reminder.classList.contains('open')&&!reminder.contains(e.target)&&!document.getElementById('notifyBtn').contains(e.target)){reminder.classList.remove('open')}});
 

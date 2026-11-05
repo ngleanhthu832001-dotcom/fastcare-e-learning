@@ -216,7 +216,7 @@
     .topline{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:26px}
     .topline p{margin:0;color:var(--muted);font-weight:600}.topline strong{color:var(--ink)}
     .top-actions{display:flex;align-items:center;gap:10px}.icon-btn{width:42px;height:42px;border:1px solid var(--line);border-radius:12px;background:var(--surface);display:grid;place-items:center;cursor:pointer;position:relative}
-    .icon-btn svg{width:19px;fill:none;stroke:currentColor;stroke-width:1.8}.notify-dot{position:absolute;width:7px;height:7px;border-radius:50%;background:var(--brand);top:9px;right:9px}
+    .icon-btn svg{width:19px;fill:none;stroke:currentColor;stroke-width:1.8}.notify-dot{position:absolute;width:7px;height:7px;border-radius:50%;background:var(--brand);top:9px;right:9px}.notify-badge{position:absolute;min-width:16px;height:16px;border-radius:9px;background:var(--brand);color:#fff;top:5px;right:5px;font-size:10px;font-weight:800;display:grid;place-items:center;padding:0 4px}
     .view{display:none}.view.active{display:block}
     .hero{background:var(--ink);color:var(--surface);border-radius:22px;padding:clamp(24px,4vw,46px);position:relative;overflow:hidden;display:grid;grid-template-columns:minmax(0,1.35fr) minmax(240px,.65fr);gap:30px;align-items:center}
     .hero:after{content:"";position:absolute;width:250px;height:250px;border:52px solid var(--brand);border-radius:50%;right:-95px;top:-115px;opacity:.95}
@@ -299,7 +299,7 @@
     .reminder-panel{position:fixed;right:24px;top:82px;width:min(360px,calc(100vw - 32px));background:var(--surface);border:2px solid var(--line);border-bottom-width:6px;border-radius:20px;box-shadow:0 18px 50px rgba(44,30,24,.22);padding:18px;z-index:45;display:none}
     .reminder-panel.open{display:block}.reminder-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.reminder-head h3{margin:0;font-size:17px}.reminder-close{border:0;background:var(--surface-2);width:30px;height:30px;border-radius:50%;cursor:pointer}
     .reminder-mascot{display:grid;grid-template-columns:96px minmax(0,1fr);align-items:center;gap:12px;margin:12px 0 2px;padding:8px 12px 8px 4px;background:var(--brand-soft);border-radius:16px}.reminder-mascot img{width:96px;height:90px;object-fit:contain}.reminder-mascot p{margin:0;font-size:12px;font-weight:800;color:var(--brand-strong)}
-    .reminder-item{display:grid;grid-template-columns:42px 1fr;gap:11px;padding:14px 0;border-bottom:1px solid var(--line)}.reminder-item:last-of-type{border:0}.reminder-icon{width:42px;height:42px;border-radius:13px;background:var(--brand-soft);color:var(--brand);display:grid;place-items:center;font-weight:800}.reminder-item strong{display:block;font-size:13px}.reminder-item p{font-size:11px;color:var(--muted);margin:3px 0 0}.reminder-note{margin:8px 0 0;color:var(--muted);font-size:10px}
+    .reminder-item{display:grid;grid-template-columns:42px 1fr;gap:11px;padding:14px 0;border-bottom:1px solid var(--line);width:100%;background:none;border-left:0;border-right:0;border-top:0;text-align:left;cursor:pointer;font:inherit;color:inherit}.reminder-item:last-of-type{border:0}button.reminder-item:hover{background:var(--brand-soft)}.reminder-item.urgent{background:#fff3ee}.reminder-item.expired{cursor:default;opacity:.8}.ls-date{padding:8px 10px;border:1px solid var(--line);border-radius:10px;font:inherit;background:var(--surface)}.reminder-icon{width:42px;height:42px;border-radius:13px;background:var(--brand-soft);color:var(--brand);display:grid;place-items:center;font-weight:800}.reminder-item strong{display:block;font-size:13px}.reminder-item p{font-size:11px;color:var(--muted);margin:3px 0 0}.reminder-note{margin:8px 0 0;color:var(--muted);font-size:10px}
     .lesson-intro{display:grid;grid-template-columns:minmax(0,1fr) 142px;gap:20px;align-items:center}.lesson-fastie{width:142px;height:130px;object-fit:contain;filter:drop-shadow(0 7px 0 rgba(244,91,24,.12))}
     .success-card{display:none;grid-template-columns:150px minmax(0,1fr);align-items:center;gap:18px;margin:20px 0 0;padding:18px;background:var(--gold-soft);border:2px solid #f4c65a;border-bottom-width:5px;border-radius:18px}.success-card.show{display:grid}#surveySuccess.show img{animation:jhop .8s ease 2}.success-card img{width:150px;height:138px;object-fit:contain;border-radius:14px}.success-card h3{margin:0 0 4px;color:#774b00}.success-card p{margin:0;color:#704f18;font-size:12px}
     .activity-modal{position:fixed;inset:0;background:rgba(38,25,19,.72);z-index:60;display:none;align-items:center;justify-content:center;padding:20px}.activity-modal.open{display:flex}.activity-card{width:min(560px,100%);background:var(--bg);border-radius:22px;border:2px solid var(--line);padding:24px;box-shadow:0 8px 0 rgba(0,0,0,.16)}.activity-top{display:flex;justify-content:space-between;align-items:center;gap:14px}.activity-top h2{font-size:22px;margin:0}.activity-card textarea{width:100%;min-height:120px;margin:16px 0;padding:14px;border:2px solid var(--line);border-radius:14px;background:var(--surface);font:inherit;color:var(--ink);resize:vertical}.survey-options{display:grid;gap:9px;margin:16px 0}.survey-options button{border:2px solid var(--line);border-bottom-width:4px;border-radius:13px;background:var(--surface);padding:12px;text-align:left;cursor:pointer}.survey-options button.selected{border-color:var(--brand);background:var(--brand-soft)}
@@ -629,7 +629,7 @@
     </aside>
 
     <main class="content">
-      <header class="topline"><button type="button" class="mobile-logo-btn" data-view="home" aria-label="Về Trang chủ"><img class="mobile-logo" src="assets/fastie-logo.png" alt="FASTCARE"></button><p><strong id="greetingName">Xin chào, Minh!</strong> Sẵn sàng cho bài học hôm nay?</p><div class="top-actions"><button class="icon-btn" id="notifyBtn" aria-label="Thông báo"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span class="notify-dot"></span></button></div></header>
+      <header class="topline"><button type="button" class="mobile-logo-btn" data-view="home" aria-label="Về Trang chủ"><img class="mobile-logo" src="assets/fastie-logo.png" alt="FASTCARE"></button><p><strong id="greetingName">Xin chào, Minh!</strong> Sẵn sàng cho bài học hôm nay?</p><div class="top-actions"><button class="icon-btn" id="notifyBtn" aria-label="Thông báo"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span class="notify-dot" id="notifyDot"></span></button></div></header>
 
       <section id="home" class="view active">
         <div class="hero">
@@ -744,6 +744,12 @@
         </div>
         </div>
         <div id="adminTools" hidden>
+          <div id="lessonSettingsSection">
+            <h2 class="perm-h">Cài đặt bài học</h2>
+            <p class="perm-sub">Mở/Chưa mở từng chặng và đặt hạn nộp cho từng chặng. Chặng quá hạn mà nhân sự chưa làm xong sẽ tự khóa. Để trống hạn nộp là không giới hạn, không nhắc, không khóa. Sửa xong bấm “Lưu cài đặt bài học”.</p>
+            <div class="pt-save-row"><button class="primary" id="lsSave" type="button">Lưu cài đặt bài học</button><span id="lsSaveMsg" style="font-size:13px;color:var(--muted);font-weight:600"></span></div>
+            <div id="lsTable" aria-live="polite"><p class="muted-center">Đang tải cài đặt bài học…</p></div>
+          </div>
           <div id="permToolSection">
             <h2 class="perm-h">Bảng phân quyền</h2>
             <p class="perm-sub">Chính Quản trị viên cấp quyền cho từng nhân sự — bảng này KHÔNG tự cấp quyền. Mỗi dòng hiện gợi ý theo chức vụ/phòng ban trong hồ sơ; bạn sửa lại rồi bấm “Lưu phân quyền”. Quyền này khác với quyền 3 cấp (Quản trị viên/Quản lý/Nhân viên) ở mục Quản trị học viên.</p>
@@ -801,9 +807,7 @@
   <section class="reminder-panel" id="reminderPanel" aria-label="Nhắc nhở học tập">
     <div class="reminder-head"><h3>Nhắc nhở của Fastie</h3><button class="reminder-close" id="reminderClose" aria-label="Đóng nhắc nhở">×</button></div>
     <div class="reminder-mascot"><img src="assets/fastie-celebrate.webp" alt="Sóc Fastie cầm loa nhắc lịch học"><p id="reminderGreeting">Bạn ơi, mình hoàn thành bài đúng hạn để giữ chuỗi học nhé!</p></div>
-    <div class="reminder-item"><div class="reminder-icon">!</div><div><strong>Quiz văn hoá sắp đến hạn</strong><p>Hoàn thành trước 17:00 ngày 10/10 để giữ chuỗi học.</p></div></div>
-    <div class="reminder-item"><div class="reminder-icon">2</div><div><strong>Bạn còn 2 bài trong tuần</strong><p>Mỗi bài chỉ mất khoảng 6 phút. Fastie đang chờ bạn!</p></div></div>
-    <p class="reminder-note">Bản demo hiển thị nhắc hẹn ngay trong trang. Web chính thức có thể kết nối tài khoản nhân sự để gửi đúng người, đúng hạn.</p>
+    <div id="reminderList" aria-live="polite"><p class="muted-center">Đang tải nhắc nhở…</p></div>
   </section>
 
   <button type="button" data-activity="game" id="gameEntryBtn" hidden aria-hidden="true" tabindex="-1"></button>
