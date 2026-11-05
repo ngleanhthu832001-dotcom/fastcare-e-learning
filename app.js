@@ -1247,7 +1247,7 @@
         navButtons.forEach(function(b){b.classList.toggle('active',b.getAttribute('data-view')===id)});
         window.scrollTo({top:0,behavior:'smooth'});
       }
-      navButtons.forEach(function(btn){btn.addEventListener('click',function(){var v=btn.getAttribute('data-view');switchView(v);if(v==='route')showDevScreen('common');if(v==='admin')openAdminView();if(v==='dash')renderDashboard()})});
+      navButtons.forEach(function(btn){btn.addEventListener('click',function(){var v=btn.getAttribute('data-view');switchView(v);if(v==='route')showDevScreen('common');if(v==='admin')openAdminView();if(v==='dash')renderDashboard();if(v==='rank'){var sc=document.querySelector('.segmented[data-group="scope"] button.active');renderRanking(sc?sc.getAttribute('data-scope'):'individual')}})});
       document.querySelectorAll('[data-admintab]').forEach(function(b){b.addEventListener('click',function(){switchAdminTab(b.getAttribute('data-admintab'))})});
       document.querySelectorAll('[data-goto]').forEach(function(btn){btn.addEventListener('click',function(){switchView(btn.getAttribute('data-goto'));if(btn.getAttribute('data-goto')==='route')showDevScreen('common')})});
 
