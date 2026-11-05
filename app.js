@@ -1897,7 +1897,7 @@
       /* Khối lộ trình của người đang đăng nhập — quyết định lộ trình nào hiện
          trong tab Lộ trình và 3 ô ở Trang chủ (Kem chốt 04/11):
          kythuat: chỉ lộ trình Kỹ thuật · tuvan: chỉ lộ trình Quản lý/Phó QL
-         vanphong: Lộ trình chung + Tài liệu nội bộ
+         vanphong: Lộ trình chung + Thông báo/Truyền thông chung
          storeAll: cả 2 lộ trình cửa hàng (QLCN/Phó QL, để hướng dẫn nhân viên)
          all: tất cả (admin, AM — AM vừa giám sát cửa hàng vừa được xem như VP,
          người được cấp quyền học khối khác). */
@@ -1929,7 +1929,7 @@
         var paths=visibleDevPaths();
         if(paths.indexOf('quanly')>-1)tabs.push({key:'career:quanly',label:'Quản lý & Phó Quản lý'});
         if(paths.indexOf('kythuat')>-1)tabs.push({key:'career:kythuat',label:'Kỹ thuật Trưởng & Leader'});
-        if(showDevDoc())tabs.push({key:'doc',label:'Tài liệu nội bộ'});
+        if(showDevDoc())tabs.push({key:'doc',label:'Thông báo/Truyền thông chung'});
         el.innerHTML=tabs.map(function(t){
           var active=(t.key==='common'&&devScreen==='common')||(t.key.indexOf('career:')===0&&devScreen==='career'&&devCareerPath===t.key.slice(7));
           return '<button type="button" class="dev-tab'+(active?' active':'')+'" data-dev-tab="'+t.key+'" role="tab">'+escapeHtml(t.label)+'</button>';
@@ -2059,7 +2059,7 @@
         var cardsEl=document.getElementById('devCards');
         devBlock=detectBlock();
         /* Admin thấy giao diện đầy đủ của cả hai khối; người được cấp quyền
-           "Học bài khối khác" cũng thấy đủ 3 ô cửa hàng + Tài liệu nội bộ. */
+           "Học bài khối khác" cũng thấy đủ 3 ô cửa hàng + Thông báo/Truyền thông chung. */
         var adminAll=userRole==='admin';
         var cross=hasCrossBlock();
         var block=detectUserBlock();
@@ -2070,10 +2070,10 @@
         var di=(typeof DEV_IMGS!=='undefined')?DEV_IMGS:{learning:'',screwdriver:''};
         var intro=document.getElementById('devHubIntro');
         if(intro)intro.textContent=adminAll?
-          'Tài khoản Quản trị viên: bạn thấy giao diện đầy đủ của cả hai khối — 3 ô Khối Cửa hàng và Tài liệu học tập nội bộ.':
+          'Tài khoản Quản trị viên: bạn thấy giao diện đầy đủ của cả hai khối — 3 ô Khối Cửa hàng và Thông báo/Truyền thông chung.':
           store?
           'Lộ trình phát triển của Khối Cửa hàng: mọi nhân viên bắt đầu từ lộ trình chung, tích luỹ XP và thứ hạng để mở khoá hai hướng nghề nghiệp.':
-          'Tài khoản của bạn thuộc Khối Văn phòng: bạn học Lộ trình chung và Tài liệu học tập nội bộ. Hai hướng phát triển nghề nghiệp chỉ áp dụng cho Khối Cửa hàng.';
+          'Tài khoản của bạn thuộc Khối Văn phòng: bạn học Lộ trình chung và Thông báo/Truyền thông chung. Hai hướng phát triển nghề nghiệp chỉ áp dụng cho Khối Cửa hàng.';
         var strip=document.getElementById('devXpStrip');
         if(strip){
           if(store){
@@ -2135,7 +2135,7 @@
         if(showDoc){
           cards.push(devCardHTML({
             openKey:'doc',img:'assets/fastie-celebrate.webp',imgAlt:'Sóc Fastie chính thức của FASTCARE — cầm loa thông báo',
-            tag:'Toàn thể nhân sự',kicker:'',title:'Tài liệu học tập nội bộ',
+            tag:'Toàn thể nhân sự',kicker:'',title:'Thông báo/Truyền thông chung',
             desc:'Các bài học và bài test ngắn theo từng đợt truyền thông của Ban Lãnh đạo, dành cho toàn thể nhân sự cả hai khối — cũng là công cụ đo hiệu quả truyền thông nội bộ.',
             chips:[{label:'Bài test theo đợt truyền thông'},{label:'Khảo sát'},{label:'Clip bài học'}],
             audience:'Dành cho <b>toàn thể nhân sự</b>',
@@ -2149,14 +2149,14 @@
         if(homeEl)homeEl.innerHTML=cards.join('');
         var homeSub=document.getElementById('homeDevSub');
         if(homeSub)homeSub.textContent=adminAll?
-          'Tài khoản Quản trị viên: bạn thấy đủ cả 3 hướng Khối Cửa hàng và Tài liệu học tập nội bộ.':
+          'Tài khoản Quản trị viên: bạn thấy đủ cả 3 hướng Khối Cửa hàng và Thông báo/Truyền thông chung.':
           block==='kythuat'?
           'Bắt đầu từ Văn hoá FASTCARE, rồi mở khoá các cấp bậc Kỹ thuật khi đủ điểm và thứ hạng.':
           block==='tuvan'?
           'Bắt đầu từ Văn hoá FASTCARE, rồi mở khoá Phó Quản lý và Quản lý chi nhánh khi đủ điểm và thứ hạng.':
           store?
           'Ba hướng học: bắt đầu từ Văn hoá FASTCARE, rồi mở khoá Quản lý hoặc Kỹ thuật khi đủ điểm và thứ hạng.':
-          'Tài khoản của bạn thuộc Khối Văn phòng: bạn học Lộ trình chung và Tài liệu học tập nội bộ — hai hướng nghề nghiệp chỉ áp dụng cho Khối Cửa hàng.';
+          'Tài khoản của bạn thuộc Khối Văn phòng: bạn học Lộ trình chung và Thông báo/Truyền thông chung — hai hướng nghề nghiệp chỉ áp dụng cho Khối Cửa hàng.';
         var homeNote=document.getElementById('homeOfficeNote');
         if(homeNote)homeNote.hidden=store;
         renderDevTabs();
@@ -2264,7 +2264,7 @@
       }
       function closeDevModal(){var m=document.getElementById('devModal');if(m)m.classList.remove('open')}
       function openDevDocModal(){
-        openDevModal('<span class="dev-stage-type" style="color:var(--teal)">Tài liệu học tập nội bộ</span><h3>Luồng này giữ nguyên như web hiện tại</h3><p>Bản cập nhật này chỉ thêm phần Lộ trình phát triển cho Khối Cửa hàng. Luồng Tài liệu học tập nội bộ (bài test ngắn theo đợt truyền thông, dành cho toàn thể nhân sự) không thay đổi — các bài test vẫn xuất hiện tại Trang học.</p><div class="dev-modal-actions"><button class="btn-ghost" id="devModalClose" type="button">Đóng</button></div>');
+        openDevModal('<span class="dev-stage-type" style="color:var(--teal)">Thông báo/Truyền thông chung</span><h3>Luồng này giữ nguyên như web hiện tại</h3><p>Bản cập nhật này chỉ thêm phần Lộ trình phát triển cho Khối Cửa hàng. Luồng Thông báo/Truyền thông chung (bài test ngắn theo đợt truyền thông, dành cho toàn thể nhân sự) không thay đổi — các bài test vẫn xuất hiện tại Trang học.</p><div class="dev-modal-actions"><button class="btn-ghost" id="devModalClose" type="button">Đóng</button></div>');
       }
       (function initDevPaths(){
         var cardsEl=document.getElementById('devCards');
