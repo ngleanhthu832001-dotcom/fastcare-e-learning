@@ -1667,7 +1667,8 @@
         var att=annMyAttempt(a);
         var backBtn='<button type="button" class="btn-ghost ann-back" id="annBack">← Quay lại danh sách</button>';
         var bodyHtml='<p class="ann-body">'+escapeHtml(a.body||'').replace(/\n/g,'<br>')+'</p>';
-        if(!a.is_open||annExpired(a)){
+        var annTestMode=userRole==='admin'&&(!a.is_open||annExpired(a)); /* QTV xem thử bộ đã đóng/hết hạn: làm được nhưng không lưu, không cộng XP (Kem chốt 09/11) */
+        if(!annTestMode&&(!a.is_open||annExpired(a))){
           /* đã đóng / hết hạn: chỉ xem nội dung + kết quả cũ (nếu đã làm) */
           box.innerHTML=backBtn+'<div class="ann-detail"><h3>'+escapeHtml(a.title)+'</h3>'+bodyHtml+'<p class="ann-closed-note">Bộ khảo sát này '+(annExpired(a)?'đã hết hạn':'đang đóng')+' nên không làm bài được nữa.'+(att?' Bạn đã làm: '+(att.total?att.score+'/'+att.total:'đã gửi')+' · +'+(att.xp_earned||0)+' XP.':'')+'</p></div>';
           document.getElementById('annBack').addEventListener('click',renderAnnList);
@@ -1686,6 +1687,7 @@
         if(ms)html+='<p class="ann-dl">'+escapeHtml(fmtDeadlineLeft(ms-Date.now()))+' · hết hạn '+escapeHtml(fmtDeadlineDate(a.deadline))+'</p>';
         html+=bodyHtml;
         if(att)html+='<p class="ann-done-note">Bạn đã làm bộ này'+(att.total?' — điểm cao nhất: '+att.score+'/'+att.total:'')+'. Làm lại được đến khi hết hạn (điểm lấy cao nhất, XP chỉ tính 1 lần).</p>';
+        if(annTestMode)html+='<p class="ann-closed-note">Bạn đang xem thử với quyền QTV — bộ này '+(annExpired(a)?'đã hết hạn':'đang đóng')+'. Bài làm thử không được lưu và không cộng XP.</p>';
         html+='<div id="annQuiz">'+qs.map(function(q,qi){
           return '<div class="ann-q"><p class="ann-q-text"><strong>Câu '+(qi+1)+'.</strong> '+escapeHtml(q.question)+(q.correct_index===null?' <span class="ann-opinion">(câu hỏi ý kiến)</span>':'')+'</p>'+
             q.options.map(function(op,oi){
@@ -1727,6 +1729,13 @@
         var row={user_id:currentUser.id,announcement_id:a.id,answers:bestAnswers,score:bestScore,total:total,xp_earned:xp,updated_at:new Date().toISOString()};
         var btn=document.getElementById('annSubmit');
         if(btn)btn.disabled=true;
+        var testMode=userRole==='admin'&&(!a.is_open||annExpired(a)); /* QTV xem thử bộ đã đóng/hết hạn: chỉ hiện điểm, không lưu, không cộng XP */
+        if(testMode){
+          var resBox=document.getElementById('annResult');
+          if(resBox)resBox.innerHTML='<div class="ann-result"><strong>'+(total?('Số điểm của bạn: '+score+'/'+total):'Đã gửi khảo sát!')+'</strong><p>Chế độ xem thử của QTV — bài làm không được lưu và không cộng XP.</p></div>';
+          if(btn)btn.textContent='Đã nộp (xem thử)';
+          return;
+        }
         try{
           var res=await sb.from('announcement_attempts').upsert(row,{onConflict:'user_id,announcement_id'});
           if(res.error)throw res.error;
@@ -1951,11 +1960,14 @@
         var s=lessonSetting(COMMON_LESSONS[i].id);
         if(s){
           if(!s.is_open)return false;
+          /* QTV test (Kem chốt 09/11): admin mở được mọi chặng đã mở, kể cả hết hạn; không bị kẹt ở chặng 4 vì chưa xong chặng 1. Nhân sự vẫn khóa như cũ. */
+          if(userRole==='admin')return true;
           if(commonLessonExpired(i))return false; /* quá hạn mà chưa xong → khóa */
           if(i===3)return commonLessonDone(0); /* chặng 4C vẫn cần xong chặng 1 (quy tắc 04/11) */
           return true;
         }
         /* Chưa có dòng trong bảng (chưa chạy SQL v12) → mặc định cũ. */
+        if(userRole==='admin')return COMMON_LESSONS[i].kind!=='placeholder';
         if(i===0)return true;
         if(COMMON_LESSONS[i].kind==='placeholder')return false;
         return commonLessonDone(0); /* chặng 4C mở sau khi xong chặng 1 — không bị kẹt sau các chặng chưa có nội dung */
@@ -1981,7 +1993,7 @@
           var nodeCls=st==='done'?'done':st==='locked'?'locked':(i===cur?'current':'');
           var action;
           if(st==='done')action='<span class="act">Đã hoàn thành</span>';
-          else if(commonLessonExpired(i))action='<span>Đã hết hạn — bài đã khóa</span>';
+          else if(commonLessonExpired(i))action=userRole==='admin'?'<span class="act">Đã hết hạn — bấm để xem thử (QTV)</span>':'<span>Đã hết hạn — bài đã khóa</span>';
           else if(st==='locked')action='<span>Chưa mở — nội dung đang được chuẩn bị</span>';
           else if(i===3&&lessonCompleted&&!game4cDone)action='<span class="act">Chơi game 4C →</span>';
           else if(i===3)action='<span class="act">Học lý thuyết →</span>';
@@ -1995,7 +2007,9 @@
         var rc=document.getElementById('routeContinue');
         if(rc){
           if(cur>=0){rc.textContent='Bắt đầu Chặng '+(cur+1);rc.disabled=false;}
-          else{rc.textContent='Đã hoàn thành Lộ trình chung';rc.disabled=true;}
+          /* 'Đã hoàn thành' chỉ khi thật sự xong /3; còn không thì là 'không còn chặng nào đang mở' (vd trễ hạn Chặng 1) — sửa chữ cho đúng (Kem chốt 09/11). */
+          else if(commonDone()){rc.textContent='Đã hoàn thành Lộ trình chung';rc.disabled=true;}
+          else{rc.textContent='Không còn chặng nào đang mở';rc.disabled=true;}
         }
         requestAnimationFrame(drawCommonTrail);
       }
@@ -2020,8 +2034,9 @@
       }
       function openCommonLesson(i,btn){
         if(i<0||i>=COMMON_LESSONS.length)return;
-        if(commonLessonExpired(i)){showToast('Chặng này đã hết hạn — bài đã khóa');return;}
-        if(i===3&&!commonLessonDone(0)){var _s3=lessonSetting(COMMON_LESSONS[3].id);if(!_s3||_s3.is_open){showToast('Hoàn thành Chặng 1 trước để mở chặng này');return;}}
+        var isAdmin=userRole==='admin'; /* QTV test: admin không bị khóa hết hạn, không bị kẹt chặng 4 (Kem chốt 09/11) */
+        if(!isAdmin&&commonLessonExpired(i)){showToast('Chặng này đã hết hạn — bài đã khóa');return;}
+        if(!isAdmin&&i===3&&!commonLessonDone(0)){var _s3=lessonSetting(COMMON_LESSONS[3].id);if(!_s3||_s3.is_open){showToast('Hoàn thành Chặng 1 trước để mở chặng này');return;}}
         if(!commonLessonOpen(i)){showToast('Chặng này chưa mở — nội dung đang được chuẩn bị');return;}
         var L=COMMON_LESSONS[i];
         if(L.kind==='placeholder'){showToast('Nội dung chặng này đang được chuẩn bị');return;}
