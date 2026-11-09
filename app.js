@@ -2179,12 +2179,9 @@
           function showGameMenu(){
             var card0=document.querySelector('.activity-card');if(card0)card0.classList.remove('wide');
             activityTitle.textContent='Mini-game · Thử thách vui';
-            activityBody.innerHTML='<p>Chọn một thử thách để chơi và cộng XP:</p><div class="game-menu"><button class="game-pick" id="pickMem" type="button"><span class="game-pick-icon">🎴</span><span><strong>Lật thẻ 4C</strong><small>Game trí nhớ 8 thẻ · tối đa 10 XP</small></span></button><button class="game-pick" id="pickStage" type="button"><span class="game-pick-icon">🏪</span><span><strong>Vượt ải 4C</strong><small>Mô phỏng cửa hàng · 3 ải · tối đa 10 XP</small></span></button><button class="game-pick" id="pickMood" type="button"><span class="game-pick-icon">😤</span><span><strong>Khách khó tính</strong><small>Phục vụ khách qua 5 bước · tối đa 10 XP</small></span></button><button class="game-pick" id="pickSpeed" type="button"><span class="game-pick-icon">⏱️</span><span><strong>Đố nhanh 4C</strong><small>10 tình huống · 60 giây · tối đa 10 XP</small></span></button><button class="game-pick" id="pickOrder" type="button"><span class="game-pick-icon">🔢</span><span><strong>Xếp trình tự 4C</strong><small>Xếp đúng 4 bước phục vụ · tối đa 10 XP</small></span></button></div>';
-            document.getElementById('pickMem').addEventListener('click',startMemGame);
+            /* Kem 09/11: chỉ giữ Vượt ải 4C trong Mini-game — 4 game kia (Lật thẻ, Khách khó tính, Đố nhanh, Xếp trình tự) tạm ẩn khỏi menu, code vẫn còn để khôi phục khi cần. */
+            activityBody.innerHTML='<p>Chọn một thử thách để chơi và cộng XP:</p><div class="game-menu"><button class="game-pick" id="pickStage" type="button"><span class="game-pick-icon">🏪</span><span><strong>Vượt ải 4C</strong><small>Mô phỏng cửa hàng · 3 ải · tối đa 10 XP</small></span></button></div>';
             document.getElementById('pickStage').addEventListener('click',startStageGame);
-            document.getElementById('pickMood').addEventListener('click',startMoodGame);
-            document.getElementById('pickSpeed').addEventListener('click',startSpeedGame);
-            document.getElementById('pickOrder').addEventListener('click',startOrderGame);
           }
           function startMemGame(){
           activityTitle.textContent='Mini-game · Lật thẻ 4C';
