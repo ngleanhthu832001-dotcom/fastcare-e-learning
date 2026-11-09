@@ -2179,9 +2179,12 @@
           function showGameMenu(){
             var card0=document.querySelector('.activity-card');if(card0)card0.classList.remove('wide');
             activityTitle.textContent='Mini-game · Thử thách vui';
-            activityBody.innerHTML='<p>Chọn một thử thách để chơi và cộng XP:</p><div class="game-menu"><button class="game-pick" id="pickMem" type="button"><span class="game-pick-icon">🎴</span><span><strong>Lật thẻ 4C</strong><small>Game trí nhớ 8 thẻ · tối đa 10 XP</small></span></button><button class="game-pick" id="pickStage" type="button"><span class="game-pick-icon">🏪</span><span><strong>Vượt ải 4C</strong><small>Mô phỏng cửa hàng · 3 ải · tối đa 10 XP</small></span></button></div>';
+            activityBody.innerHTML='<p>Chọn một thử thách để chơi và cộng XP:</p><div class="game-menu"><button class="game-pick" id="pickMem" type="button"><span class="game-pick-icon">🎴</span><span><strong>Lật thẻ 4C</strong><small>Game trí nhớ 8 thẻ · tối đa 10 XP</small></span></button><button class="game-pick" id="pickStage" type="button"><span class="game-pick-icon">🏪</span><span><strong>Vượt ải 4C</strong><small>Mô phỏng cửa hàng · 3 ải · tối đa 10 XP</small></span></button><button class="game-pick" id="pickMood" type="button"><span class="game-pick-icon">😤</span><span><strong>Khách khó tính</strong><small>Phục vụ khách qua 5 bước · tối đa 10 XP</small></span></button><button class="game-pick" id="pickSpeed" type="button"><span class="game-pick-icon">⏱️</span><span><strong>Đố nhanh 4C</strong><small>10 tình huống · 60 giây · tối đa 10 XP</small></span></button><button class="game-pick" id="pickOrder" type="button"><span class="game-pick-icon">🔢</span><span><strong>Xếp trình tự 4C</strong><small>Xếp đúng 4 bước phục vụ · tối đa 10 XP</small></span></button></div>';
             document.getElementById('pickMem').addEventListener('click',startMemGame);
             document.getElementById('pickStage').addEventListener('click',startStageGame);
+            document.getElementById('pickMood').addEventListener('click',startMoodGame);
+            document.getElementById('pickSpeed').addEventListener('click',startSpeedGame);
+            document.getElementById('pickOrder').addEventListener('click',startOrderGame);
           }
           function startMemGame(){
           activityTitle.textContent='Mini-game · Lật thẻ 4C';
@@ -2453,6 +2456,258 @@
               document.getElementById('stMenu').addEventListener('click',showGameMenu);
             }
             stageIntro();
+          }
+          function startMoodGame(){
+          activityTitle.textContent='Mini-game · Khách khó tính';
+          var MOOD=[
+            {icon:'⚡',color:'#e84924',soft:'#ffe7df',scene:'Một chị khách đứng nhìn quanh cửa hàng, có vẻ đang tìm người giúp đỡ mà chưa mở lời.',opts:['Đứng quan sát thêm xem chị cần gì rồi tính','Chủ động đến hỏi: “Dạ chị cần em hỗ trợ gì ạ? - Mình đến sửa máy hay lấy máy ạ?”','Tiếp tục việc của mình, khách cần sẽ tự gọi','Chờ chị khách tự đến quầy rồi mới tiếp đón'],a:1,why:'Đừng đợi khách mở lời — chủ động hỏi thăm thể hiện sự quan tâm chân thành.'},
+            {icon:'😊',color:'#0f766e',soft:'#dceee9',scene:'Khách tỏ vẻ khó chịu vì chờ đợi quá lâu.',opts:['Giải thích dài dòng vì sao hôm nay đông khách','Tươi cười và cập nhật tiến độ: “Máy mình đang ở bước kiểm tra cuối ạ!”','Im lặng, cố làm nhanh hơn mà không nói gì','Hẹn khách quay lại lấy máy vào hôm sau để khỏi phải chờ'],a:1,why:'Giải thích dài dòng nghe như biện minh — nụ cười thân thiện + cập nhật tiến độ cụ thể mới xoa dịu được.'},
+            {icon:'😊',color:'#0f766e',soft:'#dceee9',scene:'Khách nhăn mặt khi nghe báo giá sửa chữa.',opts:['Giữ vẻ mặt nghiêm túc cho chuyên nghiệp','Cười lớn, pha trò cho không khí nhẹ nhàng','Giảm giá ngay để khách đỡ khó chịu','Cười nhẹ và giải thích rõ từng khoản chi phí khi sửa'],a:3,why:'Nghiêm mặt dễ khiến khách thêm căng thẳng — nụ cười nhẹ kèm giải thích minh bạch từng khoản mới tạo niềm tin.'},
+            {icon:'👋',color:'#b97f10',soft:'#faecc9',scene:'Khách đã nhận máy xong và chuẩn bị ra về.',opts:['Mở cửa và chào tạm biệt khách: “Dạ em chào anh/chị ạ!”','Cứ để khách tự ra về, tiếp tục công việc dang dở','Gật đầu nhẹ, không nói gì thêm','Tiễn khách ra cửa trong im lặng'],a:0,why:'Đừng để khách ra về trong im lặng — lời chào tạm biệt ấm áp là dấu chấm đẹp cho trải nghiệm.'},
+            {icon:'🙏',color:'#7c5cbf',soft:'#ece5f9',scene:'Khách tham khảo xong nhưng quyết định chưa sửa và ra về.',opts:['Không nói gì, khách không mua thì thôi','Hỏi dồn: “Sao anh không sửa ạ?”','Cảm ơn và mời quay lại: “Khi nào cần anh ghé em nhé! Hoặc liên hệ với tổng đài bên em để được hỗ trợ nhanh nhất ạ”','Nhấn mạnh giá hôm nay đang ưu đãi để khách đổi ý'],a:2,why:'Thái độ trân trọng ngay cả khi khách chưa mua — đó là cách gieo niềm tin cho lần quay lại sau.'}
+          ];
+          var MOOD_FACES=['😡','😠','😞','😐','🙂','😄'];
+          var MOOD_LABELS=['Rất tệ','Không vui','Hơi khó chịu','Bình thường','Hài lòng','Rất hài lòng'];
+          var mi=0,moodCorrect=0,moodVal=3,moodDone=false;
+          function moodMeter(){
+            var segs='';
+            for(var k=0;k<5;k++){segs+='<span class="mood-seg'+(k<moodVal?' on':'')+'"></span>';}
+            return '<div class="mood-meter"><span class="mood-face">'+MOOD_FACES[moodVal]+'</span><div class="mood-bar">'+segs+'</div><span class="mood-label">'+MOOD_LABELS[moodVal]+'</span></div>';
+          }
+          function moodRender(){
+            var s=MOOD[mi];
+            activityBody.innerHTML='<button class="linklike" id="moodBack" type="button">‹ Chọn game khác</button><p class="mem-intro">Phục vụ vị khách này qua <b>'+MOOD.length+' bước</b> — chọn cách ứng xử đúng để khách vui lên nhé!</p>'+moodMeter()+'<p class="mood-step">Bước '+(mi+1)+'/'+MOOD.length+'</p><div class="mood-scene"><p>'+s.scene+'</p><p class="mood-q">Bạn sẽ làm gì?</p></div><div class="mood-opts" id="moodOpts"></div><p class="mem-recall-fb" id="moodFb" hidden></p><button class="primary" id="moodNext" type="button" hidden></button>';
+            var opts=document.getElementById('moodOpts');
+            s.opts.forEach(function(t,oi){
+              var b=document.createElement('button');
+              b.type='button';b.className='mood-opt';
+              b.textContent=t;
+              b.addEventListener('click',function(){moodAnswer(b,oi);});
+              opts.appendChild(b);
+            });
+            document.getElementById('moodBack').addEventListener('click',showGameMenu);
+          }
+          function moodAnswer(btn,oi){
+            var s=MOOD[mi];
+            var opts=document.getElementById('moodOpts').querySelectorAll('.mood-opt');
+            opts.forEach(function(o){o.disabled=true;});
+            var fb=document.getElementById('moodFb');
+            if(oi===s.a){
+              moodCorrect++;
+              moodVal=Math.min(5,moodVal+1);
+              btn.classList.add('correct');
+              fb.textContent='Đúng rồi! +2 XP — '+s.why;
+            }else{
+              moodVal=Math.max(0,moodVal-1);
+              btn.classList.add('wrong');
+              opts[s.a].classList.add('correct');
+              fb.textContent='Chưa đúng — đáp án là: '+s.opts[s.a]+'. '+s.why;
+            }
+            fb.hidden=false;
+            var nx=document.getElementById('moodNext');
+            nx.textContent=(mi===MOOD.length-1)?'Xem kết quả →':'Bước tiếp theo →';
+            nx.hidden=false;
+            nx.addEventListener('click',function(){
+              if(mi===MOOD.length-1){moodFinish();}
+              else{mi++;moodRender();}
+            });
+          }
+          async function moodFinish(){
+            moodDone=true;
+            var xp=moodCorrect*2; /* 5 bước × 2 XP, tối đa 10 XP */
+            var msg=moodVal>=4?'Khách ra về rất hài lòng — bạn đúng là chiến binh FASTCARE!':(moodVal>=2?'Khách tạm hài lòng — luyện thêm để khách nào cũng vui nhé!':'Khách ra về chưa vui — luyện lại để lần sau tốt hơn nhé!');
+            activityBody.innerHTML='<div class="badge-win"><div class="badge-medal">'+MOOD_FACES[moodVal]+'</div><h3>Khách khó tính</h3><p>'+msg+'</p><p>Đúng '+moodCorrect+'/'+MOOD.length+' bước · Tâm trạng khách: '+MOOD_LABELS[moodVal]+'</p><p class="badge-xp">+'+xp+' XP</p><div style="display:flex;gap:10px;justify-content:center;margin-top:8px;flex-wrap:wrap"><button class="primary" id="moodReplay" type="button">Chơi lại</button><button class="secondary" id="moodMenu" type="button">Chọn game khác</button></div></div>';
+            showToast('Hoàn thành Khách khó tính! +'+xp+' XP');
+            if(currentUser&&sb){
+              try{
+                var r=await sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:'mini-game-khach-kho-tinh',score:moodCorrect,total:MOOD.length,xp_earned:xp});
+                if(r.error)throw r.error;
+                refreshMyStats();renderRanking('individual');
+              }catch(e){}
+            }
+            document.getElementById('moodReplay').addEventListener('click',function(){mi=0;moodCorrect=0;moodVal=3;moodDone=false;moodRender();});
+            document.getElementById('moodMenu').addEventListener('click',showGameMenu);
+          }
+          moodRender();
+          }
+          function startSpeedGame(){
+          activityTitle.textContent='Mini-game · Đố nhanh 4C';
+          var SPEED=[
+            {sit:'Khách mới vừa bước vào, bạn đang hỗ trợ một khách khác',a:0},
+            {sit:'Chị khách đứng nhìn quanh, chưa mở lời, đang tìm người giúp',a:0},
+            {sit:'Khách hỏi về một lỗi mà bạn chưa chắc nguyên nhân',a:0},
+            {sit:'Đang sửa máy, phát hiện thêm một lỗi khác',a:0},
+            {sit:'Khách tỏ vẻ khó chịu vì chờ đợi quá lâu',a:1},
+            {sit:'Khách nhăn mặt khi nghe báo giá sửa chữa',a:1},
+            {sit:'Khách lớn tuổi nghe không rõ, hỏi đi hỏi lại',a:1},
+            {sit:'Khách đã nhận máy xong, chuẩn bị ra về',a:2},
+            {sit:'Khách tham khảo xong, quyết định chưa sửa, ra về',a:3},
+            {sit:'Khách quay lại cửa hàng lấy máy sau thời gian gửi sửa',a:2}
+          ];
+          var C4=[
+            {icon:'⚡',label:'Chủ động',color:'#e84924',soft:'#ffe7df'},
+            {icon:'😊',label:'Cười',color:'#0f766e',soft:'#dceee9'},
+            {icon:'👋',label:'Chào',color:'#b97f10',soft:'#faecc9'},
+            {icon:'🙏',label:'Cảm ơn',color:'#7c5cbf',soft:'#ece5f9'}
+          ];
+          var spIdx=0,spCorrect=0,spCombo=0,spBest=0,spTime=60,spTimer=null,spTimeout=null,spDone=false,spLock=false;
+          function speedStop(){if(spTimer){clearInterval(spTimer);spTimer=null;}if(spTimeout){clearTimeout(spTimeout);spTimeout=null;}}
+          function speedRender(){
+            activityBody.innerHTML='<button class="linklike" id="spBack" type="button">‹ Chọn game khác</button><p class="mem-intro">10 tình huống, <b>60 giây</b> — bấm nhanh chữ C đúng cho từng tình huống!</p><div class="speed-top"><span class="speed-stat">⏱️ <b id="spTime">60</b>s</span><span class="speed-stat">✅ Đúng: <b id="spCorrect">0</b>/10</span><span class="speed-stat">🔥 Combo: <b id="spCombo">0</b></span></div><div class="speed-prog"><div class="speed-prog-fill" id="spProg"></div></div><div class="speed-scene"><p class="speed-step" id="spStep"></p><p class="speed-sit" id="spSit"></p></div><div class="speed-opts" id="spOpts"></div><p class="mem-recall-fb" id="spFb" hidden></p>';
+            var opts=document.getElementById('spOpts');
+            C4.forEach(function(c,ci){
+              var b=document.createElement('button');
+              b.type='button';b.className='speed-opt';b.style.setProperty('--pc',c.color);b.style.setProperty('--ps',c.soft);
+              b.innerHTML='<span class="mem-icon">'+c.icon+'</span><span>'+c.label+'</span>';
+              b.addEventListener('click',function(){speedAnswer(ci);});
+              opts.appendChild(b);
+            });
+            document.getElementById('spBack').addEventListener('click',function(){speedStop();showGameMenu();});
+            speedNext();
+            spTimer=setInterval(function(){
+              if(!document.getElementById('spTime')){speedStop();return;}
+              spTime--;
+              var t=document.getElementById('spTime');if(t)t.textContent=spTime;
+              if(spTime<=0){speedFinish();}
+            },1000);
+          }
+          function speedNext(){
+            if(!document.getElementById('spSit'))return;
+            spLock=false;
+            var s=SPEED[spIdx];
+            document.getElementById('spStep').textContent='Tình huống '+(spIdx+1)+'/'+SPEED.length;
+            document.getElementById('spSit').textContent=s.sit;
+            document.getElementById('spFb').hidden=true;
+            document.getElementById('spProg').style.width=(spIdx/SPEED.length*100)+'%';
+            var opts=document.getElementById('spOpts').querySelectorAll('.speed-opt');
+            opts.forEach(function(o){o.disabled=false;o.classList.remove('correct','wrong');});
+          }
+          function speedAnswer(ci){
+            if(spLock||spDone)return;
+            spLock=true;
+            var s=SPEED[spIdx];
+            var opts=document.getElementById('spOpts').querySelectorAll('.speed-opt');
+            var fb=document.getElementById('spFb');
+            if(ci===s.a){
+              spCorrect++;spCombo++;spBest=Math.max(spBest,spCombo);
+              opts[ci].classList.add('correct');
+              fb.textContent='Đúng rồi! +1 XP';
+            }else{
+              spCombo=0;
+              opts[ci].classList.add('wrong');
+              opts[s.a].classList.add('correct');
+              fb.textContent='Chưa đúng — đây là lúc dùng chữ '+C4[s.a].label+'.';
+            }
+            document.getElementById('spCorrect').textContent=spCorrect;
+            document.getElementById('spCombo').textContent=spCombo;
+            fb.hidden=false;
+            opts.forEach(function(o){o.disabled=true;});
+            spTimeout=setTimeout(function(){
+              if(spDone||!document.getElementById('spSit'))return;
+              spIdx++;
+              if(spIdx>=SPEED.length){speedFinish();}
+              else{speedNext();}
+            },650);
+          }
+          async function speedFinish(){
+            if(spDone)return;
+            spDone=true;speedStop();
+            var xp=spCorrect; /* mỗi câu đúng 1 XP, tối đa 10 XP */
+            activityBody.innerHTML='<div class="badge-win"><div class="badge-medal">⏱️</div><h3>Đố nhanh 4C</h3><p>Bạn trả lời đúng '+spCorrect+'/'+SPEED.length+' tình huống trong 60 giây · Combo cao nhất: '+spBest+'</p><p class="badge-xp">+'+xp+' XP</p><div style="display:flex;gap:10px;justify-content:center;margin-top:8px;flex-wrap:wrap"><button class="primary" id="spReplay" type="button">Chơi lại</button><button class="secondary" id="spMenu" type="button">Chọn game khác</button></div></div>';
+            showToast('Hoàn thành Đố nhanh 4C! +'+xp+' XP');
+            if(currentUser&&sb){
+              try{
+                var r=await sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:'mini-game-do-nhanh-4c',score:spCorrect,total:SPEED.length,xp_earned:xp});
+                if(r.error)throw r.error;
+                refreshMyStats();renderRanking('individual');
+              }catch(e){}
+            }
+            document.getElementById('spReplay').addEventListener('click',function(){spIdx=0;spCorrect=0;spCombo=0;spBest=0;spTime=60;spDone=false;speedRender();});
+            document.getElementById('spMenu').addEventListener('click',showGameMenu);
+          }
+          speedRender();
+          }
+          function startOrderGame(){
+          activityTitle.textContent='Mini-game · Xếp trình tự 4C';
+          var ORDER=[
+            {icon:'👋',label:'Chào',color:'#b97f10',soft:'#faecc9'},
+            {icon:'😊',label:'Cười',color:'#0f766e',soft:'#dceee9'},
+            {icon:'⚡',label:'Chủ động',color:'#e84924',soft:'#ffe7df'},
+            {icon:'🙏',label:'Cảm ơn',color:'#7c5cbf',soft:'#ece5f9'}
+          ];
+          /* Thứ tự đúng (Luke đề xuất, Kem/sếp chốt lại): Chào → Cười → Chủ động → Cảm ơn */
+          var CORRECT=[0,1,2,3];
+          var picked=[];
+          function orderRender(){
+            activityBody.innerHTML='<button class="linklike" id="ordBack" type="button">‹ Chọn game khác</button><p class="mem-intro">Một vị khách vừa bước vào cửa hàng. Xếp <b>4 chữ C</b> theo đúng trình tự phục vụ khách — bấm lần lượt từng thẻ theo thứ tự bạn chọn!</p><div class="order-picked" id="ordPicked"></div><div class="order-grid" id="ordGrid"></div><p class="mem-recall-fb" id="ordFb" hidden></p><div style="display:flex;gap:10px;flex-wrap:wrap"><button class="primary" id="ordCheck" type="button" disabled>Kiểm tra thứ tự</button><button class="secondary" id="ordReset" type="button">Xếp lại</button></div>';
+            var grid=document.getElementById('ordGrid');
+            var order=[0,1,2,3];
+            for(var k=order.length-1;k>0;k--){var j=Math.floor(Math.random()*(k+1));var t=order[k];order[k]=order[j];order[j]=t;}
+            order.forEach(function(oi){
+              var c=ORDER[oi];
+              var b=document.createElement('button');
+              b.type='button';b.className='order-card';b.style.setProperty('--pc',c.color);b.style.setProperty('--ps',c.soft);
+              b.innerHTML='<span class="mem-icon">'+c.icon+'</span><span class="order-label">'+c.label+'</span><span class="order-num" hidden></span>';
+              b._oi=oi;
+              b.addEventListener('click',function(){orderPick(b,oi);});
+              grid.appendChild(b);
+            });
+            document.getElementById('ordBack').addEventListener('click',showGameMenu);
+            document.getElementById('ordCheck').addEventListener('click',orderCheck);
+            document.getElementById('ordReset').addEventListener('click',function(){picked=[];orderRender();});
+            orderShowPicked();
+          }
+          function orderPick(btn,oi){
+            if(picked.indexOf(oi)>=0)return;
+            if(picked.length>=4)return;
+            picked.push(oi);
+            btn.querySelector('.order-num').hidden=false;
+            btn.querySelector('.order-num').textContent=picked.length;
+            orderShowPicked();
+            document.getElementById('ordCheck').disabled=(picked.length!==4);
+          }
+          function orderShowPicked(){
+            var el=document.getElementById('ordPicked');
+            if(picked.length===0){el.innerHTML='<span class="order-empty">Thứ tự của bạn sẽ hiện ở đây…</span>';return;}
+            el.innerHTML=picked.map(function(oi,i){
+              var c=ORDER[oi];
+              return '<span class="order-chip" style="--pc:'+c.color+';--ps:'+c.soft+'">'+(i+1)+'. '+c.icon+' '+c.label+'</span>';
+            }).join('<span class="order-arrow">→</span>');
+          }
+          async function orderCheck(){
+            var correctPos=0;
+            picked.forEach(function(oi,i){if(oi===CORRECT[i])correctPos++;});
+            var allOk=(correctPos===4);
+            var xp=correctPos*2+(allOk?2:0); /* đúng vị trí ×2, đủ 4 đúng +2 thưởng, tối đa 10 XP */
+            var fb=document.getElementById('ordFb');
+            if(allOk){fb.textContent='Chính xác! Thứ tự đúng là: Chào → Cười → Chủ động → Cảm ơn.';}
+            else{fb.textContent='Chưa đúng hết — đúng '+correctPos+'/4 vị trí. Thứ tự đúng là: Chào → Cười → Chủ động → Cảm ơn.';}
+            fb.hidden=false;
+            var grid=document.getElementById('ordGrid').querySelectorAll('.order-card');
+            grid.forEach(function(b){
+              b.disabled=true;
+              var pos=picked.indexOf(b._oi);
+              if(pos>=0&&b._oi===CORRECT[pos])b.classList.add('correct');
+              else if(pos>=0)b.classList.add('wrong');
+            });
+            document.getElementById('ordCheck').disabled=true;
+            document.getElementById('ordReset').disabled=true;
+            var res=document.createElement('div');
+            res.className='badge-win';
+            res.innerHTML='<div class="badge-medal">'+(allOk?'🎉':'💪')+'</div><h3>Xếp trình tự 4C</h3><p>Đúng '+correctPos+'/4 vị trí'+(allOk?' — hoàn hảo!':'')+'</p><p class="badge-xp">+'+xp+' XP</p><div style="display:flex;gap:10px;justify-content:center;margin-top:8px;flex-wrap:wrap"><button class="primary" id="ordReplay" type="button">Chơi lại</button><button class="secondary" id="ordMenu" type="button">Chọn game khác</button></div>';
+            activityBody.appendChild(res);
+            showToast('Hoàn thành Xếp trình tự 4C! +'+xp+' XP');
+            if(currentUser&&sb){
+              try{
+                var r=await sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:'mini-game-xep-trinh-tu-4c',score:correctPos,total:4,xp_earned:xp});
+                if(r.error)throw r.error;
+                refreshMyStats();renderRanking('individual');
+              }catch(e){}
+            }
+            document.getElementById('ordReplay').addEventListener('click',function(){picked=[];orderRender();});
+            document.getElementById('ordMenu').addEventListener('click',showGameMenu);
+          }
+          orderRender();
           }
           showGameMenu();
         }
