@@ -2186,31 +2186,46 @@
           function startMemGame(){
           activityTitle.textContent='Mini-game · Lật thẻ 4C';
           var PAIRS=[
-            {icon:'⚡',label:'Chủ động',color:'#e84924',soft:'#ffe7df'},
-            {icon:'😊',label:'Cười',color:'#0f766e',soft:'#dceee9'},
-            {icon:'👋',label:'Chào',color:'#b97f10',soft:'#faecc9'},
-            {icon:'🙏',label:'Cảm ơn',color:'#7c5cbf',soft:'#ece5f9'}
+            {icon:'⚡',label:'Chủ động',color:'#e84924',soft:'#ffe7df',situation:'Chị khách đứng nhìn quanh, chưa mở lời, đang tìm người giúp',why:'Đừng đợi khách mở lời — chủ động hỏi thăm thể hiện sự quan tâm chân thành.'},
+            {icon:'😊',label:'Cười',color:'#0f766e',soft:'#dceee9',situation:'Khách tỏ vẻ khó chịu vì chờ đợi quá lâu',why:'Giải thích dài dòng nghe như biện minh — nụ cười thân thiện + cập nhật tiến độ cụ thể mới xoa dịu được.'},
+            {icon:'👋',label:'Chào',color:'#b97f10',soft:'#faecc9',situation:'Khách đã nhận máy xong, chuẩn bị ra về',why:'Đừng để khách ra về trong im lặng — lời chào tạm biệt ấm áp là dấu chấm đẹp cho trải nghiệm.'},
+            {icon:'🙏',label:'Cảm ơn',color:'#7c5cbf',soft:'#ece5f9',situation:'Khách tham khảo xong, quyết định chưa sửa, ra về',why:'Thái độ trân trọng ngay cả khi khách chưa mua — đó là cách gieo niềm tin cho lần quay lại sau.'}
           ];
-          activityBody.innerHTML='<button class="linklike" id="backMenu" type="button">‹ Chọn game khác</button><p class="mem-intro">Tìm 2 thẻ cùng cặp: chữ <b>C</b> đi với đúng ý nghĩa của nó. Lật càng ít lượt, XP càng cao!</p><div class="mem-stats"><span class="mem-stat">🔄 Lượt lật: <b id="memTurns">0</b></span><span class="mem-stat">🎯 Cặp đã tìm: <b><span id="memFound">0</span>/4</b></span></div><div class="mem-grid" id="memGrid" role="grid" aria-label="Bàn thẻ 4C"></div><div class="success-card" id="memWin" role="status"><img src="assets/fastie-celebrate.webp" alt="Sóc Fastie ăn mừng chiến thắng"><div><h3>Tuyệt vời!</h3><p id="memWinText"></p><button class="primary" id="memReplay" type="button">Chơi lại</button></div></div>';
-          var memGrid=document.getElementById('memGrid'),memFirst=null,memLock=false,memTurns=0,memFound=0,memDone=false;
+          var RECALL=[
+            {def:'Ghi nhận và tiếp đón khách đúng lúc',a:0},
+            {def:'Tạo thiện cảm khi khách phải chờ',a:1},
+            {def:'Chào khách đúng thời điểm',a:2},
+            {def:'Khép lại trải nghiệm bằng sự trân trọng',a:3}
+          ];
+          activityBody.innerHTML='<button class="linklike" id="backMenu" type="button">‹ Chọn game khác</button><p class="mem-intro">Tìm 2 thẻ cùng cặp: chữ <b>C</b> đi với đúng <b>tình huống</b> của nó. Ghép đúng sẽ thấy dòng “vì sao” — lật xong còn có vòng nhớ lại!</p><div class="mem-stats"><span class="mem-stat">🔄 Lượt lật: <b id="memTurns">0</b></span><span class="mem-stat">🎯 Cặp đã tìm: <b><span id="memFound">0</span>/4</b></span></div><div class="mem-why" id="memWhy" hidden></div><div class="mem-grid" id="memGrid" role="grid" aria-label="Bàn thẻ 4C"></div><div id="memRecall" hidden><h3 class="mem-recall-title" id="memRecallTitle"></h3><p class="mem-recall-q" id="memRecallQ"></p><div class="mem-recall-opts" id="memRecallOpts"></div><p class="mem-recall-fb" id="memRecallFb" hidden></p><button class="primary" id="memRecallNext" type="button" hidden></button></div><div class="success-card" id="memWin" role="status"><img src="assets/fastie-celebrate.webp" alt="Sóc Fastie ăn mừng chiến thắng"><div><h3>Tuyệt vời!</h3><p id="memWinText"></p><button class="primary" id="memReplay" type="button">Chơi lại</button></div></div>';
+          var memGrid=document.getElementById('memGrid'),memFirst=null,memLock=false,memTurns=0,memFound=0,memDone=false,memRecallIdx=0,memRecallScore=0,memFlipXp=0;
           function memBuild(){
             var deck=[];
-            PAIRS.forEach(function(p,i){deck.push({pair:i,kind:'letter'});deck.push({pair:i,kind:'word'});});
+            PAIRS.forEach(function(p,i){deck.push({pair:i,kind:'letter'});deck.push({pair:i,kind:'sit'});});
             for(var k=deck.length-1;k>0;k--){var j=Math.floor(Math.random()*(k+1));var t=deck[k];deck[k]=deck[j];deck[j]=t;}
             memGrid.innerHTML='';
             deck.forEach(function(c){
               var p=PAIRS[c.pair];
               var el=document.createElement('button');
               el.type='button';el.className='mem-card';el.setAttribute('aria-label','Thẻ úp, bấm để lật');
-              el.innerHTML='<span class="mem-inner"><span class="mem-face mem-front">?</span><span class="mem-face mem-back" style="--pc:'+p.color+';--ps:'+p.soft+'"><span class="mem-icon">'+p.icon+'</span>'+(c.kind==='letter'?'<span class="mem-letter">C</span>':'<span class="mem-word">'+p.label+'</span>')+'</span></span>';
+              el.innerHTML='<span class="mem-inner"><span class="mem-face mem-front">?</span><span class="mem-face mem-back" style="--pc:'+p.color+';--ps:'+p.soft+'"><span class="mem-icon">'+p.icon+'</span>'+(c.kind==='letter'?'<span class="mem-letter">C</span>':'<span class="mem-sit">'+p.situation+'</span>')+'</span></span>';
               el._pair=c.pair;
               el.addEventListener('click',function(){memFlip(el);});
               memGrid.appendChild(el);
             });
-            memFirst=null;memLock=false;memTurns=0;memFound=0;memDone=false;
+            memFirst=null;memLock=false;memTurns=0;memFound=0;memDone=false;memRecallIdx=0;memRecallScore=0;memFlipXp=0;
             document.getElementById('memTurns').textContent='0';
             document.getElementById('memFound').textContent='0';
+            document.getElementById('memWhy').hidden=true;
+            document.getElementById('memRecall').hidden=true;
+            document.getElementById('memGrid').style.display='';
             document.getElementById('memWin').classList.remove('show');
+          }
+          function memShowWhy(pairIdx){
+            var p=PAIRS[pairIdx];
+            var w=document.getElementById('memWhy');
+            w.innerHTML='<b>💡 '+p.label+':</b> '+p.why;
+            w.hidden=false;
           }
           function memFlip(el){
             if(memLock||memDone||el.classList.contains('flipped'))return;
@@ -2221,17 +2236,68 @@
             if(memFirst._pair===el._pair){
               memFirst.classList.add('matched');el.classList.add('matched');
               memFirst=null;memFound++;document.getElementById('memFound').textContent=memFound;
-              if(memFound===PAIRS.length)memWin();
+              memShowWhy(el._pair);
+              if(memFound===PAIRS.length)startRecall();
             }else{
               memLock=true;
               var a=memFirst,b=el;memFirst=null;
               setTimeout(function(){a.classList.remove('flipped');a.setAttribute('aria-label','Thẻ úp, bấm để lật');b.classList.remove('flipped');b.setAttribute('aria-label','Thẻ úp, bấm để lật');memLock=false;},850);
             }
           }
+          function startRecall(){
+            memFlipXp=Math.max(2,6-(memTurns-PAIRS.length)); /* lật thẻ tối đa 6 XP */
+            memRecallIdx=0;memRecallScore=0;
+            document.getElementById('memGrid').style.display='none';
+            document.getElementById('memWhy').hidden=true;
+            document.getElementById('memRecall').hidden=false;
+            renderRecallQ();
+          }
+          function renderRecallQ(){
+            var q=RECALL[memRecallIdx];
+            document.getElementById('memRecallTitle').textContent='Vòng nhớ lại · Câu '+(memRecallIdx+1)+'/'+RECALL.length;
+            document.getElementById('memRecallQ').textContent='Chữ C nào có nghĩa là “'+q.def+'”?';
+            document.getElementById('memRecallFb').hidden=true;
+            var next=document.getElementById('memRecallNext');
+            next.hidden=true;
+            var opts=document.getElementById('memRecallOpts');
+            opts.innerHTML='';
+            var order=[0,1,2,3];
+            for(var k=order.length-1;k>0;k--){var j=Math.floor(Math.random()*(k+1));var t=order[k];order[k]=order[j];order[j]=t;}
+            order.forEach(function(pi){
+              var p=PAIRS[pi];
+              var b=document.createElement('button');
+              b.type='button';b.className='mem-recall-opt';b.style.setProperty('--pc',p.color);b.style.setProperty('--ps',p.soft);
+              b.innerHTML='<span class="mem-icon">'+p.icon+'</span><span>'+p.label+'</span>';
+              b._pair=pi;
+              b.addEventListener('click',function(){memAnswerRecall(b,pi);});
+              opts.appendChild(b);
+            });
+          }
+          function memAnswerRecall(btn,pi){
+            var q=RECALL[memRecallIdx];
+            var opts=document.getElementById('memRecallOpts').querySelectorAll('.mem-recall-opt');
+            opts.forEach(function(o){o.disabled=true;});
+            var fb=document.getElementById('memRecallFb');
+            if(pi===q.a){
+              memRecallScore++;
+              btn.classList.add('correct');
+              fb.textContent='Đúng rồi! +1 XP — '+PAIRS[q.a].label+' là “'+q.def+'”.';
+            }else{
+              btn.classList.add('wrong');
+              opts.forEach(function(o){if(o._pair===q.a)o.classList.add('correct');});
+              fb.textContent='Chưa đúng — đáp án là '+PAIRS[q.a].label+'.';
+            }
+            fb.hidden=false;
+            var next=document.getElementById('memRecallNext');
+            next.textContent=(memRecallIdx===RECALL.length-1)?'Xem kết quả →':'Câu tiếp theo →';
+            next.hidden=false;
+          }
           async function memWin(){
             memDone=true;
-            var xp=Math.max(4,10-(memTurns-PAIRS.length)); /* tối đa 10 XP */
-            document.getElementById('memWinText').textContent='Bạn tìm đủ 4 cặp chỉ sau '+memTurns+' lượt lật — nhận '+xp+' XP!';
+            var recallXp=memRecallScore; /* nhớ lại tối đa 4 XP */
+            var xp=memFlipXp+recallXp; /* tổng tối đa 10 XP */
+            document.getElementById('memWinText').textContent='Bạn tìm đủ 4 cặp chỉ sau '+memTurns+' lượt lật — lật thẻ '+memFlipXp+'/6 XP · nhớ lại '+recallXp+'/4 XP · tổng '+xp+' XP!';
+            document.getElementById('memRecall').hidden=true;
             document.getElementById('memWin').classList.add('show');
             showToast('Hoàn thành Lật thẻ 4C! +'+xp+' XP');
             if(currentUser&&sb){
@@ -2242,6 +2308,10 @@
               }catch(e){/* điểm đã hiển thị trên giao diện */}
             }
           }
+          document.getElementById('memRecallNext').addEventListener('click',function(){
+            if(memRecallIdx===RECALL.length-1){memWin();}
+            else{memRecallIdx++;renderRecallQ();}
+          });
           document.getElementById('memReplay').addEventListener('click',memBuild);
           document.getElementById('backMenu').addEventListener('click',showGameMenu);
           memBuild();
