@@ -770,7 +770,7 @@
         if(btn)btn.disabled=false;
       }
       function lessonLabel(id){
-        var map={'bai-3-4-van-hoa-phuc-vu':'Văn hoá phục vụ — Quiz 10 câu','khao-sat-module-01':'Khảo sát Bài 1 (10 câu)','mini-game-vuot-ai-4c':'Game Vượt ải 4C (tổng kết)','mini-game-vuot-ai-4c-ai-1':'Game 4C · Ải 1 Chủ động','mini-game-vuot-ai-4c-ai-2':'Game 4C · Ải 2 Cười','mini-game-vuot-ai-4c-ai-3':'Game 4C · Ải 3 Chào'};
+        var map={'bai-3-4-van-hoa-phuc-vu':'Văn hoá phục vụ — Quiz 10 câu','khao-sat-module-01':'Khảo sát Bài 1 (10 câu)','mini-game-vuot-ai-4c':'Game Vượt ải 4C (tổng kết)','mini-game-chay-cung-fastie':'Game Chạy cùng Fastie (4C Nội bộ)','mini-game-vuot-ai-4c-ai-1':'Game 4C · Ải 1 Chủ động','mini-game-vuot-ai-4c-ai-2':'Game 4C · Ải 2 Cười','mini-game-vuot-ai-4c-ai-3':'Game 4C · Ải 3 Chào'};
         return map[id]||id;
       }
       async function renderScopeProgress(){
@@ -2217,9 +2217,10 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
           function showGameMenu(){
             var card0=document.querySelector('.activity-card');if(card0)card0.classList.remove('wide');
             activityTitle.textContent='Mini-game · Thử thách vui';
-            /* Kem 09/11: chỉ giữ Vượt ải 4C trong Mini-game — 4 game kia (Lật thẻ, Khách khó tính, Đố nhanh, Xếp trình tự) tạm ẩn khỏi menu, code vẫn còn để khôi phục khi cần. */
-            activityBody.innerHTML='<p>Chọn một thử thách để chơi và cộng XP:</p><div class="game-menu"><button class="game-pick" id="pickStage" type="button"><span class="game-pick-icon">🏪</span><span><strong>Vượt ải 4C</strong><small>Mô phỏng cửa hàng · 3 ải · tối đa 10 XP</small></span></button></div>';
+            /* Kem 09/11: chỉ giữ Vượt ải 4C trong Mini-game — 4 game kia (Lật thẻ, Khách khó tính, Đố nhanh, Xếp trình tự) tạm ẩn khỏi menu, code vẫn còn để khôi phục khi cần. Kem 11/11: thêm game thứ 2 'Chạy cùng Fastie' (kiểu Khủng long, 4C Nội bộ) — hoàn thành hết 2 game được +20 XP. */
+            activityBody.innerHTML='<p>Chọn một thử thách để chơi và cộng XP — hoàn thành hết 2 game được +20 XP:</p><div class="game-menu"><button class="game-pick" id="pickStage" type="button"><span class="game-pick-icon">🏪</span><span><strong>Vượt ải 4C</strong><small>Mô phỏng cửa hàng · 3 ải · tối đa 10 XP</small></span></button><button class="game-pick" id="pickDino" type="button"><span class="game-pick-icon">🌵</span><span><strong>Chạy cùng Fastie</strong><small>Chạy bộ kiểu Khủng long · 4C Nội bộ · 3 tim · tối đa 10 XP</small></span></button></div>';
             document.getElementById('pickStage').addEventListener('click',startStageGame);
+            document.getElementById('pickDino').addEventListener('click',startDinoGame);
           }
           function startMemGame(){
           activityTitle.textContent='Mini-game · Lật thẻ 4C';
@@ -2491,6 +2492,124 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
               document.getElementById('stMenu').addEventListener('click',showGameMenu);
             }
             stageIntro();
+          }
+          function startDinoGame(){
+            activityTitle.textContent='Mini-game · Chạy cùng Fastie';
+            var card=document.querySelector('.activity-card');if(card)card.classList.add('wide');
+            /* Kem 11/11: game chạy bộ kiểu Khủng long cho 4C Nội bộ — Fastie chạy, xương rồng = trạm câu hỏi, đúng thì xương rồng hạ xuống, sai mất 1 tim, mất hết 3 tim thì chơi lại từ đầu. 10 trạm = 10 câu (5 kiến thức + 5 tình huống), tối đa 10 XP. */
+            var DQ=[
+              {q:'Theo Văn hoá 4C nội bộ, "Chủ động" được thể hiện qua hành vi nào sau đây?',opts:['Đợi có người nhắc mới bắt đầu làm','Hoàn thành công việc đúng tiến độ','Chỉ làm phần việc của mình','Báo cáo vấn đề sau khi sự cố đã xảy ra'],a:1,why:'Chủ động là hoàn thành việc đúng tiến độ, không đợi ai nhắc.'},
+              {q:'Đồng nghiệp cùng ca đang ôm một đống việc, mặt mày căng thẳng, còn bạn vừa xong việc của mình. Bạn làm gì?',opts:['Tranh thủ nghỉ ngơi vì mình đã xong việc','Ngồi xem đồng nghiệp làm, không can thiệp','Chủ động ngỏ ý: “Để mình phụ bạn một tay nhé!”','Báo với quản lý là đồng nghiệp làm chậm'],a:2,why:'Thấy đồng nghiệp cần là giúp; một câu ngỏ ý đúng lúc làm nhẹ cả ca làm.'},
+              {q:'Theo Văn hoá 4C nội bộ, nụ cười có vai trò gì?',opts:['Xây dựng hình ảnh môi trường làm việc tươi vui, năng động','Chỉ để tạo ấn tượng với cấp trên','Chỉ cần cười khi có khách đến thăm','Không quan trọng, miễn là làm việc tốt'],a:0,why:'Nụ cười xây dựng hình ảnh môi trường làm việc tươi vui, năng động.'},
+              {q:'Bạn phát hiện đồng nghiệp làm sai một bước trong quy trình, cần góp ý để họ sửa. Bạn góp ý thế nào?',opts:['Chỉ ra lỗi thật gay gắt để họ nhớ','Nhắc khéo trước mặt cả nhóm cho mọi người cùng rút kinh nghiệm','Im lặng, để họ tự phát hiện ra lỗi','Mỉm cười và góp ý bằng thái độ dễ chịu, chỉ rõ cách làm đúng'],a:3,why:'Góp ý bằng thái độ dễ chịu thì đồng nghiệp mới nghe và sửa được.'},
+              {q:'Theo Văn hoá 4C nội bộ, khi đến công ty bạn nên chào ai?',opts:['Chỉ chào cấp trên của mình','Chỉ chào đồng nghiệp cùng phòng','Chào đầy đủ từ nhân viên bảo vệ, tạp vụ, đồng nghiệp ngang cấp đến cấp trên','Không cần chào ai, cứ vào làm việc'],a:2,why:'Chào hỏi đầy đủ mọi người, từ bảo vệ, tạp vụ đến cấp trên.'},
+              {q:'Sáng nay bạn đến công ty, gặp bác bảo vệ ở cổng, rồi gặp chị tạp vụ đang lau sàn ở sảnh. Bạn làm gì?',opts:['Chào bác bảo vệ và chị tạp vụ rồi mới vào chỗ làm','Cúi đầu đi thẳng vào chỗ làm, không làm phiền mọi người','Chỉ chào bác bảo vệ, vì chị tạp vụ đang bận làm việc','Đợi đến khi gặp đồng nghiệp cùng phòng mới chào'],a:0,why:'Chào hỏi đầy đủ là ghi nhận sự hiện diện của nhau, dù là ai.'},
+              {q:'Theo Văn hoá 4C nội bộ, bạn nên cảm ơn đồng nghiệp trong trường hợp nào?',opts:['Chỉ khi họ giúp một việc lớn','Ngay cả với những hỗ trợ nhỏ nhất như mở cửa, chuyển tiếp thông tin, góp ý tài liệu','Chỉ khi họ làm thay ca cho mình','Không cần cảm ơn vì đó là trách nhiệm của họ'],a:1,why:'Cảm ơn chân thành cả những hỗ trợ nhỏ nhất: đó là văn hoá ghi nhận nhau.'},
+              {q:'Bạn đang bê một chồng hồ sơ nặng, đồng nghiệp giữ cửa giúp bạn đi qua. Bạn làm gì?',opts:['Đi qua luôn, vì đó là phép lịch sự bình thường','Gật đầu nhẹ rồi đi tiếp cho nhanh','Để sau rồi cảm ơn chung một lần cho tiện','Cảm ơn chân thành ngay lúc đó: “Cảm ơn bạn nhé!”'],a:3,why:'Một lời cảm ơn đúng lúc khiến người giúp mình thấy được trân trọng.'},
+              {q:'Khi có thông tin mới (quy định, lịch làm việc, thay đổi...), hành vi "Chủ động" là gì?',opts:['Chia sẻ cho cả nhóm ngay thay vì đợi ai hỏi','Giữ cho riêng mình, ai hỏi mới nói','Chỉ nói với người thân thiết trong nhóm','Đợi cấp trên thông báo rồi mới chia sẻ'],a:0,why:'Có thông tin mới thì chia sẻ cho cả nhóm thay vì đợi ai hỏi.'},
+              {q:'Trong nhóm chat nội bộ, có bạn hỏi một vấn đề mà bạn vừa mới tìm ra cách giải quyết. Bạn làm gì?',opts:['Không trả lời, để bạn tự tìm hiểu thêm','Trả lời ngắn gọn, khô khan cho nhanh','Trả lời nhẹ nhàng và chia sẻ cách làm cho cả nhóm cùng biết','Nhắn riêng cho bạn đó, không chia sẻ trong nhóm'],a:2,why:'Chia sẻ cách làm + giọng điệu nhẹ nhàng là vừa Chủ động vừa Cười.'}
+            ];
+            var di=0,hearts=3,xp=0,tried=false,runState='idle',raf=null,lastTs=0,cactusX=0,groundOff=0,SPEED=320;
+            var TRIGGER=150,CROSS_TIME=2.2;
+            var CACTUS_SVG='<svg viewBox="0 0 64 104" width="52" height="86" aria-hidden="true"><g fill="#3f7d32"><rect x="25" y="12" width="14" height="92" rx="7"/><rect x="8" y="48" width="11" height="30" rx="5.5"/><rect x="8" y="58" width="22" height="11" rx="5.5"/><rect x="45" y="36" width="11" height="32" rx="5.5"/><rect x="34" y="46" width="22" height="11" rx="5.5"/></g></svg>';
+            activityBody.innerHTML=
+              '<button class="linklike" id="dinoBack" type="button">‹ Chọn game khác</button>'+
+              '<p class="mem-intro">Fastie chạy tự động! Gặp <b>xương rồng</b> thì dừng lại trả lời câu hỏi 4C Nội bộ. Trả lời đúng, xương rồng hạ xuống để chạy tiếp. Sai thì mất 1 tim — mất hết <b>3 tim</b> thì chơi lại từ đầu. Hoàn thành 10 trạm được <b>+10 XP</b>!</p>'+
+              '<div class="dino-hud"><span class="dino-hearts" id="dinoHearts">❤️❤️❤️</span><span class="dino-station">Trạm <b id="dinoStation">1</b>/10</span><span class="dino-xp">⭐ <b id="dinoXp">0</b> XP</span></div>'+
+              '<div class="dino-track" id="dinoTrack"><div class="dino-ground" id="dinoGround"></div><img class="dino-fastie" id="dinoFastie" src="assets/fastie-celebrate.webp" alt="Sóc Fastie đang chạy"><div class="dino-cactus" id="dinoCactus" hidden><span class="dino-cactus-num" id="dinoCactusNum">1</span>'+CACTUS_SVG+'</div></div>'+
+              '<div class="dino-start" id="dinoStart"><button class="primary" id="dinoStartBtn" type="button">▶ Bắt đầu chạy</button></div>'+
+              '<div class="dino-q" id="dinoQ" hidden></div>'+
+              '<div class="dino-end" id="dinoEnd" hidden></div>';
+            var track=document.getElementById('dinoTrack'),ground=document.getElementById('dinoGround'),cactus=document.getElementById('dinoCactus'),qPanel=document.getElementById('dinoQ'),endEl=document.getElementById('dinoEnd'),startBox=document.getElementById('dinoStart'),heartsEl=document.getElementById('dinoHearts'),stationEl=document.getElementById('dinoStation'),xpEl=document.getElementById('dinoXp');
+            function updateHud(){heartsEl.textContent='❤️'.repeat(Math.max(0,hearts))+'🤍'.repeat(Math.max(0,3-hearts));stationEl.textContent=di+1;xpEl.textContent=xp;}
+            function dinoStop(){if(raf){cancelAnimationFrame(raf);raf=null;}}
+            function trackW(){return track.clientWidth||600;}
+            function dinoStart(){di=0;hearts=3;xp=0;tried=false;groundOff=0;runState='idle';updateHud();qPanel.hidden=true;endEl.hidden=true;startBox.hidden=true;cactus.hidden=true;track.classList.remove('paused');dinoSpawn();}
+            function dinoSpawn(){var w=trackW();SPEED=Math.max(90,(w-TRIGGER)/CROSS_TIME);cactusX=w;cactus.style.left=cactusX+'px';cactus.hidden=false;cactus.classList.remove('sink');document.getElementById('dinoCactusNum').textContent=di+1;runState='running';track.classList.remove('paused');lastTs=0;dinoStop();raf=requestAnimationFrame(dinoTick);}
+            function dinoTick(ts){if(runState!=='running')return;if(!document.body.contains(track)){runState='idle';return;}if(!lastTs)lastTs=ts;var dt=Math.min(0.05,(ts-lastTs)/1000);lastTs=ts;var dx=SPEED*dt;cactusX-=dx;groundOff+=dx;cactus.style.left=cactusX+'px';ground.style.backgroundPositionX=(-groundOff)+'px';if(cactusX<=TRIGGER){runState='paused';track.classList.add('paused');dinoAsk();return;}raf=requestAnimationFrame(dinoTick);}
+            function dinoAsk(){
+              var q=DQ[di];tried=false;
+              var letters=['A','B','C','D'];
+              var opts=q.opts.map(function(o,i){
+                return '<button class="sim-act" data-i="'+i+'" type="button"><span class="sim-act-letter">'+letters[i]+'</span><span class="sim-act-text">'+o+'</span></button>';
+              }).join('');
+              qPanel.innerHTML='<div class="sim-qcard" style="--pc:#e84924;--ps:#ffe7df"><div class="sim-q-head"><span class="sim-q-pill">Trạm '+(di+1)+' · Câu hỏi '+(di+1)+'</span></div><p class="sim-q-text">'+q.q+'</p></div><div class="sim-actions">'+opts+'</div><div id="dinoFb"></div>';
+              qPanel.hidden=false;
+              qPanel.querySelectorAll('.sim-act').forEach(function(b){
+                b.addEventListener('click',function(){dinoAnswer(+b.getAttribute('data-i'),b);});
+              });
+              qPanel.scrollIntoView({block:'nearest'});
+            }
+            function dinoAnswer(i,btn){
+              var q=DQ[di];
+              var fb=document.getElementById('dinoFb');
+              if(!fb)return;
+              var ok=i===q.a;
+              if(ok){
+                qPanel.querySelectorAll('.sim-act').forEach(function(b){
+                  b.disabled=true;
+                  if(+b.getAttribute('data-i')===q.a)b.classList.add('good');
+                });
+                var firstOk=!tried;
+                if(firstOk){xp++;updateHud();}
+                fb.innerHTML='<div class="stage-result ok">'+(firstOk?'✅ Chính xác! +1 XP':'✅ Chính xác!')+'</div><p class="stage-why">💡 '+q.why+'</p><button class="primary sim-submit" id="dinoNext" type="button">Tiếp tục chạy →</button>';
+                document.getElementById('dinoNext').addEventListener('click',function(){dinoContinue();});
+              }else{
+                hearts--;tried=true;updateHud();
+                btn.disabled=true;btn.classList.add('bad');
+                if(hearts<=0){
+                  qPanel.querySelectorAll('.sim-act').forEach(function(b){
+                    b.disabled=true;
+                    if(+b.getAttribute('data-i')===q.a)b.classList.add('good');
+                  });
+                  fb.innerHTML='<div class="stage-result bad">❌ Chưa đúng — mất hết 3 tim!</div><p class="stage-why">💡 '+q.why+'</p>';
+                  setTimeout(dinoGameOver,1100);
+                }else{
+                  fb.innerHTML='<div class="stage-result bad">❌ Chưa đúng — mất 1 tim, còn '+hearts+' tim. Thử lại nhé!</div>';
+                }
+              }
+            }
+            function dinoContinue(){
+              cactus.classList.add('sink');
+              qPanel.hidden=true;
+              setTimeout(function(){
+                if(!document.body.contains(track))return;
+                cactus.hidden=true;cactus.classList.remove('sink');
+                if(di>=DQ.length-1){dinoWin();}
+                else{di++;dinoSpawn();}
+              },600);
+            }
+            async function dinoWin(){
+              runState='over';
+              dinoStop();
+              track.classList.add('paused');
+              var msg=xp===DQ.length?'Hoàn hảo! Bạn chạy qua cả 10 trạm xương rồng và trả lời đúng ngay lần đầu!':'Bạn đã chạy qua cả 10 trạm xương rồng — đúng '+xp+'/10 câu ngay lần đầu. Chơi lại để đạt điểm tuyệt đối nhé!';
+              endEl.innerHTML='<div class="badge-win"><div class="badge-medal">🌵</div><h3>Về đích rồi!</h3><p>'+msg+'</p><p class="badge-xp">+'+xp+' XP · 4C Nội bộ</p><div style="display:flex;gap:10px;justify-content:center;margin-top:8px;flex-wrap:wrap"><button class="primary" id="dinoReplay" type="button">Chơi lại</button><button class="secondary" id="dinoMenu" type="button">Chọn game khác</button></div></div>';
+              endEl.hidden=false;
+              qPanel.hidden=true;
+              showToast('Về đích! +'+xp+' XP');
+              if(currentUser&&sb){
+                try{
+                  var r=await sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:'mini-game-chay-cung-fastie',score:xp,total:DQ.length,xp_earned:xp});
+                  if(r.error)throw r.error;
+                  refreshMyStats();renderRanking('individual');
+                }catch(e){}
+              }
+              document.getElementById('dinoReplay').addEventListener('click',function(){dinoStart();});
+              document.getElementById('dinoMenu').addEventListener('click',function(){dinoStop();showGameMenu();});
+            }
+            function dinoGameOver(){
+              runState='over';
+              dinoStop();
+              track.classList.add('paused');
+              endEl.innerHTML='<div class="badge-win"><div class="badge-medal">💔</div><h3>Mất hết 3 tim!</h3><p>Bạn đã đến trạm '+(di+1)+' và mất hết 3 tim. Đừng nản — xem lại 10 slide 4C rồi chạy lại từ đầu nhé!</p><div style="display:flex;gap:10px;justify-content:center;margin-top:8px;flex-wrap:wrap"><button class="primary" id="dinoReplay" type="button">Chơi lại từ đầu</button><button class="secondary" id="dinoMenu" type="button">Chọn game khác</button></div></div>';
+              endEl.hidden=false;
+              qPanel.hidden=true;
+              document.getElementById('dinoReplay').addEventListener('click',function(){dinoStart();});
+              document.getElementById('dinoMenu').addEventListener('click',function(){dinoStop();showGameMenu();});
+            }
+            document.getElementById('dinoBack').addEventListener('click',function(){dinoStop();showGameMenu();});
+            document.getElementById('dinoStartBtn').addEventListener('click',function(){dinoStart();});
           }
           function startMoodGame(){
           activityTitle.textContent='Mini-game · Khách khó tính';
