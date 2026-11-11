@@ -2222,6 +2222,24 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
             document.getElementById('pickStage').addEventListener('click',startStageGame);
             document.getElementById('pickDino').addEventListener('click',startDinoGame);
           }
+          /* Kem 11/11: hiệu ứng ăn mừng chung cho mọi game — pháo giấy tung lên khi hoàn thành. */
+          function confettiBurst(){
+            var layer=document.createElement('div');
+            layer.className='confetti-layer';
+            var colors=['#e84924','#e5ad32','#176b61','#dce94d','#f472b6','#7c5cbf','#ffb703'];
+            for(var i=0;i<44;i++){
+              var p=document.createElement('span');
+              p.className='confetti-piece';
+              p.style.left=(Math.random()*100)+'%';
+              p.style.background=colors[i%colors.length];
+              p.style.animationDuration=(2.4+Math.random()*1.4)+'s';
+              p.style.animationDelay=(Math.random()*0.5)+'s';
+              if(i%3===0)p.style.borderRadius='50%';
+              layer.appendChild(p);
+            }
+            document.body.appendChild(layer);
+            setTimeout(function(){if(layer.parentNode)layer.parentNode.removeChild(layer);},4800);
+          }
           function startMemGame(){
           activityTitle.textContent='Mini-game · Lật thẻ 4C';
           var PAIRS=[
@@ -2338,6 +2356,8 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
             document.getElementById('memWinText').textContent='Bạn tìm đủ 4 cặp chỉ sau '+memTurns+' lượt lật — lật thẻ '+memFlipXp+'/6 XP · nhớ lại '+recallXp+'/4 XP · tổng '+xp+' XP!';
             document.getElementById('memRecall').hidden=true;
             document.getElementById('memWin').classList.add('show');
+            var _mi=document.querySelector('#memWin img');if(_mi){_mi.classList.remove('celebrate-fastie');void _mi.offsetWidth;_mi.classList.add('celebrate-fastie');}
+            confettiBurst();
             showToast('Hoàn thành Lật thẻ 4C! +'+xp+' XP');
             if(currentUser&&sb){
               try{
@@ -2479,7 +2499,8 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
               activityTitle.textContent='Mini-game · Huy hiệu 4C';
               var xp=correct; /* mỗi câu đúng = 1 XP, tối đa 10 XP */
               var msg=correct===totalQ?'Hoàn hảo! Bạn xử lý đúng cả '+totalQ+' tình huống như một chiến binh FASTCARE thực thụ!':'Bạn xử lý đúng '+correct+'/'+totalQ+' tình huống — luyện thêm để đạt điểm tuyệt đối nhé!';
-              activityBody.innerHTML='<div class="badge-win"><div class="badge-medal">🏅</div><h3>Huy hiệu Nhân viên 4C</h3><p>'+msg+'</p><p class="badge-xp">+'+xp+' XP</p><div style="display:flex;gap:10px;justify-content:center;margin-top:8px;flex-wrap:wrap"><button class="primary" id="stReplay" type="button">Chơi lại</button><button class="secondary" id="stMenu" type="button">Chọn game khác</button></div></div>';
+              activityBody.innerHTML='<div class="badge-win"><img class="celebrate-fastie" src="assets/fastie-celebrate.webp" alt="Sóc Fastie ăn mừng chiến thắng"><div class="badge-medal">🏅</div><h3>Huy hiệu Nhân viên 4C</h3><p>'+msg+'</p><p class="badge-xp">+'+xp+' XP</p><div style="display:flex;gap:10px;justify-content:center;margin-top:8px;flex-wrap:wrap"><button class="primary" id="stReplay" type="button">Chơi lại</button><button class="secondary" id="stMenu" type="button">Chọn game khác</button></div></div>';
+              confettiBurst();
               showToast('Nhận Huy hiệu 4C! +'+xp+' XP');
               if(currentUser&&sb){
                 try{
@@ -2516,7 +2537,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
               '<button class="linklike" id="dinoBack" type="button">‹ Chọn game khác</button>'+
               '<p class="mem-intro">Fastie chạy tự động! Gặp <b>xương rồng</b> thì dừng lại trả lời câu hỏi 4C Nội bộ. Trả lời đúng, xương rồng hạ xuống để chạy tiếp. Sai thì mất 1 tim — mất hết <b>3 tim</b> thì chơi lại từ đầu. Hoàn thành 10 trạm được <b>+10 XP</b>!</p>'+
               '<div class="dino-hud"><span class="dino-hearts" id="dinoHearts">❤️❤️❤️</span><span class="dino-station">Trạm <b id="dinoStation">1</b>/10</span><span class="dino-xp">⭐ <b id="dinoXp">0</b> XP</span></div>'+
-              '<div class="dino-track" id="dinoTrack"><div class="dino-ground" id="dinoGround"></div><img class="dino-fastie" id="dinoFastie" src="assets/fastie-celebrate.webp" alt="Sóc Fastie đang chạy"><div class="dino-cactus" id="dinoCactus" hidden><span class="dino-cactus-num" id="dinoCactusNum">1</span>'+CACTUS_SVG+'</div></div>'+
+              '<div class="dino-track" id="dinoTrack"><div class="dino-ground" id="dinoGround"></div><img class="dino-fastie" id="dinoFastie" src="assets/fastie-celebrate.webp" alt="Sóc Fastie đang chạy"><div class="dino-cactus" id="dinoCactus" hidden><span class="dino-cactus-num" id="dinoCactusNum">1</span>'+CACTUS_SVG+'</div><div class="dino-finish" id="dinoFinish" hidden><span class="dino-finish-flag">🏁</span>'+CACTUS_SVG+'</div></div>'+
               '<div class="dino-start" id="dinoStart"><button class="primary" id="dinoStartBtn" type="button">▶ Bắt đầu chạy</button></div>'+
               '<div class="dino-q" id="dinoQ" hidden></div>'+
               '<div class="dino-end" id="dinoEnd" hidden></div>';
@@ -2524,7 +2545,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
             function updateHud(){heartsEl.textContent='❤️'.repeat(Math.max(0,hearts))+'🤍'.repeat(Math.max(0,3-hearts));stationEl.textContent=di+1;xpEl.textContent=xp;}
             function dinoStop(){if(raf){cancelAnimationFrame(raf);raf=null;}}
             function trackW(){return track.clientWidth||600;}
-            function dinoStart(){di=0;hearts=3;xp=0;tried=false;groundOff=0;runState='idle';updateHud();qPanel.hidden=true;endEl.hidden=true;startBox.hidden=true;cactus.hidden=true;track.classList.remove('paused');dinoSpawn();}
+            function dinoStart(){di=0;hearts=3;xp=0;tried=false;groundOff=0;runState='idle';updateHud();qPanel.hidden=true;endEl.hidden=true;startBox.hidden=true;cactus.hidden=true;var fin=document.getElementById('dinoFinish');if(fin)fin.hidden=true;var fe=document.getElementById('dinoFastie');if(fe)fe.style.left='';track.classList.remove('paused');dinoSpawn();}
             function dinoSpawn(){var w=trackW();SPEED=Math.max(90,(w-TRIGGER)/CROSS_TIME);cactusX=w;cactus.style.left=cactusX+'px';cactus.hidden=false;cactus.classList.remove('sink');document.getElementById('dinoCactusNum').textContent=di+1;runState='running';track.classList.remove('paused');lastTs=0;dinoStop();raf=requestAnimationFrame(dinoTick);}
             function dinoTick(ts){if(runState!=='running')return;if(!document.body.contains(track)){runState='idle';return;}if(!lastTs)lastTs=ts;var dt=Math.min(0.05,(ts-lastTs)/1000);lastTs=ts;var dx=SPEED*dt;cactusX-=dx;groundOff+=dx;cactus.style.left=cactusX+'px';ground.style.backgroundPositionX=(-groundOff)+'px';if(cactusX<=TRIGGER){runState='paused';track.classList.add('paused');dinoAsk();return;}raf=requestAnimationFrame(dinoTick);}
             function dinoAsk(){
@@ -2582,21 +2603,32 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
             async function dinoWin(){
               runState='over';
               dinoStop();
-              track.classList.add('paused');
-              var msg=xp===DQ.length?'Hoàn hảo! Bạn chạy qua cả 10 trạm xương rồng và trả lời đúng ngay lần đầu!':'Bạn đã chạy qua cả 10 trạm xương rồng — đúng '+xp+'/10 câu ngay lần đầu. Chơi lại để đạt điểm tuyệt đối nhé!';
-              endEl.innerHTML='<div class="badge-win"><div class="badge-medal">🌵</div><h3>Về đích rồi!</h3><p>'+msg+'</p><p class="badge-xp">+'+xp+' XP · 4C Nội bộ</p><div style="display:flex;gap:10px;justify-content:center;margin-top:8px;flex-wrap:wrap"><button class="primary" id="dinoReplay" type="button">Chơi lại</button><button class="secondary" id="dinoMenu" type="button">Chọn game khác</button></div></div>';
-              endEl.hidden=false;
-              qPanel.hidden=true;
-              showToast('Về đích! +'+xp+' XP');
+              /* Kem 11/11: về đích thì Sóc chạy tới xương rồng về đích, rồi mới tung pháo giấy + bảng thắng. */
+              var finish=document.getElementById('dinoFinish');
+              var fastieEl=document.getElementById('dinoFastie');
+              var w=trackW();
+              if(finish)finish.hidden=false;
+              if(fastieEl)fastieEl.style.left=Math.max(70,w-160)+'px';
+              var xpToSave=xp;
               if(currentUser&&sb){
                 try{
-                  var r=await sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:'mini-game-chay-cung-fastie',score:xp,total:DQ.length,xp_earned:xp});
+                  var r=await sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:'mini-game-chay-cung-fastie',score:xpToSave,total:DQ.length,xp_earned:xpToSave});
                   if(r.error)throw r.error;
                   refreshMyStats();renderRanking('individual');
                 }catch(e){}
               }
-              document.getElementById('dinoReplay').addEventListener('click',function(){dinoStart();});
-              document.getElementById('dinoMenu').addEventListener('click',function(){dinoStop();showGameMenu();});
+              setTimeout(function(){
+                if(!document.body.contains(track))return;
+                track.classList.add('paused');
+                confettiBurst();
+                var msg=xpToSave===DQ.length?'Hoàn hảo! Bạn chạy qua cả 10 trạm xương rồng và trả lời đúng ngay lần đầu!':'Bạn đã chạy qua cả 10 trạm xương rồng — đúng '+xpToSave+'/10 câu ngay lần đầu. Chơi lại để đạt điểm tuyệt đối nhé!';
+                endEl.innerHTML='<div class="badge-win"><img class="celebrate-fastie" src="assets/fastie-celebrate.webp" alt="Sóc Fastie ăn mừng chiến thắng"><div class="badge-medal">🌵</div><h3>Về đích rồi!</h3><p>'+msg+'</p><p class="badge-xp">+'+xpToSave+' XP · 4C Nội bộ</p><div style="display:flex;gap:10px;justify-content:center;margin-top:8px;flex-wrap:wrap"><button class="primary" id="dinoReplay" type="button">Chơi lại</button><button class="secondary" id="dinoMenu" type="button">Chọn game khác</button></div></div>';
+                endEl.hidden=false;
+                qPanel.hidden=true;
+                showToast('Về đích! +'+xpToSave+' XP');
+                document.getElementById('dinoReplay').addEventListener('click',function(){dinoStart();});
+                document.getElementById('dinoMenu').addEventListener('click',function(){dinoStop();showGameMenu();});
+              },1250);
             }
             function dinoGameOver(){
               runState='over';
@@ -2670,7 +2702,8 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
             moodDone=true;
             var xp=moodCorrect*2; /* 5 bước × 2 XP, tối đa 10 XP */
             var msg=moodVal>=4?'Khách ra về rất hài lòng — bạn đúng là chiến binh FASTCARE!':(moodVal>=2?'Khách tạm hài lòng — luyện thêm để khách nào cũng vui nhé!':'Khách ra về chưa vui — luyện lại để lần sau tốt hơn nhé!');
-            activityBody.innerHTML='<div class="badge-win"><div class="badge-medal">'+MOOD_FACES[moodVal]+'</div><h3>Khách khó tính</h3><p>'+msg+'</p><p>Đúng '+moodCorrect+'/'+MOOD.length+' bước · Tâm trạng khách: '+MOOD_LABELS[moodVal]+'</p><p class="badge-xp">+'+xp+' XP</p><div style="display:flex;gap:10px;justify-content:center;margin-top:8px;flex-wrap:wrap"><button class="primary" id="moodReplay" type="button">Chơi lại</button><button class="secondary" id="moodMenu" type="button">Chọn game khác</button></div></div>';
+            activityBody.innerHTML='<div class="badge-win"><img class="celebrate-fastie" src="assets/fastie-celebrate.webp" alt="Sóc Fastie ăn mừng chiến thắng"><div class="badge-medal">'+MOOD_FACES[moodVal]+'</div><h3>Khách khó tính</h3><p>'+msg+'</p><p>Đúng '+moodCorrect+'/'+MOOD.length+' bước · Tâm trạng khách: '+MOOD_LABELS[moodVal]+'</p><p class="badge-xp">+'+xp+' XP</p><div style="display:flex;gap:10px;justify-content:center;margin-top:8px;flex-wrap:wrap"><button class="primary" id="moodReplay" type="button">Chơi lại</button><button class="secondary" id="moodMenu" type="button">Chọn game khác</button></div></div>';
+            confettiBurst();
             showToast('Hoàn thành Khách khó tính! +'+xp+' XP');
             if(currentUser&&sb){
               try{
@@ -2767,7 +2800,8 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
             if(spDone)return;
             spDone=true;speedStop();
             var xp=spCorrect; /* mỗi câu đúng 1 XP, tối đa 10 XP */
-            activityBody.innerHTML='<div class="badge-win"><div class="badge-medal">⏱️</div><h3>Đố nhanh 4C</h3><p>Bạn trả lời đúng '+spCorrect+'/'+SPEED.length+' tình huống trong 60 giây · Combo cao nhất: '+spBest+'</p><p class="badge-xp">+'+xp+' XP</p><div style="display:flex;gap:10px;justify-content:center;margin-top:8px;flex-wrap:wrap"><button class="primary" id="spReplay" type="button">Chơi lại</button><button class="secondary" id="spMenu" type="button">Chọn game khác</button></div></div>';
+            activityBody.innerHTML='<div class="badge-win"><img class="celebrate-fastie" src="assets/fastie-celebrate.webp" alt="Sóc Fastie ăn mừng chiến thắng"><div class="badge-medal">⏱️</div><h3>Đố nhanh 4C</h3><p>Bạn trả lời đúng '+spCorrect+'/'+SPEED.length+' tình huống trong 60 giây · Combo cao nhất: '+spBest+'</p><p class="badge-xp">+'+xp+' XP</p><div style="display:flex;gap:10px;justify-content:center;margin-top:8px;flex-wrap:wrap"><button class="primary" id="spReplay" type="button">Chơi lại</button><button class="secondary" id="spMenu" type="button">Chọn game khác</button></div></div>';
+            confettiBurst();
             showToast('Hoàn thành Đố nhanh 4C! +'+xp+' XP');
             if(currentUser&&sb){
               try{
@@ -2848,8 +2882,9 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
             document.getElementById('ordReset').disabled=true;
             var res=document.createElement('div');
             res.className='badge-win';
-            res.innerHTML='<div class="badge-medal">'+(allOk?'🎉':'💪')+'</div><h3>Xếp trình tự 4C</h3><p>Đúng '+correctPos+'/4 vị trí'+(allOk?' — hoàn hảo!':'')+'</p><p class="badge-xp">+'+xp+' XP</p><div style="display:flex;gap:10px;justify-content:center;margin-top:8px;flex-wrap:wrap"><button class="primary" id="ordReplay" type="button">Chơi lại</button><button class="secondary" id="ordMenu" type="button">Chọn game khác</button></div>';
+            res.innerHTML='<img class="celebrate-fastie" src="assets/fastie-celebrate.webp" alt="Sóc Fastie ăn mừng chiến thắng"><div class="badge-medal">'+(allOk?'🎉':'💪')+'</div><h3>Xếp trình tự 4C</h3><p>Đúng '+correctPos+'/4 vị trí'+(allOk?' — hoàn hảo!':'')+'</p><p class="badge-xp">+'+xp+' XP</p><div style="display:flex;gap:10px;justify-content:center;margin-top:8px;flex-wrap:wrap"><button class="primary" id="ordReplay" type="button">Chơi lại</button><button class="secondary" id="ordMenu" type="button">Chọn game khác</button></div>';
             activityBody.appendChild(res);
+            confettiBurst();
             showToast('Hoàn thành Xếp trình tự 4C! +'+xp+' XP');
             if(currentUser&&sb){
               try{

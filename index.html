@@ -649,6 +649,16 @@
      @keyframes dinoBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
      @media(prefers-reduced-motion:reduce){.dino-fastie{animation:none}}
      @media(max-width:640px){.dino-track{height:160px}.dino-fastie{width:60px;left:44px}}
+     /* ---- Hiệu ứng ăn mừng khi hoàn thành game (Sóc nảy lên + pháo giấy) — Kem chốt 11/11 ---- */
+     .confetti-layer{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:3000}
+     .confetti-piece{position:absolute;top:-16px;width:9px;height:14px;border-radius:2px;opacity:.95;animation:confettiFall linear forwards}
+     @keyframes confettiFall{0%{transform:translateY(-16px) rotate(0deg);opacity:1}85%{opacity:1}100%{transform:translateY(105vh) rotate(720deg);opacity:0}}
+     .celebrate-fastie{animation:jhop .8s ease 3}
+     .badge-win .celebrate-fastie{width:110px;height:auto;display:block;margin:0 auto 4px}
+     .dino-finish{position:absolute;right:24px;bottom:26px;width:52px;z-index:1;text-align:center}
+     .dino-finish svg{display:block;margin:0 auto}
+     .dino-finish-flag{position:absolute;top:-30px;left:50%;transform:translateX(-50%);font-size:26px;line-height:1;z-index:3}
+     .dino-fastie{transition:left 1.15s linear}
   </style>
 </head>
 <body class="locked">
