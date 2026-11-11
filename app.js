@@ -107,7 +107,7 @@
           var done=false;
           rows.forEach(function(r){if(r.lesson_id===LESSON_ID&&r.completed)done=true});
           if(done&&!lessonCompleted)completeCurrentLesson();
-          atts.forEach(function(a){if(a.lesson_id===SURVEY_ID&&a.score===a.total&&a.total===5)markModule1Done()});
+          atts.forEach(function(a){if(a.lesson_id===SURVEY_ID&&a.score===a.total&&(a.total===5||a.total===10))markModule1Done()});
           if(!done){var _cp=document.getElementById('currentProgress');if(_cp)_cp.style.width='0%'}
           myXp=totalXp;
           var _g4=false;atts.forEach(function(a){if(a.lesson_id==='mini-game-vuot-ai-4c')_g4=true});game4cDone=_g4;
@@ -770,7 +770,7 @@
         if(btn)btn.disabled=false;
       }
       function lessonLabel(id){
-        var map={'bai-3-4-van-hoa-phuc-vu':'Văn hoá phục vụ — Quiz 10 câu','khao-sat-module-01':'Khảo sát Bài 1 (5 câu)','mini-game-vuot-ai-4c':'Game Vượt ải 4C (tổng kết)','mini-game-vuot-ai-4c-ai-1':'Game 4C · Ải 1 Chủ động','mini-game-vuot-ai-4c-ai-2':'Game 4C · Ải 2 Cười','mini-game-vuot-ai-4c-ai-3':'Game 4C · Ải 3 Chào'};
+        var map={'bai-3-4-van-hoa-phuc-vu':'Văn hoá phục vụ — Quiz 10 câu','khao-sat-module-01':'Khảo sát Bài 1 (10 câu)','mini-game-vuot-ai-4c':'Game Vượt ải 4C (tổng kết)','mini-game-vuot-ai-4c-ai-1':'Game 4C · Ải 1 Chủ động','mini-game-vuot-ai-4c-ai-2':'Game 4C · Ải 2 Cười','mini-game-vuot-ai-4c-ai-3':'Game 4C · Ải 3 Chào'};
         return map[id]||id;
       }
       async function renderScopeProgress(){
@@ -2126,7 +2126,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         });
         var result=document.getElementById('surveyResult');
         if(answered<qs.length){result.textContent='Hãy trả lời đủ '+qs.length+' câu.';surveyProgress();return}
-        var score10=score*2; /* 5 câu -> thang điểm 10: mỗi câu đúng = 2 điểm */
+        var score10=score; /* 10 câu -> thang điểm 10: mỗi câu đúng = 1 điểm */
         result.textContent='Kết quả: '+score+'/'+qs.length+' câu đúng';
         var suc=document.getElementById('surveySuccess');
         if(suc){
