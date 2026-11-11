@@ -1430,6 +1430,27 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
       var deckBody=document.querySelector('.lesson-body.deck');if(deckBody){deckBody.addEventListener('click',function(e){var t=e.target;if(t&&t.classList&&t.classList.contains('deck-info')){var z=document.createElement('div');z.className='deck-zoomed';var im=document.createElement('img');im.src=t.src;im.alt=t.alt||'';z.appendChild(im);z.addEventListener('click',function(){z.remove()});document.body.appendChild(z)}})}
       if(welcomeOverlay){var tx=null;welcomeOverlay.addEventListener('touchstart',function(e){tx=e.changedTouches[0].clientX},{passive:true});welcomeOverlay.addEventListener('touchend',function(e){if(tx===null)return;var dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>40){showSlide(deckIdx+(dx<0?1:-1))}tx=null},{passive:true})}
       document.addEventListener('keydown',function(e){if(welcomeOverlay&&welcomeOverlay.classList.contains('open')){if(e.key==='ArrowRight')showSlide(deckIdx+1);if(e.key==='ArrowLeft')showSlide(deckIdx-1)}});
+      /* ---- Deck Chặng 4: 10 slide Văn hoá 4C (Nội bộ 5 rồi Khách hàng 5) — Kem chốt 11/11 ---- */
+      var c4Overlay=document.getElementById('c4Overlay');
+      function openC4(){if(!c4Overlay)return;var pr=document.getElementById('c4Proceed');if(pr)pr.textContent=lessonCompleted?'Chơi game 4C →':'Làm bài kiểm tra →';c4Overlay.classList.add('open');c4ShowSlide(0);document.body.style.overflow='hidden';var c=document.getElementById('closeC4');if(c)c.focus()}
+      function closeC4(){if(!c4Overlay)return;c4Overlay.classList.remove('open');document.body.style.overflow=''}
+      var c4Close=document.getElementById('closeC4');if(c4Close)c4Close.addEventListener('click',closeC4);
+      if(c4Overlay)c4Overlay.addEventListener('click',function(e){if(e.target===c4Overlay)closeC4()});
+      document.addEventListener('keydown',function(e){if(e.key==='Escape'&&c4Overlay&&c4Overlay.classList.contains('open'))closeC4()});
+      var c4Deck=document.getElementById('c4Deck');var c4Alts=['Văn hoá 4C — Nội bộ (tổng quan)','C1 · Chủ động — Nội bộ','C2 · Cười — Nội bộ','C3 · Chào — Nội bộ','C4 · Cảm ơn — Nội bộ','Văn hoá 4C — Khách hàng (tổng quan)','C1 · Chủ động — Khách hàng','C2 · Cười — Khách hàng','C3 · Chào — Khách hàng','C4 · Cảm ơn — Khách hàng'];if(c4Deck){if(typeof C4_SLIDES!=='undefined'&&C4_SLIDES.length){C4_SLIDES.forEach(function(src,j){var s=document.createElement('div');s.className='deck-slide'+(j===0?' active':'');var im=document.createElement('img');im.src=src;im.alt='Slide '+(j+1)+' · '+c4Alts[j];s.appendChild(im);c4Deck.appendChild(s)})}else{c4Deck.innerHTML='<p style="color:var(--muted)">Slide đang tải, bạn thử mở lại sau nhé.</p>'}}
+      var c4Slides=c4Overlay?c4Overlay.querySelectorAll('.deck-slide'):[];var c4DotsWrap=document.getElementById('c4DeckDots');if(c4DotsWrap&&c4Overlay){c4DotsWrap.innerHTML='';c4Slides.forEach(function(_,j){var b=document.createElement('button');b.type='button';b.className='deck-dot'+(j===0?' active':'');b.setAttribute('aria-label','Slide '+(j+1));b.addEventListener('click',function(){c4ShowSlide(j)});c4DotsWrap.appendChild(b)})}var c4Dots=c4DotsWrap?c4DotsWrap.querySelectorAll('.deck-dot'):[];var c4DeckCount=document.getElementById('c4DeckCount');var c4Idx=0;
+      function c4ShowSlide(i){if(!c4Slides.length)return;c4Idx=Math.max(0,Math.min(c4Slides.length-1,i));c4Slides.forEach(function(sl,j){sl.classList.toggle('active',j===c4Idx)});c4Dots.forEach(function(d,j){d.classList.toggle('active',j===c4Idx)});if(c4DeckCount)c4DeckCount.textContent=(c4Idx+1)+' / '+c4Slides.length;var pv=document.getElementById('c4DeckPrev');var nx=document.getElementById('c4DeckNext');if(pv)pv.disabled=c4Idx===0;if(nx)nx.disabled=c4Idx===c4Slides.length-1}
+      var c4dp=document.getElementById('c4DeckPrev');if(c4dp)c4dp.addEventListener('click',function(){c4ShowSlide(c4Idx-1)});
+      var c4dn=document.getElementById('c4DeckNext');if(c4dn)c4dn.addEventListener('click',function(){c4ShowSlide(c4Idx+1)});
+      if(c4Overlay){var c4tx=null;c4Overlay.addEventListener('touchstart',function(e){c4tx=e.changedTouches[0].clientX},{passive:true});c4Overlay.addEventListener('touchend',function(e){if(c4tx===null)return;var dx=e.changedTouches[0].clientX-c4tx;if(Math.abs(dx)>40){c4ShowSlide(c4Idx+(dx<0?1:-1))}c4tx=null},{passive:true})}
+      document.addEventListener('keydown',function(e){if(c4Overlay&&c4Overlay.classList.contains('open')){if(e.key==='ArrowRight')c4ShowSlide(c4Idx+1);if(e.key==='ArrowLeft')c4ShowSlide(c4Idx-1)}});
+      /* Nút tiếp tục trong overlay Chặng 4: đóng deck rồi sang quiz (chưa xong quiz) hoặc game (đã xong quiz). */
+      var c4ProceedBtn=document.getElementById('c4Proceed');
+      if(c4ProceedBtn)c4ProceedBtn.addEventListener('click',function(){
+        closeC4();
+        if(!lessonCompleted){openLesson(null);return;}
+        var gb=document.getElementById('gameEntryBtn');if(gb)gb.click();
+      });
       overlay.addEventListener('click',function(e){if(e.target===overlay)closeLesson()});
       document.addEventListener('keydown',function(e){if(e.key==='Escape'&&overlay.classList.contains('open'))closeLesson()});
       document.querySelectorAll('.question').forEach(function(q){q.querySelectorAll('.option').forEach(function(opt,idx){opt.addEventListener('click',function(){q.querySelectorAll('.option').forEach(function(o){o.classList.remove('selected')});opt.classList.add('selected');q.dataset.selected=idx})})});
@@ -1948,7 +1969,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         {id:'khao-sat-module-01',name:'Chào mừng đến với FASTCARE',desc:'Văn hoá, lịch sử hình thành · +10 XP',kind:'deck'},
         {id:'quy-dinh-noi-quy',name:'Quy định - Nội quy',desc:'Nội quy, quy định làm việc tại FASTCARE.',kind:'placeholder'},
         {id:'phuc-loi',name:'Phúc lợi',desc:'Chính sách, chế độ phúc lợi dành cho nhân sự.',kind:'placeholder'},
-        {id:'quy-tac-4c-5s',name:'Quy tắc 4C - 5S',desc:'Văn hoá phục vụ 4C · Quy tắc 5S · +20 XP',kind:'lesson4c'},
+        {id:'quy-tac-4c-5s',name:'Quy tắc 4C',desc:'Văn hoá 4C — Nội bộ & Khách hàng · +20 XP',kind:'lesson4c'},
         {id:'muoi-hai-khong',name:'12 "Không" tại FASTCARE',desc:'12 điều không được làm tại FASTCARE.',kind:'placeholder'}
       ];
       function commonLessonDone(i){
@@ -2043,8 +2064,9 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         if(L.kind==='placeholder'){showToast('Nội dung chặng này đang được chuẩn bị');return;}
         if(L.kind==='deck'){openWelcome();return;}
         if(L.kind==='lesson4c'){
-          if(!lessonCompleted){openLesson(btn||null);return;}
-          var gb=document.getElementById('gameEntryBtn');if(gb){gb.click();return;}
+          /* Chặng 4C mở deck 10 slide Văn hoá 4C trước (Nội bộ 5 rồi Khách hàng 5);
+             bấm nút trong overlay mới sang quiz/game (Kem chốt 11/11). */
+          openC4();
           return;
         }
         openLesson(btn||null);
