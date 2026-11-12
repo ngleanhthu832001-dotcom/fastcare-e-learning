@@ -1468,6 +1468,23 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
       /* Nút "Đã xem xong" trong overlay Chặng 5: chỉ đóng deck (chặng đọc, chưa có quiz/game). */
       var c5DoneBtn=document.getElementById('c5Done');
       if(c5DoneBtn)c5DoneBtn.addEventListener('click',function(){closeC5()});
+      /* ---- Deck Chặng 2: 5 slide Đồng phục (Cửa hàng: Nữ, Nam, Kỹ thuật Trưởng/Leader → Văn phòng: Nữ, Nam) — Kem chốt 12/11 ---- */
+      var c2Overlay=document.getElementById('c2Overlay');
+      function openC2(){if(!c2Overlay)return;c2Overlay.classList.add('open');c2ShowSlide(0);document.body.style.overflow='hidden';var c=document.getElementById('closeC2');if(c)c.focus()}
+      function closeC2(){if(!c2Overlay)return;c2Overlay.classList.remove('open');document.body.style.overflow=''}
+      var c2Close=document.getElementById('closeC2');if(c2Close)c2Close.addEventListener('click',closeC2);
+      if(c2Overlay)c2Overlay.addEventListener('click',function(e){if(e.target===c2Overlay)closeC2()});
+      document.addEventListener('keydown',function(e){if(e.key==='Escape'&&c2Overlay&&c2Overlay.classList.contains('open'))closeC2()});
+      var c2Deck=document.getElementById('c2Deck');var c2Alts=['Đồng phục Khối Cửa hàng — Nhân viên nữ','Đồng phục Khối Cửa hàng — Nhân viên nam','Đồng phục Khối Cửa hàng — Kỹ thuật Trưởng / Kỹ thuật Leader','Đồng phục Khối Văn phòng — Nhân viên nữ','Đồng phục Khối Văn phòng — Nhân viên nam'];if(c2Deck){if(typeof C2_SLIDES!=='undefined'&&C2_SLIDES.length){C2_SLIDES.forEach(function(src,j){var s=document.createElement('div');s.className='deck-slide'+(j===0?' active':'');var im=document.createElement('img');im.src=src;im.alt='Slide '+(j+1)+' · '+c2Alts[j];s.appendChild(im);c2Deck.appendChild(s)})}else{c2Deck.innerHTML='<p style="color:var(--muted)">Slide đang tải, bạn thử mở lại sau nhé.</p>'}}
+      var c2Slides=c2Overlay?c2Overlay.querySelectorAll('.deck-slide'):[];var c2DotsWrap=document.getElementById('c2DeckDots');if(c2DotsWrap&&c2Overlay){c2DotsWrap.innerHTML='';c2Slides.forEach(function(_,j){var b=document.createElement('button');b.type='button';b.className='deck-dot'+(j===0?' active':'');b.setAttribute('aria-label','Slide '+(j+1));b.addEventListener('click',function(){c2ShowSlide(j)});c2DotsWrap.appendChild(b)})}var c2Dots=c2DotsWrap?c2DotsWrap.querySelectorAll('.deck-dot'):[];var c2DeckCount=document.getElementById('c2DeckCount');var c2Idx=0;
+      function c2ShowSlide(i){if(!c2Slides.length)return;c2Idx=Math.max(0,Math.min(c2Slides.length-1,i));c2Slides.forEach(function(sl,j){sl.classList.toggle('active',j===c2Idx)});c2Dots.forEach(function(d,j){d.classList.toggle('active',j===c2Idx)});if(c2DeckCount)c2DeckCount.textContent=(c2Idx+1)+' / '+c2Slides.length;var pv=document.getElementById('c2DeckPrev');var nx=document.getElementById('c2DeckNext');if(pv)pv.disabled=c2Idx===0;if(nx)nx.disabled=c2Idx===c2Slides.length-1}
+      var c2dp=document.getElementById('c2DeckPrev');if(c2dp)c2dp.addEventListener('click',function(){c2ShowSlide(c2Idx-1)});
+      var c2dn=document.getElementById('c2DeckNext');if(c2dn)c2dn.addEventListener('click',function(){c2ShowSlide(c2Idx+1)});
+      if(c2Overlay){var c2tx=null;c2Overlay.addEventListener('touchstart',function(e){c2tx=e.changedTouches[0].clientX},{passive:true});c2Overlay.addEventListener('touchend',function(e){if(c2tx===null)return;var dx=e.changedTouches[0].clientX-c2tx;if(Math.abs(dx)>40){c2ShowSlide(c2Idx+(dx<0?1:-1))}c2tx=null},{passive:true})}
+      document.addEventListener('keydown',function(e){if(c2Overlay&&c2Overlay.classList.contains('open')){if(e.key==='ArrowRight')c2ShowSlide(c2Idx+1);if(e.key==='ArrowLeft')c2ShowSlide(c2Idx-1)}});
+      /* Nút "Đã xem xong" trong overlay Chặng 2: chỉ đóng deck (chặng đọc, chưa có quiz/game). */
+      var c2DoneBtn=document.getElementById('c2Done');
+      if(c2DoneBtn)c2DoneBtn.addEventListener('click',function(){closeC2()});
       overlay.addEventListener('click',function(e){if(e.target===overlay)closeLesson()});
       document.addEventListener('keydown',function(e){if(e.key==='Escape'&&overlay.classList.contains('open'))closeLesson()});
       document.querySelectorAll('.question').forEach(function(q){q.querySelectorAll('.option').forEach(function(opt,idx){opt.addEventListener('click',function(){q.querySelectorAll('.option').forEach(function(o){o.classList.remove('selected')});opt.classList.add('selected');q.dataset.selected=idx})})});
@@ -1984,7 +2001,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
       }
       var COMMON_LESSONS=[
         {id:'khao-sat-module-01',name:'Chào mừng đến với FASTCARE',desc:'Văn hoá, lịch sử hình thành · +10 XP',kind:'deck'},
-        {id:'quy-dinh-noi-quy',name:'Quy định - Nội quy',desc:'Nội quy, quy định làm việc tại FASTCARE.',kind:'placeholder'},
+        {id:'quy-dinh-noi-quy',name:'Quy định - Nội quy',desc:'Đồng phục khối Cửa hàng & khối Văn phòng.',kind:'khong'},
         {id:'phuc-loi',name:'Phúc lợi',desc:'Chính sách, chế độ phúc lợi dành cho nhân sự.',kind:'placeholder'},
         {id:'quy-tac-4c-5s',name:'Quy tắc 4C',desc:'Văn hoá 4C — Nội bộ & Khách hàng · +20 XP',kind:'lesson4c'},
         {id:'muoi-hai-khong',name:'Quy định 4 Không và 12 Không tại FASTCARE',desc:'12 Không nội bộ + 4 Không với khách hàng.',kind:'khong'}
@@ -2088,7 +2105,8 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
           return;
         }
         if(L.kind==='khong'){
-          /* Chặng 5 mở deck 16 slide Quy định 4 Không và 12 Không (12 Không trước, 4 Không sau) — Kem chốt 11/11. */
+          /* Chặng 2 (đồng phục) và Chặng 5 (4 Không/12 Không) đều là chặng đọc — mở deck riêng theo id (Kem chốt 12/11). */
+          if(L.id==='quy-dinh-noi-quy'){openC2();return;}
           openC5();
           return;
         }
