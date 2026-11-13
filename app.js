@@ -1580,15 +1580,9 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
       }
       function reminderItems(){
         var items=[];
-        for(var i=0;i<COMMON_LESSONS.length;i++){
-          if(commonLessonDone(i))continue;
-          var _s=lessonSetting(COMMON_LESSONS[i].id);
-          if(_s&&!_s.is_open)continue; /* admin đã đóng chặng này thì không nhắc */
-          var ms=lessonDeadlineMs(COMMON_LESSONS[i].id);
-          if(ms===null)continue;
-          var left=ms-Date.now();
-          items.push({kind:'lesson',idx:i,id:COMMON_LESSONS[i].id,name:COMMON_LESSONS[i].name,deadline:lessonSetting(COMMON_LESSONS[i].id).deadline,ms:left,expired:left<=0,urgent:left>0&&left<=URGENT_DAYS*24*3600*1000});
-        }
+        /* Lộ trình chung không có deadline (Kem chốt 13/11) nên chặng không tạo
+           mục nhắc đếm ngược/hết hạn nữa — chỉ còn nhắc bộ khảo sát (ann).
+           Phần "Bạn còn X bài chưa làm" trong renderReminders vẫn đếm chặng đang mở. */
         items=items.concat(annReminderItems());
         items.sort(function(a,b){return a.ms-b.ms});
         return items;
