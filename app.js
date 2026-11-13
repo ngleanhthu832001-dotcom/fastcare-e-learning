@@ -112,6 +112,7 @@
           rows.forEach(function(r){if(r.lesson_id===LESSON_ID&&r.completed)done=true});
           atts.forEach(function(a){if(a.lesson_id===LESSON_ID)done=true;});
           if(done&&!lessonCompleted)completeCurrentLesson();
+          rows.forEach(function(r){if(r.lesson_id==='phuc-loi'&&r.completed)c3Viewed=true});
           atts.forEach(function(a){if(a.lesson_id===SURVEY_ID)markModule1Done()});
           atts.forEach(function(a){if(a.lesson_id===SURVEY2_ID&&a.score===a.total&&a.total===10){var b2=document.getElementById('submitSurvey2');if(b2){b2.disabled=true;b2.textContent='Đã hoàn thành';}}});
           atts.forEach(function(a){if(a.lesson_id===SURVEY5_ID&&a.score===a.total&&a.total===10){var b5=document.getElementById('submitSurvey5');if(b5){b5.disabled=true;b5.textContent='Đã hoàn thành';}}});
@@ -1414,6 +1415,7 @@
       var overlay=document.getElementById('lessonOverlay');
       var lastFocus=null;
       var lessonCompleted=false;
+      var c3Viewed=false; /* Chặng 3 Phúc lợi: xem xong deck thì xong (chưa có quiz 10 câu — Kem chốt sau) */
       function openLesson(btn){
         lastFocus=btn;
         overlay.classList.add('open');document.body.style.overflow='hidden';
@@ -1494,6 +1496,25 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
       /* Nút "Đã xem xong" trong overlay Chặng 2: chỉ đóng deck (chặng đọc, chưa có quiz/game). */
       var c2DoneBtn=document.getElementById('c2Done');
       if(c2DoneBtn)c2DoneBtn.addEventListener('click',function(){var qz=document.getElementById('c2Quiz');if(qz)qz.scrollIntoView({behavior:'smooth',block:'start'})});
+      /* ---- Deck Chặng 3: 5 slide Phúc lợi (bìa -> Thăm hỏi -> Quà lễ, Tết -> Động viên -> Phong trào thi đua) — Kem chốt 13/11 ----
+         Chặng đọc, chưa có quiz 10 câu: nút "Đã xem xong" ghi nhận đã xem (lesson_progress lesson_id='phuc-loi', 0 XP)
+         để mở tuần tự Chặng 4; khi nào Kem chốt bộ 10 câu thì đổi sang tính bằng quiz như Chặng 2/5. */
+      var c3Overlay=document.getElementById('c3Overlay');
+      function openC3(){if(!c3Overlay)return;c3Overlay.classList.add('open');c3ShowSlide(0);document.body.style.overflow='hidden';var c=document.getElementById('closeC3');if(c)c.focus()}
+      function closeC3(){if(!c3Overlay)return;c3Overlay.classList.remove('open');document.body.style.overflow=''}
+      var c3Close=document.getElementById('closeC3');if(c3Close)c3Close.addEventListener('click',closeC3);
+      if(c3Overlay)c3Overlay.addEventListener('click',function(e){if(e.target===c3Overlay)closeC3()});
+      document.addEventListener('keydown',function(e){if(e.key==='Escape'&&c3Overlay&&c3Overlay.classList.contains('open'))closeC3()});
+      var c3Deck=document.getElementById('c3Deck');var c3Alts=['Chặng 3 — Phúc lợi (mở đầu)','Thăm hỏi, trợ cấp','Quà lễ, Tết','Động viên, khen thưởng','Phong trào thi đua'];if(c3Deck){if(typeof C3_SLIDES!=='undefined'&&C3_SLIDES.length){C3_SLIDES.forEach(function(src,j){var s=document.createElement('div');s.className='deck-slide'+(j===0?' active':'');var im=document.createElement('img');im.src=src;im.alt='Slide '+(j+1)+' · '+c3Alts[j];s.appendChild(im);c3Deck.appendChild(s)})}else{c3Deck.innerHTML='<p style="color:var(--muted)">Slide đang tải, bạn thử mở lại sau nhé.</p>'}}
+      var c3Slides=c3Overlay?c3Overlay.querySelectorAll('.deck-slide'):[];var c3DotsWrap=document.getElementById('c3DeckDots');if(c3DotsWrap&&c3Overlay){c3DotsWrap.innerHTML='';c3Slides.forEach(function(_,j){var b=document.createElement('button');b.type='button';b.className='deck-dot'+(j===0?' active':'');b.setAttribute('aria-label','Slide '+(j+1));b.addEventListener('click',function(){c3ShowSlide(j)});c3DotsWrap.appendChild(b)})}var c3Dots=c3DotsWrap?c3DotsWrap.querySelectorAll('.deck-dot'):[];var c3DeckCount=document.getElementById('c3DeckCount');var c3Idx=0;
+      function c3ShowSlide(i){if(!c3Slides.length)return;c3Idx=Math.max(0,Math.min(c3Slides.length-1,i));c3Slides.forEach(function(sl,j){sl.classList.toggle('active',j===c3Idx)});c3Dots.forEach(function(d,j){d.classList.toggle('active',j===c3Idx)});if(c3DeckCount)c3DeckCount.textContent=(c3Idx+1)+' / '+c3Slides.length;var pv=document.getElementById('c3DeckPrev');var nx=document.getElementById('c3DeckNext');if(pv)pv.disabled=c3Idx===0;if(nx)nx.disabled=c3Idx===c3Slides.length-1}
+      var c3dp=document.getElementById('c3DeckPrev');if(c3dp)c3dp.addEventListener('click',function(){c3ShowSlide(c3Idx-1)});
+      var c3dn=document.getElementById('c3DeckNext');if(c3dn)c3dn.addEventListener('click',function(){c3ShowSlide(c3Idx+1)});
+      if(c3Overlay){var c3tx=null;c3Overlay.addEventListener('touchstart',function(e){c3tx=e.changedTouches[0].clientX},{passive:true});c3Overlay.addEventListener('touchend',function(e){if(c3tx===null)return;var dx=e.changedTouches[0].clientX-c3tx;if(Math.abs(dx)>40){c3ShowSlide(c3Idx+(dx<0?1:-1))}c3tx=null},{passive:true})}
+      document.addEventListener('keydown',function(e){if(c3Overlay&&c3Overlay.classList.contains('open')){if(e.key==='ArrowRight')c3ShowSlide(c3Idx+1);if(e.key==='ArrowLeft')c3ShowSlide(c3Idx-1)}});
+      async function markC3Viewed(){if(c3Viewed)return true;if(!currentUser)return false;try{var r=await sb.from('lesson_progress').upsert({user_id:currentUser.id,lesson_id:'phuc-loi',completed:true,xp_earned:0},{onConflict:'user_id,lesson_id'});if(r.error)throw r.error;c3Viewed=true;refreshMyStats();return true}catch(e){dbErrorToast();return false}}
+      var c3DoneBtn=document.getElementById('c3Done');
+      if(c3DoneBtn)c3DoneBtn.addEventListener('click',async function(){var ok=await markC3Viewed();closeC3();if(ok)showToast('Đã ghi nhận bạn đã xem xong Chặng 3 — Chặng 4 đã mở')});
       overlay.addEventListener('click',function(e){if(e.target===overlay)closeLesson()});
       document.addEventListener('keydown',function(e){if(e.key==='Escape'&&overlay.classList.contains('open'))closeLesson()});
       document.querySelectorAll('.question').forEach(function(q){q.querySelectorAll('.option').forEach(function(opt,idx){opt.addEventListener('click',function(){q.querySelectorAll('.option').forEach(function(o){o.classList.remove('selected')});opt.classList.add('selected');q.dataset.selected=idx})})});
@@ -2003,7 +2024,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
       var COMMON_LESSONS=[
         {id:'khao-sat-module-01',name:'Chào mừng đến với FASTCARE',desc:'Văn hoá, lịch sử hình thành · +10 XP',kind:'deck'},
         {id:'quy-dinh-noi-quy',name:'Quy định - Nội quy',desc:'Đồng phục khối Cửa hàng & khối Văn phòng.',kind:'khong'},
-        {id:'phuc-loi',name:'Phúc lợi',desc:'Chính sách, chế độ phúc lợi dành cho nhân sự.',kind:'placeholder'},
+        {id:'phuc-loi',name:'Phúc lợi',desc:'Chính sách, chế độ phúc lợi dành cho nhân sự.',kind:'phucloi'},
         {id:'quy-tac-4c-5s',name:'Quy tắc 4C',desc:'Văn hoá 4C — Nội bộ & Khách hàng · +20 XP',kind:'lesson4c'},
         {id:'muoi-hai-khong',name:'Quy định 4 Không và 12 Không tại FASTCARE',desc:'12 Không nội bộ + 4 Không với khách hàng.',kind:'khong'}
       ];
@@ -2025,9 +2046,10 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
       function commonLessonDone(i){
         if(i===0)return module1Done;
         if(i===1)return hasAttemptFor(SURVEY2_ID);
+        if(i===2)return c3Viewed;
         if(i===3)return lessonCompleted&&game4cDone;
         if(i===4)return hasAttemptFor(SURVEY5_ID);
-        return false; /* Chặng 3 chưa có nội dung */
+        return false;
       }
       function commonLessonOpen(i){
         if(commonLessonDone(i))return true; /* đã xong thì vẫn mở để xem lại / chơi lại */
@@ -2040,7 +2062,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         return true;
       }
       function currentCommonLessonIdx(){
-        for(var i=0;i<COMMON_LESSONS.length;i++){if(COMMON_LESSONS[i].kind==='khong')continue; /* chặng đọc (Không) không chặn "đã hoàn thành" của lộ trình /3 */
+        for(var i=0;i<COMMON_LESSONS.length;i++){
           if(!commonLessonDone(i)&&commonLessonOpen(i))return i;}
         return -1;
       }
@@ -2104,6 +2126,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
           openC4();
           return;
         }
+        if(L.kind==='phucloi'){openC3();return;}
         if(L.kind==='khong'){
           /* Chặng 2 (đồng phục) và Chặng 5 (4 Không/12 Không) đều là chặng đọc — mở deck riêng theo id (Kem chốt 12/11). */
           if(L.id==='quy-dinh-noi-quy'){openC2();return;}
@@ -3052,11 +3075,12 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         var done=0;
         if(module1Done)done++;
         if(hasAttemptFor(SURVEY2_ID))done++;
+        if(c3Viewed)done++;
         if(commonLessonDone(3))done++;
         if(hasAttemptFor(SURVEY5_ID))done++;
-        return{done:done,total:4};
+        return{done:done,total:5};
       }
-      function commonDone(){return commonProgress().done>=4}
+      function commonDone(){return commonProgress().done>=5}
       function detectBlock(){
         var d=myProfile&&myProfile.department?String(myProfile.department):'';
         return d.indexOf('Chi nhánh')===0?'cuahang':'vanphong';
