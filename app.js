@@ -10,6 +10,7 @@
       var SURVEY5_ID='khao-sat-chang-5';
       var SURVEY_XP=10;
       var module1Done=false;
+      var myQuizAttempts=[];
       var sb=null,currentUser=null,userRole='staff',myProfile=null;
       function fmt(n){return Number(n||0).toLocaleString('vi-VN')}
       function initials(name){if(!name)return'?';var p=String(name).trim().split(/\s+/);if(p.length>1){return (p[p.length-2].charAt(0)+p[p.length-1].charAt(0)).toUpperCase()}return p[0].substring(0,2).toUpperCase()}
@@ -93,6 +94,7 @@
           if(qa.error)throw qa.error;
           var aa=await sb.from('announcement_attempts').select('xp_earned,updated_at').eq('user_id',currentUser.id);
           var rows=lp.data||[],atts=qa.data||[],annAtts=(aa&&!aa.error)?(aa.data||[]):[];
+          myQuizAttempts=atts;
           var totalXp=0,completed=0,weekXp=0;
           var weekAgo=Date.now()-7*24*3600*1000;
           rows.forEach(function(r){totalXp+=r.xp_earned||0;if(r.completed)completed++;if(r.updated_at&&new Date(r.updated_at).getTime()>weekAgo)weekXp+=r.xp_earned||0});
@@ -108,8 +110,9 @@
           if(qNote)qNote.textContent=atts.length?atts.length+' lượt làm bài':'Chưa có dữ liệu';
           var done=false;
           rows.forEach(function(r){if(r.lesson_id===LESSON_ID&&r.completed)done=true});
+          atts.forEach(function(a){if(a.lesson_id===LESSON_ID)done=true;});
           if(done&&!lessonCompleted)completeCurrentLesson();
-          atts.forEach(function(a){if(a.lesson_id===SURVEY_ID&&a.score===a.total&&(a.total===5||a.total===10))markModule1Done()});
+          atts.forEach(function(a){if(a.lesson_id===SURVEY_ID)markModule1Done()});
           atts.forEach(function(a){if(a.lesson_id===SURVEY2_ID&&a.score===a.total&&a.total===10){var b2=document.getElementById('submitSurvey2');if(b2){b2.disabled=true;b2.textContent='Đã hoàn thành';}}});
           atts.forEach(function(a){if(a.lesson_id===SURVEY5_ID&&a.score===a.total&&a.total===10){var b5=document.getElementById('submitSurvey5');if(b5){b5.disabled=true;b5.textContent='Đã hoàn thành';}}});
           if(!done){var _cp=document.getElementById('currentProgress');if(_cp)_cp.style.width='0%'}
@@ -124,17 +127,19 @@
       async function saveLessonProgress(){
         if(!currentUser)return false;
         try{
-          var r=await sb.from('lesson_progress').upsert({user_id:currentUser.id,lesson_id:LESSON_ID,completed:true,xp_earned:LESSON_XP},{onConflict:'user_id,lesson_id'});
+          var r=await sb.from('lesson_progress').upsert({user_id:currentUser.id,lesson_id:LESSON_ID,completed:true,xp_earned:0},{onConflict:'user_id,lesson_id'}); /* XP lấy từ quiz_attempts (delta), không đếm trùng */
           if(r.error)throw r.error;
           return true;
         }catch(e){dbErrorToast();return false}
       }
       async function recordQuizAttempt(score,total){
-        if(!currentUser)return;
+        if(!currentUser)return 0;
+        var delta=xpDeltaFor(LESSON_ID,score);
         try{
-          var r=await sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:LESSON_ID,score:score,total:total,xp_earned:score===total?LESSON_XP:0});
+          var r=await sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:LESSON_ID,score:score,total:total,xp_earned:delta});
           if(r.error)throw r.error;
         }catch(e){dbErrorToast()}
+        return delta;
       }
       function emptyRankHTML(){return '<p class="muted-center">Chưa có dữ liệu — hãy là người đầu tiên học!</p>'}
       async function renderRanking(scope){
@@ -1509,9 +1514,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
       function lessonSetting(id){return lessonSettings[id]||null}
       function lessonDeadlineMs(id){var s=lessonSetting(id);if(!s||!s.deadline)return null;var t=new Date(s.deadline).getTime();return isNaN(t)?null:t}
       function commonLessonExpired(i){
-        if(commonLessonDone(i))return false;
-        var ms=lessonDeadlineMs(COMMON_LESSONS[i].id);
-        return ms!==null&&Date.now()>ms;
+        return false; /* Lộ trình chung không có deadline (Kem chốt 13/11) */
       }
       async function loadLessonSettings(){
         lessonSettings={};lessonSettingsLoaded=false;
@@ -2010,27 +2013,37 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         {id:'quy-tac-4c-5s',name:'Quy tắc 4C',desc:'Văn hoá 4C — Nội bộ & Khách hàng · +20 XP',kind:'lesson4c'},
         {id:'muoi-hai-khong',name:'Quy định 4 Không và 12 Không tại FASTCARE',desc:'12 Không nội bộ + 4 Không với khách hàng.',kind:'khong'}
       ];
+      function bestScoreFor(lessonId){
+        var best=0;
+        (myQuizAttempts||[]).forEach(function(a){if(a.lesson_id===lessonId&&(a.score||0)>best)best=a.score||0;});
+        return best;
+      }
+      function hasAttemptFor(lessonId){
+        return (myQuizAttempts||[]).some(function(a){return a.lesson_id===lessonId;});
+      }
+      function xpDeltaFor(lessonId,score){
+        return Math.max(0,score-bestScoreFor(lessonId));
+      }
+      function prevCommonIdx(i){
+        for(var j=i-1;j>=0;j--){if(COMMON_LESSONS[j].kind!=='placeholder')return j;}
+        return -1;
+      }
       function commonLessonDone(i){
         if(i===0)return module1Done;
-        if(i===3)return lessonCompleted&&game4cDone; /* chặng 4C xong khi làm xong cả quiz lẫn game */
-        return false;
+        if(i===1)return hasAttemptFor(SURVEY2_ID);
+        if(i===3)return lessonCompleted&&game4cDone;
+        if(i===4)return hasAttemptFor(SURVEY5_ID);
+        return false; /* Chặng 3 chưa có nội dung */
       }
       function commonLessonOpen(i){
         if(commonLessonDone(i))return true; /* đã xong thì vẫn mở để xem lại / chơi lại */
-        var s=lessonSetting(COMMON_LESSONS[i].id);
-        if(s){
-          if(!s.is_open)return false;
-          /* QTV test (Kem chốt 09/11): admin mở được mọi chặng đã mở, kể cả hết hạn; không bị kẹt ở chặng 4 vì chưa xong chặng 1. Nhân sự vẫn khóa như cũ. */
-          if(userRole==='admin')return true;
-          if(commonLessonExpired(i))return false; /* quá hạn mà chưa xong → khóa */
-          if(i===3)return commonLessonDone(0); /* chặng 4C vẫn cần xong chặng 1 (quy tắc 04/11) */
-          return true;
-        }
-        /* Chưa có dòng trong bảng (chưa chạy SQL v12) → mặc định cũ. */
-        if(userRole==='admin')return COMMON_LESSONS[i].kind!=='placeholder';
-        if(i===0)return true;
         if(COMMON_LESSONS[i].kind==='placeholder')return false;
-        return commonLessonDone(0); /* chặng 4C mở sau khi xong chặng 1 — không bị kẹt sau các chặng chưa có nội dung */
+        var s=lessonSetting(COMMON_LESSONS[i].id);
+        if(s&&!s.is_open)return false;
+        if(userRole==='admin')return true; /* QTV test: mở được mọi chặng đã mở, không bị kẹt chuỗi */
+        var prev=prevCommonIdx(i);
+        if(prev>=0&&!commonLessonDone(prev))return false; /* mở tuần tự: xong chặng trước mới mở chặng này */
+        return true;
       }
       function currentCommonLessonIdx(){
         for(var i=0;i<COMMON_LESSONS.length;i++){if(COMMON_LESSONS[i].kind==='khong')continue; /* chặng đọc (Không) không chặn "đã hoàn thành" của lộ trình /3 */
@@ -2139,7 +2152,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         document.getElementById('heroTitle').textContent='Chuẩn tác phong tạo nên sự chuyên nghiệp.';
         document.getElementById('heroAction').innerHTML='Bài tiếp theo · 8 phút <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg>';
       }
-      document.getElementById('submitQuiz').addEventListener('click',function(){
+      document.getElementById('submitQuiz').addEventListener('click',async function(){
         var questions=document.querySelectorAll('.question');var answered=0,score=0;
         questions.forEach(function(q){
           var selected=q.dataset.selected;if(selected!==undefined){answered++}
@@ -2151,17 +2164,17 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         successCard.classList.remove('show');
         if(answered<questions.length){result.textContent='Hãy trả lời đủ '+questions.length+' câu.';return}
         result.textContent='Kết quả: '+score+'/'+questions.length+' câu đúng';
-        recordQuizAttempt(score,questions.length);
+        var _dq=await recordQuizAttempt(score,questions.length);
+        completeCurrentLesson();
         if(score===questions.length){
           successCard.classList.add('show');
           document.getElementById('submitQuiz').style.display='none';
           document.getElementById('completionActions').classList.add('show');
-          completeCurrentLesson();
           successCard.scrollIntoView({behavior:'smooth',block:'nearest'});
-          showToast('Xuất sắc! Đã cộng '+LESSON_XP+' XP và mở bài tiếp theo');
+          showToast('Xuất sắc! Đã cộng '+_dq+' XP và mở bài tiếp theo');
         }else{
           document.getElementById('submitQuiz').textContent='Nộp lại bài kiểm tra';
-          showToast('Bạn có thể chọn lại đáp án rồi nộp lại');
+          showToast(_dq>0?'Đã cộng '+_dq+' XP — làm lại để tăng điểm nhé':'Bạn có thể chọn lại đáp án rồi nộp lại');
         }
       });
       function markModule1Done(){
@@ -2183,23 +2196,24 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         var result=document.getElementById('surveyResult');
         if(answered<qs.length){result.textContent='Hãy trả lời đủ '+qs.length+' câu.';surveyProgress();return}
         var score10=score; /* 10 câu -> thang điểm 10: mỗi câu đúng = 1 điểm */
+        var _d1=xpDeltaFor(SURVEY_ID,score);
         result.textContent='Kết quả: '+score+'/'+qs.length+' câu đúng';
         var suc=document.getElementById('surveySuccess');
         if(suc){
           var st=document.getElementById('surveySuccessTitle');if(st)st.textContent=score===qs.length?'Chúc mừng bạn đã hoàn thành bài tập!':'Bạn đã nộp bài!';
-          var sx=document.getElementById('surveySuccessText');if(sx)sx.textContent='Số điểm của bạn là '+score10+'/10'+(score===qs.length?' · +'+SURVEY_XP+' XP — Bài 1 đã hoàn thành!':' · Chọn lại đáp án rồi nộp lại để cải thiện điểm nhé.');
+          var sx=document.getElementById('surveySuccessText');if(sx)sx.textContent='Số điểm của bạn là '+score10+'/10'+(score===qs.length?' · +'+_d1+' XP — Bài 1 đã hoàn thành!':(_d1>0?' · +'+_d1+' XP — làm lại để tăng điểm nhé.':' · Chọn lại đáp án rồi nộp lại để cải thiện điểm nhé.'));
           suc.classList.remove('show');void suc.offsetWidth;suc.classList.add('show');
           suc.scrollIntoView({behavior:'smooth',block:'nearest'});
         }
-        if(currentUser){try{var r=await sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:SURVEY_ID,score:score,total:qs.length,xp_earned:score===qs.length?SURVEY_XP:0});if(r.error)throw r.error}catch(e){dbErrorToast()}}
+        if(currentUser){try{var r=await sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:SURVEY_ID,score:score,total:qs.length,xp_earned:_d1});if(r.error)throw r.error}catch(e){dbErrorToast()}}
         var sBtn=document.getElementById('submitSurvey');
+        markModule1Done();refreshMyStats();
         if(score===qs.length){
-          markModule1Done();refreshMyStats();
           sBtn.disabled=true;sBtn.textContent='Đã hoàn thành';
-          showToast('Xuất sắc! Đã cộng '+SURVEY_XP+' XP và hoàn thành Bài 1');
+          showToast('Xuất sắc! Đã cộng '+_d1+' XP và hoàn thành Bài 1');
         }else{
           sBtn.textContent='Nộp lại bài';
-          showToast('Bạn có thể chọn lại đáp án rồi nộp lại');
+          showToast(_d1>0?'Đã cộng '+_d1+' XP — làm lại để tăng điểm nhé':'Bạn có thể chọn lại đáp án rồi nộp lại');
         }
       });
       /* ---- Bài kiểm tra Chặng 2: 10 câu Quy định - Nội quy (Kem chốt 13/11) ---- */
@@ -2218,22 +2232,23 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         var result=document.getElementById('survey2Result');
         if(answered<qs.length){result.textContent='Hãy trả lời đủ '+qs.length+' câu.';survey2Progress();return}
         result.textContent='Kết quả: '+score+'/'+qs.length+' câu đúng';
+        var _d2=xpDeltaFor(SURVEY2_ID,score);
         var suc=document.getElementById('survey2Success');
         if(suc){
           var st=document.getElementById('survey2SuccessTitle');if(st)st.textContent=score===qs.length?'Chúc mừng bạn đã hoàn thành bài tập!':'Bạn đã nộp bài!';
-          var sx=document.getElementById('survey2SuccessText');if(sx)sx.textContent='Số điểm của bạn là '+score+'/10'+(score===qs.length?' · +'+SURVEY_XP+' XP — Chặng 2 đã hoàn thành!':' · Chọn lại đáp án rồi nộp lại để cải thiện điểm nhé.');
+          var sx=document.getElementById('survey2SuccessText');if(sx)sx.textContent='Số điểm của bạn là '+score+'/10'+(score===qs.length?' · +'+_d2+' XP — Chặng 2 đã hoàn thành!':(_d2>0?' · +'+_d2+' XP — làm lại để tăng điểm nhé.':' · Chọn lại đáp án rồi nộp lại để cải thiện điểm nhé.'));
           suc.classList.remove('show');void suc.offsetWidth;suc.classList.add('show');
           suc.scrollIntoView({behavior:'smooth',block:'nearest'});
         }
-        if(currentUser){try{var r=await sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:SURVEY2_ID,score:score,total:qs.length,xp_earned:score===qs.length?SURVEY_XP:0});if(r.error)throw r.error}catch(e){dbErrorToast()}}
+        if(currentUser){try{var r=await sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:SURVEY2_ID,score:score,total:qs.length,xp_earned:_d2});if(r.error)throw r.error}catch(e){dbErrorToast()}}
         var sBtn=document.getElementById('submitSurvey2');
+        refreshMyStats();
         if(score===qs.length){
-          refreshMyStats();
           sBtn.disabled=true;sBtn.textContent='Đã hoàn thành';
-          showToast('Xuất sắc! Đã cộng '+SURVEY_XP+' XP và hoàn thành Chặng 2');
+          showToast('Xuất sắc! Đã cộng '+_d2+' XP và hoàn thành Chặng 2');
         }else{
           sBtn.textContent='Nộp lại bài';
-          showToast('Bạn có thể chọn lại đáp án rồi nộp lại');
+          showToast(_d2>0?'Đã cộng '+_d2+' XP — làm lại để tăng điểm nhé':'Bạn có thể chọn lại đáp án rồi nộp lại');
         }
       });
       /* ---- Bài kiểm tra Chặng 5: 10 câu Quy định 4 Không và 12 Không (Kem chốt 13/11) ---- */
@@ -2252,22 +2267,23 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         var result=document.getElementById('survey5Result');
         if(answered<qs.length){result.textContent='Hãy trả lời đủ '+qs.length+' câu.';survey5Progress();return}
         result.textContent='Kết quả: '+score+'/'+qs.length+' câu đúng';
+        var _d5=xpDeltaFor(SURVEY5_ID,score);
         var suc=document.getElementById('survey5Success');
         if(suc){
           var st=document.getElementById('survey5SuccessTitle');if(st)st.textContent=score===qs.length?'Chúc mừng bạn đã hoàn thành bài tập!':'Bạn đã nộp bài!';
-          var sx=document.getElementById('survey5SuccessText');if(sx)sx.textContent='Số điểm của bạn là '+score+'/10'+(score===qs.length?' · +'+SURVEY_XP+' XP — Chặng 5 đã hoàn thành!':' · Chọn lại đáp án rồi nộp lại để cải thiện điểm nhé.');
+          var sx=document.getElementById('survey5SuccessText');if(sx)sx.textContent='Số điểm của bạn là '+score+'/10'+(score===qs.length?' · +'+_d5+' XP — Chặng 5 đã hoàn thành!':(_d5>0?' · +'+_d5+' XP — làm lại để tăng điểm nhé.':' · Chọn lại đáp án rồi nộp lại để cải thiện điểm nhé.'));
           suc.classList.remove('show');void suc.offsetWidth;suc.classList.add('show');
           suc.scrollIntoView({behavior:'smooth',block:'nearest'});
         }
-        if(currentUser){try{var r=await sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:SURVEY5_ID,score:score,total:qs.length,xp_earned:score===qs.length?SURVEY_XP:0});if(r.error)throw r.error}catch(e){dbErrorToast()}}
+        if(currentUser){try{var r=await sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:SURVEY5_ID,score:score,total:qs.length,xp_earned:_d5});if(r.error)throw r.error}catch(e){dbErrorToast()}}
         var sBtn=document.getElementById('submitSurvey5');
+        refreshMyStats();
         if(score===qs.length){
-          refreshMyStats();
           sBtn.disabled=true;sBtn.textContent='Đã hoàn thành';
-          showToast('Xuất sắc! Đã cộng '+SURVEY_XP+' XP và hoàn thành Chặng 5');
+          showToast('Xuất sắc! Đã cộng '+_d5+' XP và hoàn thành Chặng 5');
         }else{
           sBtn.textContent='Nộp lại bài';
-          showToast('Bạn có thể chọn lại đáp án rồi nộp lại');
+          showToast(_d5>0?'Đã cộng '+_d5+' XP — làm lại để tăng điểm nhé':'Bạn có thể chọn lại đáp án rồi nộp lại');
         }
       });
       document.getElementById('nextLesson').addEventListener('click',function(){closeLesson();var cur=currentCommonLessonIdx();if(cur>=0)openCommonLesson(cur);else{switchView('route');showDevScreen('common')}});
@@ -2600,13 +2616,14 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
               var card=document.querySelector('.activity-card');if(card)card.classList.remove('wide');
               activityTitle.textContent='Mini-game · Huy hiệu 4C';
               var xp=correct; /* mỗi câu đúng = 1 XP, tối đa 10 XP */
+              var _dg=xpDeltaFor('mini-game-vuot-ai-4c',correct);
               var msg=correct===totalQ?'Hoàn hảo! Bạn xử lý đúng cả '+totalQ+' tình huống như một chiến binh FASTCARE thực thụ!':'Bạn xử lý đúng '+correct+'/'+totalQ+' tình huống — luyện thêm để đạt điểm tuyệt đối nhé!';
               activityBody.innerHTML='<div class="badge-win"><img class="celebrate-fastie" src="assets/fastie-celebrate.webp" alt="Sóc Fastie ăn mừng chiến thắng"><div class="badge-medal">🏅</div><h3>Huy hiệu Nhân viên 4C</h3><p>'+msg+'</p><p class="badge-xp">+'+xp+' XP</p><div style="display:flex;gap:10px;justify-content:center;margin-top:8px;flex-wrap:wrap"><button class="primary" id="stReplay" type="button">Chơi lại</button><button class="secondary" id="stMenu" type="button">Chọn game khác</button></div></div>';
               confettiBurst();
-              showToast('Nhận Huy hiệu 4C! +'+xp+' XP');
+              showToast(_dg>0?('Nhận Huy hiệu 4C! +'+_dg+' XP'):'Nhận Huy hiệu 4C!');
               if(currentUser&&sb){
                 try{
-                  var r=await sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:'mini-game-vuot-ai-4c',score:correct,total:totalQ,xp_earned:xp});
+                  var r=await sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:'mini-game-vuot-ai-4c',score:correct,total:totalQ,xp_earned:_dg});
                   if(r.error)throw r.error;
                   refreshMyStats();renderRanking('individual');
                 }catch(e){}
@@ -2712,9 +2729,10 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
               if(finish)finish.hidden=false;
               if(fastieEl)fastieEl.style.left=Math.max(70,w-160)+'px';
               var xpToSave=xp;
+              var _dd=xpDeltaFor('mini-game-chay-cung-fastie',xpToSave);
               if(currentUser&&sb){
                 try{
-                  var r=await sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:'mini-game-chay-cung-fastie',score:xpToSave,total:DQ.length,xp_earned:xpToSave});
+                  var r=await sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:'mini-game-chay-cung-fastie',score:xpToSave,total:DQ.length,xp_earned:_dd});
                   if(r.error)throw r.error;
                   refreshMyStats();renderRanking('individual');
                 }catch(e){}
@@ -2727,7 +2745,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
                 endEl.innerHTML='<div class="badge-win"><img class="celebrate-fastie" src="assets/fastie-celebrate.webp" alt="Sóc Fastie ăn mừng chiến thắng"><div class="badge-medal">🌵</div><h3>Về đích rồi!</h3><p>'+msg+'</p><p class="badge-xp">+'+xpToSave+' XP · 4C Nội bộ</p><div style="display:flex;gap:10px;justify-content:center;margin-top:8px;flex-wrap:wrap"><button class="primary" id="dinoReplay" type="button">Chơi lại</button><button class="secondary" id="dinoMenu" type="button">Chọn game khác</button></div></div>';
                 endEl.hidden=false;
                 qPanel.hidden=true;
-                showToast('Về đích! +'+xpToSave+' XP');
+                showToast(_dd>0?('Về đích! +'+_dd+' XP'):'Về đích!');
                 document.getElementById('dinoReplay').addEventListener('click',function(){dinoStart();});
                 document.getElementById('dinoMenu').addEventListener('click',function(){dinoStop();showGameMenu();});
               },1250);
@@ -3039,11 +3057,12 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
       function commonProgress(){
         var done=0;
         if(module1Done)done++;
-        if(lessonCompleted)done++;
-        if(game4cDone)done++;
-        return{done:done,total:3};
+        if(hasAttemptFor(SURVEY2_ID))done++;
+        if(commonLessonDone(3))done++;
+        if(hasAttemptFor(SURVEY5_ID))done++;
+        return{done:done,total:4};
       }
-      function commonDone(){return commonProgress().done>=3}
+      function commonDone(){return commonProgress().done>=4}
       function detectBlock(){
         var d=myProfile&&myProfile.department?String(myProfile.department):'';
         return d.indexOf('Chi nhánh')===0?'cuahang':'vanphong';
