@@ -7,6 +7,7 @@
       var LESSON_XP=10; /* +10 XP mỗi bài hoàn hảo — dùng tích luỹ để thăng cấp */
       var SURVEY_ID='khao-sat-module-01';
       var SURVEY2_ID='khao-sat-chang-2';
+      var SURVEY5_ID='khao-sat-chang-5';
       var SURVEY_XP=10;
       var module1Done=false;
       var sb=null,currentUser=null,userRole='staff',myProfile=null;
@@ -110,6 +111,7 @@
           if(done&&!lessonCompleted)completeCurrentLesson();
           atts.forEach(function(a){if(a.lesson_id===SURVEY_ID&&a.score===a.total&&(a.total===5||a.total===10))markModule1Done()});
           atts.forEach(function(a){if(a.lesson_id===SURVEY2_ID&&a.score===a.total&&a.total===10){var b2=document.getElementById('submitSurvey2');if(b2){b2.disabled=true;b2.textContent='Đã hoàn thành';}}});
+          atts.forEach(function(a){if(a.lesson_id===SURVEY5_ID&&a.score===a.total&&a.total===10){var b5=document.getElementById('submitSurvey5');if(b5){b5.disabled=true;b5.textContent='Đã hoàn thành';}}});
           if(!done){var _cp=document.getElementById('currentProgress');if(_cp)_cp.style.width='0%'}
           myXp=totalXp;
           var _g4=false;atts.forEach(function(a){if(a.lesson_id==='mini-game-vuot-ai-4c')_g4=true});game4cDone=_g4;
@@ -772,7 +774,7 @@
         if(btn)btn.disabled=false;
       }
       function lessonLabel(id){
-        var map={'bai-3-4-van-hoa-phuc-vu':'Văn hoá phục vụ — Quiz 10 câu','khao-sat-module-01':'Khảo sát Bài 1 (10 câu)','khao-sat-chang-2':'Khảo sát Chặng 2 — Quy định, Nội quy (10 câu)','mini-game-vuot-ai-4c':'Game Vượt ải 4C (tổng kết)','mini-game-chay-cung-fastie':'Game Chạy cùng Fastie (4C Nội bộ)','mini-game-vuot-ai-4c-ai-1':'Game 4C · Ải 1 Chủ động','mini-game-vuot-ai-4c-ai-2':'Game 4C · Ải 2 Cười','mini-game-vuot-ai-4c-ai-3':'Game 4C · Ải 3 Chào'};
+        var map={'bai-3-4-van-hoa-phuc-vu':'Văn hoá phục vụ — Quiz 10 câu','khao-sat-module-01':'Khảo sát Bài 1 (10 câu)','khao-sat-chang-2':'Khảo sát Chặng 2 — Quy định, Nội quy (10 câu)','khao-sat-chang-5':'Khảo sát Chặng 5 — Quy định 4 Không và 12 Không (10 câu)','mini-game-vuot-ai-4c':'Game Vượt ải 4C (tổng kết)','mini-game-chay-cung-fastie':'Game Chạy cùng Fastie (4C Nội bộ)','mini-game-vuot-ai-4c-ai-1':'Game 4C · Ải 1 Chủ động','mini-game-vuot-ai-4c-ai-2':'Game 4C · Ải 2 Cười','mini-game-vuot-ai-4c-ai-3':'Game 4C · Ải 3 Chào'};
         return map[id]||id;
       }
       async function renderScopeProgress(){
@@ -1469,7 +1471,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
       document.addEventListener('keydown',function(e){if(c5Overlay&&c5Overlay.classList.contains('open')){if(e.key==='ArrowRight')c5ShowSlide(c5Idx+1);if(e.key==='ArrowLeft')c5ShowSlide(c5Idx-1)}});
       /* Nút "Đã xem xong" trong overlay Chặng 5: chỉ đóng deck (chặng đọc, chưa có quiz/game). */
       var c5DoneBtn=document.getElementById('c5Done');
-      if(c5DoneBtn)c5DoneBtn.addEventListener('click',function(){closeC5()});
+      if(c5DoneBtn)c5DoneBtn.addEventListener('click',function(){var qz=document.getElementById('c5Quiz');if(qz)qz.scrollIntoView({behavior:'smooth',block:'start'})});
       /* ---- Deck Chặng 2: 5 slide Đồng phục (Cửa hàng: Nữ, Nam, Kỹ thuật Trưởng/Leader → Văn phòng: Nữ, Nam) — Kem chốt 12/11 ---- */
       var c2Overlay=document.getElementById('c2Overlay');
       function openC2(){if(!c2Overlay)return;c2Overlay.classList.add('open');c2ShowSlide(0);document.body.style.overflow='hidden';var c=document.getElementById('closeC2');if(c)c.focus()}
@@ -2240,6 +2242,40 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
           refreshMyStats();
           sBtn.disabled=true;sBtn.textContent='Đã hoàn thành';
           showToast('Xuất sắc! Đã cộng '+SURVEY_XP+' XP và hoàn thành Chặng 2');
+        }else{
+          sBtn.textContent='Nộp lại bài';
+          showToast('Bạn có thể chọn lại đáp án rồi nộp lại');
+        }
+      });
+      /* ---- Bài kiểm tra Chặng 5: 10 câu Quy định 4 Không và 12 Không (Kem chốt 13/11) ---- */
+      function survey5Progress(){var qs=document.querySelectorAll('.sq5-question');var n=0;qs.forEach(function(q){if(q.querySelector('.sq5-option.selected'))n++});var p=document.getElementById('survey5Progress');if(p)p.textContent=n>=qs.length?'Đã trả lời đủ '+qs.length+' câu — bấm Nộp bài nhé!':'Đã trả lời '+n+'/'+qs.length+' câu';}
+      document.querySelectorAll('.sq5-question').forEach(function(q){q.querySelectorAll('.sq5-option').forEach(function(opt,idx){opt.addEventListener('click',function(){q.querySelectorAll('.sq5-option').forEach(function(o){o.classList.remove('selected')});opt.classList.add('selected');q.dataset.selected=idx;var _r=document.getElementById('survey5Result');if(_r)_r.textContent='';survey5Progress()})})});
+      document.getElementById('submitSurvey5').addEventListener('click',async function(){
+        var qs=document.querySelectorAll('.sq5-question');var answered=0,score=0;
+        qs.forEach(function(q){
+          var opts=q.querySelectorAll('.sq5-option');
+          var sel=q.querySelector('.sq5-option.selected');
+          var selected=sel!==null?Array.prototype.indexOf.call(opts,sel):(q.dataset.selected!==undefined?Number(q.dataset.selected):undefined);
+          if(selected!==undefined){answered++}
+          opts.forEach(function(o,i){o.classList.remove('correct','wrong');if(i===Number(q.dataset.answer))o.classList.add('correct');if(selected!==undefined&&i===selected&&i!==Number(q.dataset.answer))o.classList.add('wrong')});
+          if(selected===Number(q.dataset.answer))score++;
+        });
+        var result=document.getElementById('survey5Result');
+        if(answered<qs.length){result.textContent='Hãy trả lời đủ '+qs.length+' câu.';survey5Progress();return}
+        result.textContent='Kết quả: '+score+'/'+qs.length+' câu đúng';
+        var suc=document.getElementById('survey5Success');
+        if(suc){
+          var st=document.getElementById('survey5SuccessTitle');if(st)st.textContent=score===qs.length?'Chúc mừng bạn đã hoàn thành bài tập!':'Bạn đã nộp bài!';
+          var sx=document.getElementById('survey5SuccessText');if(sx)sx.textContent='Số điểm của bạn là '+score+'/10'+(score===qs.length?' · +'+SURVEY_XP+' XP — Chặng 5 đã hoàn thành!':' · Chọn lại đáp án rồi nộp lại để cải thiện điểm nhé.');
+          suc.classList.remove('show');void suc.offsetWidth;suc.classList.add('show');
+          suc.scrollIntoView({behavior:'smooth',block:'nearest'});
+        }
+        if(currentUser){try{var r=await sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:SURVEY5_ID,score:score,total:qs.length,xp_earned:score===qs.length?SURVEY_XP:0});if(r.error)throw r.error}catch(e){dbErrorToast()}}
+        var sBtn=document.getElementById('submitSurvey5');
+        if(score===qs.length){
+          refreshMyStats();
+          sBtn.disabled=true;sBtn.textContent='Đã hoàn thành';
+          showToast('Xuất sắc! Đã cộng '+SURVEY_XP+' XP và hoàn thành Chặng 5');
         }else{
           sBtn.textContent='Nộp lại bài';
           showToast('Bạn có thể chọn lại đáp án rồi nộp lại');
