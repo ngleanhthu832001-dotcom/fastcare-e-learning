@@ -2046,52 +2046,41 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
       function renderCommonLessons(){
         var list=document.getElementById('commonLessonList');
         if(!list)return;
-        list.className='dev-trail';
+        list.className='common-roadmap';
         var cur=currentCommonLessonIdx();
-        var rows=COMMON_LESSONS.map(function(L,i){
+        var n=COMMON_LESSONS.length;
+        var lastDone=-1;
+        var items=COMMON_LESSONS.map(function(L,i){
           var st=commonLessonStatus(i);
-          var nodeInner=st==='done'?'✓':st==='locked'?'🔒':(i+1<10?'0'+(i+1):String(i+1));
+          if(st==='done')lastDone=i;
+          var nodeInner=st==='done'?'\u2713':st==='locked'?'\uD83D\uDD12':(i+1<10?'0'+(i+1):String(i+1));
           var nodeCls=st==='done'?'done':st==='locked'?'locked':(i===cur?'current':'');
           var action;
-          if(st==='done')action='<span class="act">Đã hoàn thành</span>';
-          else if(commonLessonExpired(i))action=userRole==='admin'?'<span class="act">Đã hết hạn — bấm để xem thử (QTV)</span>':'<span>Đã hết hạn — bài đã khóa</span>';
-          else if(st==='locked')action='<span>Chưa mở — nội dung đang được chuẩn bị</span>';
-          else if(i===3&&lessonCompleted&&!game4cDone)action='<span class="act">Chơi game 4C →</span>';
-          else if(i===3)action='<span class="act">Học lý thuyết →</span>';
-          else action='<span class="act">Bắt đầu →</span>';
-          return '<div class="dev-trail-row'+(i%2===1?' flip':'')+'"><div class="dev-node-wrap">'+devStars(st==='done')+'<button class="dev-node '+nodeCls+'" type="button" data-chang="'+i+'" aria-label="Chặng '+(i+1)+': '+escapeHtml(L.name)+'">'+nodeInner+'</button></div><button class="dev-stage-card'+(st==='done'?' is-done':'')+(st==='locked'?' is-locked':'')+'" type="button" data-chang="'+i+'"><span class="dev-stage-type">Chặng '+(i+1)+'</span><h4>'+escapeHtml(L.name)+'</h4><span class="dev-stage-meta"><span>'+escapeHtml(L.desc)+'</span>'+action+'</span></button></div>';
+          if(st==='done')action='<span class="act">\u0110\u00e3 ho\u00e0n th\u00e0nh</span>';
+          else if(commonLessonExpired(i))action=userRole==='admin'?'<span class="act">\u0110\u00e3 h\u1ebft h\u1ea1n \u2014 b\u1ea5m \u0111\u1ec3 xem th\u1eed (QTV)</span>':'<span>\u0110\u00e3 h\u1ebft h\u1ea1n \u2014 b\u00e0i \u0111\u00e3 kh\u00f3a</span>';
+          else if(st==='locked')action='<span>Ch\u01b0a m\u1edf \u2014 n\u1ed9i dung \u0111ang \u0111\u01b0\u1ee3c chu\u1ea9n b\u1ecb</span>';
+          else if(i===3&&lessonCompleted&&!game4cDone)action='<span class="act">Ch\u01a1i game 4C \u2192</span>';
+          else if(i===3)action='<span class="act">H\u1ecdc l\u00fd thuy\u1ebft \u2192</span>';
+          else action='<span class="act">B\u1eaft \u0111\u1ea7u \u2192</span>';
+          return{L:L,i:i,st:st,nodeInner:nodeInner,nodeCls:nodeCls,action:action};
+        });
+        var fillPct=lastDone>0?Math.round(lastDone/(n-1)*100):0;
+        var stepper='<div class="common-stepper"><div class="cs-track"><div class="cs-fill" style="width:'+fillPct+'%"></div></div><div class="cs-nodes">'+items.map(function(it){
+          return '<button class="cs-node '+it.nodeCls+'" type="button" data-chang="'+it.i+'" aria-label="Ch\u1eb7ng '+(it.i+1)+': '+escapeHtml(it.L.name)+'"><span class="cs-node-icon">'+it.nodeInner+'</span><span class="cs-node-label">Ch\u1eb7ng '+(it.i+1)+'</span></button>';
+        }).join('')+'</div></div>';
+        var rows=items.map(function(it){
+          return '<button class="common-row'+(it.st==='done'?' is-done':'')+(it.st==='locked'?' is-locked':'')+'" type="button" data-chang="'+it.i+'" aria-label="Ch\u1eb7ng '+(it.i+1)+': '+escapeHtml(it.L.name)+'"><span class="common-row-icon '+it.nodeCls+'">'+it.nodeInner+'</span><span class="common-row-main"><span class="common-row-type">Ch\u1eb7ng '+(it.i+1)+'</span><span class="common-row-title">'+escapeHtml(it.L.name)+'</span><span class="common-row-desc">'+escapeHtml(it.L.desc)+'</span></span><span class="common-row-act">'+it.action+'</span></button>';
         }).join('');
-        list.innerHTML='<svg class="dev-trail-svg" id="commonTrailSvg" aria-hidden="true"><path id="commonTrailPathAll" fill="none" stroke="#eadfd9" stroke-width="3" stroke-linecap="round"/><path id="commonTrailPathDone" fill="none" stroke="#f45b18" stroke-width="3" stroke-linecap="round"/></svg>'+rows;
+        list.innerHTML=stepper+'<div class="common-list">'+rows+'</div>';
         list.querySelectorAll('[data-chang]').forEach(function(el){
           el.addEventListener('click',function(){openCommonLesson(Number(el.getAttribute('data-chang')),el)});
         });
         var rc=document.getElementById('routeContinue');
         if(rc){
-          if(cur>=0){rc.textContent='Bắt đầu Chặng '+(cur+1);rc.disabled=false;}
-          /* 'Đã hoàn thành' chỉ khi thật sự xong /3; còn không thì là 'không còn chặng nào đang mở' (vd trễ hạn Chặng 1) — sửa chữ cho đúng (Kem chốt 09/11). */
-          else if(commonDone()){rc.textContent='Đã hoàn thành Lộ trình chung';rc.disabled=true;}
-          else{rc.textContent='Không còn chặng nào đang mở';rc.disabled=true;}
+          if(cur>=0){rc.textContent='B\u1eaft \u0111\u1ea7u Ch\u1eb7ng '+(cur+1);rc.disabled=false;}
+          else if(commonDone()){rc.textContent='\u0110\u00e3 ho\u00e0n th\u00e0nh L\u1ed9 tr\u00ecnh chung';rc.disabled=true;}
+          else{rc.textContent='Kh\u00f4ng c\u00f2n ch\u1eb7ng n\u00e0o \u0111ang m\u1edf';rc.disabled=true;}
         }
-        requestAnimationFrame(drawCommonTrail);
-      }
-      function drawCommonTrail(){
-        var trail=document.getElementById('commonLessonList'),svg=document.getElementById('commonTrailSvg');
-        if(!trail||!svg||devScreen!=='common')return;
-        var nodes=Array.prototype.slice.call(trail.querySelectorAll('.dev-node'));
-        if(!nodes.length)return;
-        var tr=trail.getBoundingClientRect();
-        svg.setAttribute('viewBox','0 0 '+trail.offsetWidth+' '+trail.offsetHeight);
-        var pts=nodes.map(function(n){
-          var r=n.getBoundingClientRect();
-          var isDone=n.className.indexOf('done')>-1,isCur=n.className.indexOf('current')>-1;
-          return{x:Math.round(r.left-tr.left+r.width/2),y:Math.round(r.top-tr.top+r.height/2),state:isDone?'done':isCur?'current':'todo'};
-        });
-        var all=document.getElementById('commonTrailPathAll');
-        if(all)all.setAttribute('d',devSmoothPath(pts));
-        var lastDone=-1;
-        pts.forEach(function(pt,i){if(pt.state==='done'||pt.state==='current')lastDone=i});
-        var dn=document.getElementById('commonTrailPathDone');
-        if(dn)dn.setAttribute('d',lastDone>0?devSmoothPath(pts.slice(0,lastDone+1)):'');
       }
       function openCommonLesson(i,btn){
         if(i<0||i>=COMMON_LESSONS.length)return;
@@ -3347,7 +3336,6 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         if(career)career.hidden=name!=='career';
         if(name==='hub')renderDevHub();
         if(name==='career'&&pathId){devCareerPath=pathId;devCareerStage=stageId||null;renderDevCareer();}
-        if(name==='common')requestAnimationFrame(drawCommonTrail);
         renderDevTabs();
         window.scrollTo({top:0,behavior:'smooth'});
       }
@@ -3418,7 +3406,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         if(dn)dn.setAttribute('d',lastDone>0?devSmoothPath(pts.slice(0,lastDone+1)):'');
       }
       var devResizeTimer=null;
-      window.addEventListener('resize',function(){clearTimeout(devResizeTimer);devResizeTimer=setTimeout(function(){drawDevTrail();drawCommonTrail();},120)});
+      window.addEventListener('resize',function(){clearTimeout(devResizeTimer);devResizeTimer=setTimeout(function(){drawDevTrail();},120)});
       function openDevModal(html){
         var m=document.getElementById('devModal'),box=document.getElementById('devModalBox');
         if(!m||!box)return;
