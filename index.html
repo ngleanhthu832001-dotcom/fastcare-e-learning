@@ -5,6 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="color-scheme" content="light dark" />
   <link rel="icon" href="data:," />
+  <meta name="theme-color" content="#e84924" />
+  <meta name="description" content="Học tập nội bộ FASTCARE — Lộ trình onboarding, bài kiểm tra và thông báo." />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="assets/icon-192.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="FASTCARE" />
   <title>FASTCARE E-learning</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -230,7 +237,7 @@
     .content{padding:30px clamp(20px,4vw,56px) 80px;max-width:1480px;width:100%;margin:0 auto}
     .topline{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:26px}
     .topline p{margin:0;color:var(--muted);font-weight:600}.topline strong{color:var(--ink)}
-    .top-actions{display:flex;align-items:center;gap:10px}.icon-btn{width:42px;height:42px;border:1px solid var(--line);border-radius:12px;background:var(--surface);display:grid;place-items:center;cursor:pointer;position:relative}
+    .top-actions{display:flex;align-items:center;gap:10px}.install-btn{display:inline-flex;align-items:center;gap:7px;height:42px;padding:0 16px;border:2px solid var(--brand);border-radius:999px;background:transparent;color:var(--brand);font:800 13px "Manrope",sans-serif;cursor:pointer;white-space:nowrap}.install-btn:hover{background:var(--brand);color:#fff}.install-btn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}.install-btn[hidden]{display:none}.icon-btn{width:42px;height:42px;border:1px solid var(--line);border-radius:12px;background:var(--surface);display:grid;place-items:center;cursor:pointer;position:relative}
     .icon-btn svg{width:19px;fill:none;stroke:currentColor;stroke-width:1.8}.notify-dot{position:absolute;width:7px;height:7px;border-radius:50%;background:var(--brand);top:9px;right:9px}.notify-badge{position:absolute;min-width:16px;height:16px;border-radius:9px;background:var(--brand);color:#fff;top:5px;right:5px;font-size:10px;font-weight:800;display:grid;place-items:center;padding:0 4px}
     .view{display:none}.view.active{display:block}
     .hero{background:var(--ink);color:var(--surface);border-radius:22px;padding:clamp(24px,4vw,46px);position:relative;overflow:hidden;display:grid;grid-template-columns:minmax(0,1.35fr) minmax(240px,.65fr);gap:30px;align-items:center}
@@ -753,7 +760,7 @@
     </aside>
 
     <main class="content">
-      <header class="topline"><button type="button" class="mobile-logo-btn" data-view="home" aria-label="Về Trang chủ"><img class="mobile-logo" src="assets/fastie-logo.png" alt="FASTCARE"></button><p><strong id="greetingName">Xin chào, Minh!</strong> Sẵn sàng cho bài học hôm nay?</p><div class="top-actions"><button class="icon-btn" id="notifyBtn" aria-label="Thông báo"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span class="notify-dot" id="notifyDot"></span></button></div></header>
+      <header class="topline"><button type="button" class="mobile-logo-btn" data-view="home" aria-label="Về Trang chủ"><img class="mobile-logo" src="assets/fastie-logo.png" alt="FASTCARE"></button><p><strong id="greetingName">Xin chào, Minh!</strong> Sẵn sàng cho bài học hôm nay?</p><div class="top-actions"><button class="install-btn" id="installAppBtn" type="button" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5M4 19h16" /></svg>Cài ứng dụng</button><button class="icon-btn" id="notifyBtn" aria-label="Thông báo"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span class="notify-dot" id="notifyDot"></span></button></div></header>
 
       <section id="home" class="view active">
         <div class="hero">
@@ -1163,5 +1170,6 @@
   <script src="slides2.js"></script>
   <script src="slides3.js"></script>
   <script src="app.js"></script>
+  <script src="pwa.js"></script>
 </body>
 </html>
