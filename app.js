@@ -114,8 +114,9 @@
           if(done&&!lessonCompleted)completeCurrentLesson();
           rows.forEach(function(r){if(r.lesson_id==='phuc-loi'&&r.completed)c3Viewed=true});
           atts.forEach(function(a){if(a.lesson_id===SURVEY_ID)markModule1Done()});
-          atts.forEach(function(a){if(a.lesson_id===SURVEY2_ID&&a.score===a.total&&a.total===10){var b2=document.getElementById('submitSurvey2');if(b2){b2.disabled=true;b2.textContent='Đã hoàn thành';}}});
-          atts.forEach(function(a){if(a.lesson_id===SURVEY5_ID&&a.score===a.total&&a.total===10){var b5=document.getElementById('submitSurvey5');if(b5){b5.disabled=true;b5.textContent='Đã hoàn thành';}}});
+          atts.forEach(function(a){if(a.lesson_id===SURVEY_ID&&a.score===a.total&&a.total===10){var b1=document.getElementById('submitSurvey');if(b1){b1.disabled=false;b1.textContent='Đã hoàn thành';b1.dataset.done='1';}}});
+          atts.forEach(function(a){if(a.lesson_id===SURVEY2_ID&&a.score===a.total&&a.total===10){var b2=document.getElementById('submitSurvey2');if(b2){b2.disabled=false;b2.textContent='Đã hoàn thành';b2.dataset.done='1';}}});
+          atts.forEach(function(a){if(a.lesson_id===SURVEY5_ID&&a.score===a.total&&a.total===10){var b5=document.getElementById('submitSurvey5');if(b5){b5.disabled=false;b5.textContent='Đã hoàn thành';b5.dataset.done='1';}}});
           if(!done){var _cp=document.getElementById('currentProgress');if(_cp)_cp.style.width='0%'}
           myXp=totalXp;
           var _g4=false;atts.forEach(function(a){if(a.lesson_id==='mini-game-vuot-ai-4c')_g4=true});game4cDone=_g4;
@@ -2201,6 +2202,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
       function surveyProgress(){var qs=document.querySelectorAll('.sq-question');var n=0;qs.forEach(function(q){if(q.querySelector('.sq-option.selected'))n++});var p=document.getElementById('surveyProgress');if(p)p.textContent=n>=qs.length?'Đã trả lời đủ '+qs.length+' câu — bấm Nộp bài nhé!':'Đã trả lời '+n+'/'+qs.length+' câu';}
       document.querySelectorAll('.sq-question').forEach(function(q){q.querySelectorAll('.sq-option').forEach(function(opt,idx){opt.addEventListener('click',function(){q.querySelectorAll('.sq-option').forEach(function(o){o.classList.remove('selected')});opt.classList.add('selected');q.dataset.selected=idx;var _r=document.getElementById('surveyResult');if(_r)_r.textContent='';surveyProgress()})})});
       document.getElementById('submitSurvey').addEventListener('click',async function(){
+        var _db=document.getElementById('submitSurvey');if(_db&&_db.dataset.done==='1'){closeWelcome();switchView('route');showDevScreen('common');return;}
         var qs=document.querySelectorAll('.sq-question');var answered=0,score=0;
         qs.forEach(function(q){
           var opts=q.querySelectorAll('.sq-option');
@@ -2226,7 +2228,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         var sBtn=document.getElementById('submitSurvey');
         markModule1Done();refreshMyStats();
         if(score===qs.length){
-          sBtn.disabled=true;sBtn.textContent='Đã hoàn thành';
+          sBtn.textContent='Đã hoàn thành';sBtn.dataset.done='1';
           showToast('Xuất sắc! Đã cộng '+_d1+' XP và hoàn thành Bài 1');
         }else{
           sBtn.textContent='Nộp lại bài';
@@ -2237,6 +2239,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
       function survey2Progress(){var qs=document.querySelectorAll('.sq2-question');var n=0;qs.forEach(function(q){if(q.querySelector('.sq2-option.selected'))n++});var p=document.getElementById('survey2Progress');if(p)p.textContent=n>=qs.length?'Đã trả lời đủ '+qs.length+' câu — bấm Nộp bài nhé!':'Đã trả lời '+n+'/'+qs.length+' câu';}
       document.querySelectorAll('.sq2-question').forEach(function(q){q.querySelectorAll('.sq2-option').forEach(function(opt,idx){opt.addEventListener('click',function(){q.querySelectorAll('.sq2-option').forEach(function(o){o.classList.remove('selected')});opt.classList.add('selected');q.dataset.selected=idx;var _r=document.getElementById('survey2Result');if(_r)_r.textContent='';survey2Progress()})})});
       document.getElementById('submitSurvey2').addEventListener('click',async function(){
+        var _db=document.getElementById('submitSurvey2');if(_db&&_db.dataset.done==='1'){closeC2();switchView('route');showDevScreen('common');return;}
         var qs=document.querySelectorAll('.sq2-question');var answered=0,score=0;
         qs.forEach(function(q){
           var opts=q.querySelectorAll('.sq2-option');
@@ -2261,7 +2264,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         var sBtn=document.getElementById('submitSurvey2');
         refreshMyStats();
         if(score===qs.length){
-          sBtn.disabled=true;sBtn.textContent='Đã hoàn thành';
+          sBtn.textContent='Đã hoàn thành';sBtn.dataset.done='1';
           showToast('Xuất sắc! Đã cộng '+_d2+' XP và hoàn thành Chặng 2');
         }else{
           sBtn.textContent='Nộp lại bài';
@@ -2272,6 +2275,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
       function survey5Progress(){var qs=document.querySelectorAll('.sq5-question');var n=0;qs.forEach(function(q){if(q.querySelector('.sq5-option.selected'))n++});var p=document.getElementById('survey5Progress');if(p)p.textContent=n>=qs.length?'Đã trả lời đủ '+qs.length+' câu — bấm Nộp bài nhé!':'Đã trả lời '+n+'/'+qs.length+' câu';}
       document.querySelectorAll('.sq5-question').forEach(function(q){q.querySelectorAll('.sq5-option').forEach(function(opt,idx){opt.addEventListener('click',function(){q.querySelectorAll('.sq5-option').forEach(function(o){o.classList.remove('selected')});opt.classList.add('selected');q.dataset.selected=idx;var _r=document.getElementById('survey5Result');if(_r)_r.textContent='';survey5Progress()})})});
       document.getElementById('submitSurvey5').addEventListener('click',async function(){
+        var _db=document.getElementById('submitSurvey5');if(_db&&_db.dataset.done==='1'){closeC5();switchView('route');showDevScreen('common');return;}
         var qs=document.querySelectorAll('.sq5-question');var answered=0,score=0;
         qs.forEach(function(q){
           var opts=q.querySelectorAll('.sq5-option');
@@ -2296,7 +2300,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         var sBtn=document.getElementById('submitSurvey5');
         refreshMyStats();
         if(score===qs.length){
-          sBtn.disabled=true;sBtn.textContent='Đã hoàn thành';
+          sBtn.textContent='Đã hoàn thành';sBtn.dataset.done='1';
           showToast('Xuất sắc! Đã cộng '+_d5+' XP và hoàn thành Chặng 5');
         }else{
           sBtn.textContent='Nộp lại bài';
