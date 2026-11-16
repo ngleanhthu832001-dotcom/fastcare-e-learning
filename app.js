@@ -116,7 +116,7 @@
           rows.forEach(function(r){if(r.completed){if(r.lesson_id==='chinh-sach-thu-ngan'||r.lesson_id==='chinh-sach-tu-van'||r.lesson_id==='thuong-phan-hoi-cam')ch3Subs[r.lesson_id]=true;if(r.lesson_id==='phuc-loi-cong-doan')officeC3Viewed=true;if(r.lesson_id==='van-hoa-4c-noi-bo')officeC4Viewed=true;if(r.lesson_id==='muoi-hai-khong')officeC5Viewed=true;}});
           atts.forEach(function(a){if(a.lesson_id===SURVEY_ID)markModule1Done()});
           atts.forEach(function(a){if(a.lesson_id===SURVEY_ID&&a.score===a.total&&a.total===10){var b1=document.getElementById('submitSurvey');if(b1){b1.disabled=false;b1.textContent='Đã hoàn thành';b1.dataset.done='1';}}});
-          atts.forEach(function(a){if(a.lesson_id===SURVEY2_ID&&a.score===a.total&&a.total===10){var b2=document.getElementById('submitSurvey2');if(b2){b2.disabled=false;b2.textContent='Đã hoàn thành';b2.dataset.done='1';}}});
+          atts.forEach(function(a){if(a.lesson_id===SURVEY2_ID&&a.score===a.total&&a.total===10){var b2=document.getElementById('submitSurvey2');if(b2){b2.disabled=false;b2.textContent='Đã hoàn thành';b2.dataset.done='1';}var b2o=document.getElementById('submitSurvey2Office');if(b2o){b2o.disabled=false;b2o.textContent='Đã hoàn thành';b2o.dataset.done='1';}}});
           atts.forEach(function(a){if(a.lesson_id===SURVEY5_ID&&a.score===a.total&&a.total===10){var b5=document.getElementById('submitSurvey5');if(b5){b5.disabled=false;b5.textContent='Đã hoàn thành';b5.dataset.done='1';}}});
           if(!done){var _cp=document.getElementById('currentProgress');if(_cp)_cp.style.width='0%'}
           myXp=totalXp;
@@ -1513,8 +1513,9 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         c2Idx=0;
       }
       function c2SetTexts(note,quizIntro){var nt=document.getElementById('c2Note');if(nt)nt.textContent=note;var qi=document.getElementById('c2QuizIntro');if(qi)qi.textContent=quizIntro;}
-      function openC2(){if(!c2Overlay)return;var d=c2Pick(C2_STORE_IDX);buildC2Deck(d.slides,d.alts);c2SetTexts('Xem hết 13 slide để nắm rõ đồng phục khối Cửa hàng, thời gian làm việc, quy định về Công/Ca làm việc và quy định về Tác phong làm việc nhé.','Xem xong 13 slide rồi, trả lời 10 câu dưới đây nhé. Đúng 10/10 sẽ cộng 10 XP.');c2Overlay.classList.add('open');c2ShowSlide(0);document.body.style.overflow='hidden';var c=document.getElementById('closeC2');if(c)c.focus()}
-      function openC2Office(){if(!c2Overlay)return;var d=c2Pick(C2_OFFICE_IDX);buildC2Deck(d.slides,d.alts);c2SetTexts('Xem hết 11 slide để nắm rõ đồng phục khối Văn phòng, quy định về Công/Ca làm việc và quy định về Tác phong làm việc nhé.','Xem xong 11 slide rồi, trả lời 10 câu dưới đây nhé. Đúng 10/10 sẽ cộng 10 XP.');c2Overlay.classList.add('open');c2ShowSlide(0);document.body.style.overflow='hidden';var c=document.getElementById('closeC2');if(c)c.focus()}
+      function c2ShowQuiz(which){var q=document.getElementById('c2Quiz');var qo=document.getElementById('c2QuizOffice');if(q)q.style.display=which==='office'?'none':'';if(qo)qo.style.display=which==='office'?'':'none';}
+      function openC2(){if(!c2Overlay)return;var d=c2Pick(C2_STORE_IDX);buildC2Deck(d.slides,d.alts);c2SetTexts('Xem hết 13 slide để nắm rõ đồng phục khối Cửa hàng, thời gian làm việc, quy định về Công/Ca làm việc và quy định về Tác phong làm việc nhé.','Xem xong 13 slide rồi, trả lời 10 câu dưới đây nhé. Đúng 10/10 sẽ cộng 10 XP.');c2ShowQuiz('store');c2Overlay.classList.add('open');c2ShowSlide(0);document.body.style.overflow='hidden';var c=document.getElementById('closeC2');if(c)c.focus()}
+      function openC2Office(){if(!c2Overlay)return;var d=c2Pick(C2_OFFICE_IDX);buildC2Deck(d.slides,d.alts);c2SetTexts('Xem hết 11 slide để nắm rõ đồng phục khối Văn phòng, quy định về Công/Ca làm việc và quy định về Tác phong làm việc nhé.','Xem xong 11 slide rồi, trả lời 10 câu dưới đây nhé. Đúng 10/10 sẽ cộng 10 XP.');c2ShowQuiz('office');c2Overlay.classList.add('open');c2ShowSlide(0);document.body.style.overflow='hidden';var c=document.getElementById('closeC2');if(c)c.focus()}
       function closeC2(){if(!c2Overlay)return;c2Overlay.classList.remove('open');document.body.style.overflow=''}
       var c2Close=document.getElementById('closeC2');if(c2Close)c2Close.addEventListener('click',closeC2);
       if(c2Overlay)c2Overlay.addEventListener('click',function(e){if(e.target===c2Overlay)closeC2()});
@@ -1526,7 +1527,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
       document.addEventListener('keydown',function(e){if(c2Overlay&&c2Overlay.classList.contains('open')){if(e.key==='ArrowRight')c2ShowSlide(c2Idx+1);if(e.key==='ArrowLeft')c2ShowSlide(c2Idx-1)}});
       /* Nút "Đã xem xong" trong overlay Chặng 2: chỉ đóng deck (chặng đọc, chưa có quiz/game). */
       var c2DoneBtn=document.getElementById('c2Done');
-      if(c2DoneBtn)c2DoneBtn.addEventListener('click',function(){var qz=document.getElementById('c2Quiz');if(qz)qz.scrollIntoView({behavior:'smooth',block:'start'})});
+      if(c2DoneBtn)c2DoneBtn.addEventListener('click',function(){var qo=document.getElementById('c2QuizOffice');if(qo&&qo.style.display!=='none'){qo.scrollIntoView({behavior:'smooth',block:'start'});return;}var qz=document.getElementById('c2Quiz');if(qz)qz.scrollIntoView({behavior:'smooth',block:'start'})});
       /* ---- Deck chung (generic) — Kem chốt 16/11: dùng cho các deck xem-xong-thì-xong:
          mục nhỏ Chặng 3 Cửa hàng (Thu ngân / Tư vấn / Phản hồi cam) và Chặng 3/4/5 Văn phòng.
          Mỗi lần mở: nạp đúng slice slide, nút "Đã xem xong" ghi lesson_progress lessonId (0 XP). */
@@ -2445,6 +2446,42 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         }
         if(currentUser){try{var r=await sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:SURVEY2_ID,score:score,total:qs.length,xp_earned:_d2});if(r.error)throw r.error}catch(e){dbErrorToast()}}
         var sBtn=document.getElementById('submitSurvey2');
+        refreshMyStats();
+        if(score===qs.length){
+          sBtn.textContent='Đã hoàn thành';sBtn.dataset.done='1';
+          showToast('Xuất sắc! Đã cộng '+_d2+' XP và hoàn thành Chặng 2');
+        }else{
+          sBtn.textContent='Nộp lại bài';
+          showToast(_d2>0?'Đã cộng '+_d2+' XP — làm lại để tăng điểm nhé':'Bạn có thể chọn lại đáp án rồi nộp lại');
+        }
+      });
+      /* ---- Quiz Chặng 2 Khối Văn phòng (mirror quiz Cửa hàng, class sq2o-*; cùng SURVEY2_ID) ---- */
+      function survey2OfficeProgress(){var qs=document.querySelectorAll('.sq2o-question');var n=0;qs.forEach(function(q){if(q.querySelector('.sq2o-option.selected'))n++});var p=document.getElementById('survey2OfficeProgress');if(p)p.textContent=n>=qs.length?'Đã trả lời đủ '+qs.length+' câu — bấm Nộp bài nhé!':'Đã trả lời '+n+'/'+qs.length+' câu';}
+      document.querySelectorAll('.sq2o-question').forEach(function(q){q.querySelectorAll('.sq2o-option').forEach(function(opt,idx){opt.addEventListener('click',function(){q.querySelectorAll('.sq2o-option').forEach(function(o){o.classList.remove('selected')});opt.classList.add('selected');q.dataset.selected=idx;var _r=document.getElementById('survey2OfficeResult');if(_r)_r.textContent='';survey2OfficeProgress()})})});
+      document.getElementById('submitSurvey2Office').addEventListener('click',async function(){
+        var _db=document.getElementById('submitSurvey2Office');if(_db&&_db.dataset.done==='1'){closeC2();switchView('route');showDevScreen(primaryDevScreen());return;}
+        var qs=document.querySelectorAll('.sq2o-question');var answered=0,score=0;
+        qs.forEach(function(q){
+          var opts=q.querySelectorAll('.sq2o-option');
+          var sel=q.querySelector('.sq2o-option.selected');
+          var selected=sel!==null?Array.prototype.indexOf.call(opts,sel):(q.dataset.selected!==undefined?Number(q.dataset.selected):undefined);
+          if(selected!==undefined){answered++}
+          opts.forEach(function(o,i){o.classList.remove('correct','wrong');if(i===Number(q.dataset.answer))o.classList.add('correct');if(selected!==undefined&&i===selected&&i!==Number(q.dataset.answer))o.classList.add('wrong')});
+          if(selected===Number(q.dataset.answer))score++;
+        });
+        var result=document.getElementById('survey2OfficeResult');
+        if(answered<qs.length){result.textContent='Hãy trả lời đủ '+qs.length+' câu.';survey2OfficeProgress();return}
+        result.textContent='Kết quả: '+score+'/'+qs.length+' câu đúng';
+        var _d2=xpDeltaFor(SURVEY2_ID,score);
+        var suc=document.getElementById('survey2OfficeSuccess');
+        if(suc){
+          var st=document.getElementById('survey2OfficeSuccessTitle');if(st)st.textContent=score===qs.length?'Chúc mừng bạn đã hoàn thành bài tập!':'Bạn đã nộp bài!';
+          var sx=document.getElementById('survey2OfficeSuccessText');if(sx)sx.textContent='Số điểm của bạn là '+score+'/10'+(score===qs.length?' · +'+_d2+' XP — Chặng 2 đã hoàn thành!':(_d2>0?' · +'+_d2+' XP — làm lại để tăng điểm nhé.':' · Chọn lại đáp án rồi nộp lại để cải thiện điểm nhé.'));
+          suc.classList.remove('show');void suc.offsetWidth;suc.classList.add('show');
+          suc.scrollIntoView({behavior:'smooth',block:'nearest'});
+        }
+        if(currentUser){try{var r=await sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:SURVEY2_ID,score:score,total:qs.length,xp_earned:_d2});if(r.error)throw r.error}catch(e){dbErrorToast()}}
+        var sBtn=document.getElementById('submitSurvey2Office');
         refreshMyStats();
         if(score===qs.length){
           sBtn.textContent='Đã hoàn thành';sBtn.dataset.done='1';
