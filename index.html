@@ -802,6 +802,10 @@
         <div class="route-hero"><div><p class="eyebrow" style="color:var(--brand)">Lộ trình nhân sự mới</p><h1 class="route-title"><span class="route-big">30 ngày</span><span class="route-rest">Hiểu việc<br>Vững văn hoá</span></h1><p>5 chặng theo tiến độ — chào mừng, quy định, phúc lợi, quy tắc 4C và 12 điều không được làm.</p></div><button class="primary" id="routeContinue">Bắt đầu Chặng 1</button></div>
         <div class="dev-trail" id="commonLessonList"></div>
         </div>
+        <div id="devCommonOffice" hidden>
+        <div class="route-hero"><div><p class="eyebrow" style="color:var(--brand)">Lộ trình nhân sự mới · Khối Văn phòng</p><h1 class="route-title"><span class="route-big">30 ngày</span><span class="route-rest">Hiểu việc<br>Vững văn hoá</span></h1><p>5 chặng theo tiến độ — chào mừng, quy định, phúc lợi, văn hoá 4C nội bộ và 12 điều không được làm.</p></div><button class="primary" id="routeContinueOffice">Bắt đầu Chặng 1</button></div>
+        <div class="dev-trail" id="officeLessonList"></div>
+        </div>
         <div id="devCareer" hidden>
           <button class="dev-back" type="button" id="devBackCareer">← Quay lại Lộ trình chung</button>
           <div id="devCareerBody"></div>
@@ -999,16 +1003,16 @@
     </div>
   </div>
 
-  <div class="lesson-overlay" id="c3Overlay" role="dialog" aria-modal="true" aria-label="Chặng 3 · Phúc lợi">
+  <div class="lesson-overlay" id="genDeckOverlay" role="dialog" aria-modal="true" aria-label="Deck bài học">
     <div class="lesson">
-      <div class="lesson-top"><strong>Chặng 3 · Phúc lợi</strong><button class="close-btn" id="closeC3" aria-label="Đóng">×</button></div>
+      <div class="lesson-top"><strong id="genDeckTitle">Deck bài học</strong><button class="close-btn" id="closeGenDeck" aria-label="Đóng">×</button></div>
       <div class="lesson-body deck">
-        <div id="c3Deck">
-        <div class="deck-nav"><button type="button" id="c3DeckPrev" aria-label="Slide trước">← Trước</button><span id="c3DeckCount">1 / 5</span><button type="button" id="c3DeckNext" aria-label="Slide sau">Sau →</button></div>
-        <div class="deck-dots" id="c3DeckDots"></div>
-        <div class="deck-done"><button class="primary" id="c3Done" type="button">Đã xem xong →</button></div>
+        <div id="genDeck">
+        <div class="deck-nav"><button type="button" id="genDeckPrev" aria-label="Slide trước">← Trước</button><span id="genDeckCount">1 / 1</span><button type="button" id="genDeckNext" aria-label="Slide sau">Sau →</button></div>
+        <div class="deck-dots" id="genDeckDots"></div>
+        <div class="deck-done"><button class="primary" id="genDeckDone" type="button">Đã xem xong →</button></div>
       </div>
-        <p style="color:var(--muted);font-size:13px;text-align:center;margin:10px 0 0">Xem hết 5 slide để nắm rõ chế độ thăm hỏi, trợ cấp, quà lễ, Tết, động viên, khen thưởng và phong trào thi đua nhé.</p>
+        <p id="genDeckNote" style="color:var(--muted);font-size:13px;text-align:center;margin:10px 0 0"></p>
       </div>
     </div>
   </div>

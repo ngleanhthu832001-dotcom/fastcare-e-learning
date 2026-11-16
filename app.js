@@ -113,6 +113,7 @@
           atts.forEach(function(a){if(a.lesson_id===LESSON_ID)done=true;});
           if(done&&!lessonCompleted)completeCurrentLesson();
           rows.forEach(function(r){if(r.lesson_id==='phuc-loi'&&r.completed)c3Viewed=true});
+          rows.forEach(function(r){if(r.completed){if(r.lesson_id==='chinh-sach-thu-ngan'||r.lesson_id==='chinh-sach-tu-van'||r.lesson_id==='thuong-phan-hoi-cam')ch3Subs[r.lesson_id]=true;if(r.lesson_id==='phuc-loi-cong-doan')officeC3Viewed=true;if(r.lesson_id==='van-hoa-4c-noi-bo')officeC4Viewed=true;if(r.lesson_id==='muoi-hai-khong')officeC5Viewed=true;}});
           atts.forEach(function(a){if(a.lesson_id===SURVEY_ID)markModule1Done()});
           atts.forEach(function(a){if(a.lesson_id===SURVEY_ID&&a.score===a.total&&a.total===10){var b1=document.getElementById('submitSurvey');if(b1){b1.disabled=false;b1.textContent='Đã hoàn thành';b1.dataset.done='1';}}});
           atts.forEach(function(a){if(a.lesson_id===SURVEY2_ID&&a.score===a.total&&a.total===10){var b2=document.getElementById('submitSurvey2');if(b2){b2.disabled=false;b2.textContent='Đã hoàn thành';b2.dataset.done='1';}}});
@@ -647,7 +648,7 @@
         if(p.role==='admin')return 'Quản trị viên';
         var pos=String(p.position||''),dep=String(p.department||'');
         if(/HĐQT|Chủ tịch/i.test(pos)||dep==='HĐQT')return 'BLĐ';
-        if(/Quản lý khu vực|\(AM\)/i.test(pos))return 'AM';
+        if(/Quản lý khu vực|\(AM\)|\bAM\b/i.test(pos))return 'AM';
         if(dep==='Phòng HCNS')return 'PNS';
         if(/Phó Quản lý/i.test(pos))return 'Phó QL';
         if(/Quản lý chi nhánh/i.test(pos))return 'QLCN';
@@ -871,7 +872,11 @@
       var lsState={},lsBase={},lsWired=false;
       function lsVal(st){return{open:!!st.open,deadline:st.deadline||''}}
       function lsIsDirty(id){return lsState[id]&&lsBase[id]&&JSON.stringify(lsVal(lsState[id]))!==JSON.stringify(lsBase[id])}
-      function lsDirtyCount(){return COMMON_LESSONS.filter(function(L){return lsIsDirty(L.id)}).length}
+      /* Cài đặt bài học gồm cả 2 lộ trình (Kem chốt 16/11): 5 chặng Cửa hàng + 2 chặng
+         riêng của Văn phòng (Phúc lợi Công đoàn, Văn hoá 4C nội bộ). Chặng 1/2/5 dùng
+         chung id nên chỉ liệt kê một lần. */
+      var LS_ALL_LESSONS=COMMON_LESSONS.concat(OFFICE_LESSONS.filter(function(L){return L.id==='phuc-loi-cong-doan'||L.id==='van-hoa-4c-noi-bo'}));
+      function lsDirtyCount(){return LS_ALL_LESSONS.filter(function(L){return lsIsDirty(L.id)}).length}
       function lsRefreshSaveBtn(){
         var btn=document.getElementById('lsSave'),msg=document.getElementById('lsSaveMsg');
         var n=lsDirtyCount();
@@ -906,11 +911,11 @@
           if(res.error)throw res.error;
           var map={};(res.data||[]).forEach(function(r){map[r.lesson_id]=r});
           lsState={};lsBase={};
-          COMMON_LESSONS.forEach(function(L,i){
+          LS_ALL_LESSONS.forEach(function(L,i){
             var r=map[L.id];
             var st;
             if(r)st={open:!!r.is_open,deadline:deadlineIsoToInput(r.deadline)};
-            else st={open:i===0||i===3,deadline:''}; /* mặc định khớp seed v12: chặng 1 + 4 mở */
+            else st={open:i===0||i===3,deadline:''}; /* mặc định khớp seed v12: chặng 1 + 4 mở; chặng Văn phòng mặc định mở */
             lsState[L.id]=st;lsBase[L.id]=lsVal(st);
           });
           if(saveBtn)saveBtn.disabled=false;
@@ -924,14 +929,18 @@
         var box=document.getElementById('lsTable');
         if(!box)return;
         box.innerHTML='<div class="pt-wrap"><table class="pt-table"><thead><tr><th>Chặng</th><th>Mở</th><th>Hạn nộp</th><th>Trạng thái hiện tại</th></tr></thead><tbody>'+
-          COMMON_LESSONS.map(function(L,i){
+          LS_ALL_LESSONS.map(function(L,i){
             var st=lsState[L.id]||{open:false,deadline:''};
+            var isOffice=L.id==='phuc-loi-cong-doan'||L.id==='van-hoa-4c-noi-bo';
+            var _rm=isOffice?'office':'store';
+            var _idx=lessonsFor(_rm).findIndex(function(x){return x.id===L.id});
             var cur;
-            if(commonLessonDone(i))cur='Đã hoàn thành';
+            if(_idx>=0&&commonLessonDone(_idx,_rm))cur='Đã hoàn thành';
             else if(st.deadline&&new Date(deadlineInputToIso(st.deadline)).getTime()<Date.now())cur='Đã hết hạn — sẽ khóa';
             else if(!st.open)cur='Chưa mở';
             else cur='Đang mở'+(st.deadline?' · hết hạn '+fmtDeadlineDate(deadlineInputToIso(st.deadline)):' · không hạn nộp');
-            return '<tr><td><strong>Chặng '+(i+1)+' · '+escapeHtml(L.name)+'</strong><br><span style="color:var(--muted);font-size:12px">'+escapeHtml(L.desc)+'</span></td>'+
+            var _label=isOffice?('Văn phòng · Chặng '+(_idx+1)+' · '+L.name):('Chặng '+(i+1)+' · '+L.name);
+            return '<tr><td><strong>'+escapeHtml(_label)+'</strong><br><span style="color:var(--muted);font-size:12px">'+escapeHtml(L.desc)+'</span></td>'+
               '<td><input type="checkbox" data-ls-for="'+L.id+'" data-ls-kind="open"'+(st.open?' checked':'')+' aria-label="Mở chặng '+(i+1)+'"></td>'+
               '<td><input type="text" class="ls-date" inputmode="numeric" maxlength="16" autocomplete="off" placeholder="dd/mm/yyyy HH:MM" data-ls-for="'+L.id+'" data-ls-kind="deadline" value="'+escapeHtml(st.deadline)+'" aria-label="Hạn nộp chặng '+(i+1)+' (dd/mm/yyyy HH:MM)"></td>'+
               '<td style="font-size:13px;font-weight:600">'+escapeHtml(cur)+'</td></tr>';
@@ -943,16 +952,16 @@
         var btn=document.getElementById('lsSave');
         if(btn)btn.disabled=true;
         try{
-          var rows=COMMON_LESSONS.map(function(L){
+          var rows=LS_ALL_LESSONS.map(function(L){
             var st=lsState[L.id]||{open:false,deadline:''};
             return{lesson_id:L.id,is_open:!!st.open,deadline:deadlineInputToIso(st.deadline)};
           });
           var res=await sb.from('lesson_settings').upsert(rows,{onConflict:'lesson_id'});
           if(res.error)throw res.error;
-          COMMON_LESSONS.forEach(function(L){lsBase[L.id]=lsVal(lsState[L.id])});
+          LS_ALL_LESSONS.forEach(function(L){lsBase[L.id]=lsVal(lsState[L.id])});
           lsRefreshSaveBtn();
           await loadLessonSettings();
-          renderCommonLessons();
+          renderCommonLessons('store');renderCommonLessons('office');
           showToast('Đã lưu cài đặt bài học');
         }catch(e){
           showToast('Chưa lưu được — kiểm tra lại rồi thử lại');
@@ -1407,16 +1416,18 @@
         navButtons.forEach(function(b){b.classList.toggle('active',b.getAttribute('data-view')===id)});
         window.scrollTo({top:0,behavior:'smooth'});
       }
-      navButtons.forEach(function(btn){btn.addEventListener('click',function(){var v=btn.getAttribute('data-view');switchView(v);if(v==='route')showDevScreen('common');if(v==='admin')openAdminView();if(v==='dash')renderDashboard();if(v==='rank'){var sc=document.querySelector('.segmented[data-group="scope"] button.active');renderRanking(sc?sc.getAttribute('data-scope'):'individual')}})});
+      navButtons.forEach(function(btn){btn.addEventListener('click',function(){var v=btn.getAttribute('data-view');switchView(v);if(v==='route')showDevScreen(primaryDevScreen());if(v==='admin')openAdminView();if(v==='dash')renderDashboard();if(v==='rank'){var sc=document.querySelector('.segmented[data-group="scope"] button.active');renderRanking(sc?sc.getAttribute('data-scope'):'individual')}})});
       document.querySelectorAll('[data-admintab]').forEach(function(b){b.addEventListener('click',function(){switchAdminTab(b.getAttribute('data-admintab'))})});
-      document.querySelectorAll('[data-goto]').forEach(function(btn){btn.addEventListener('click',function(){switchView(btn.getAttribute('data-goto'));if(btn.getAttribute('data-goto')==='route')showDevScreen('common')})});
+      document.querySelectorAll('[data-goto]').forEach(function(btn){btn.addEventListener('click',function(){switchView(btn.getAttribute('data-goto'));if(btn.getAttribute('data-goto')==='route')showDevScreen(primaryDevScreen())})});
       var annReportBack=document.getElementById('annReportBack');
       if(annReportBack)annReportBack.addEventListener('click',function(){switchView('dash');renderDashboard()});
 
       var overlay=document.getElementById('lessonOverlay');
       var lastFocus=null;
       var lessonCompleted=false;
-      var c3Viewed=false; /* Chặng 3 Phúc lợi: xem xong deck thì xong (chưa có quiz 10 câu — Kem chốt sau) */
+      var c3Viewed=false; /* Chặng 3 Cửa hàng (cũ): đã xem deck 19 slide thì xong — giữ để không mất hoàn thành cũ (Kem tách Chặng 3 16/11) */
+      var ch3Subs={}; /* Chặng 3 Cửa hàng (mới): từng mục nhỏ đã xem xong — lesson_id 'chinh-sach-thu-ngan' / 'chinh-sach-tu-van' / 'thuong-phan-hoi-cam' */
+      var officeC3Viewed=false,officeC4Viewed=false,officeC5Viewed=false; /* Lộ trình Văn phòng: Chặng 3 Công đoàn / Chặng 4 4C Nội bộ / Chặng 5 12 Không (xem xong deck thì xong) */
       function openLesson(btn){
         lastFocus=btn;
         overlay.classList.add('open');document.body.style.overflow='hidden';
@@ -1497,25 +1508,102 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
       /* Nút "Đã xem xong" trong overlay Chặng 2: chỉ đóng deck (chặng đọc, chưa có quiz/game). */
       var c2DoneBtn=document.getElementById('c2Done');
       if(c2DoneBtn)c2DoneBtn.addEventListener('click',function(){var qz=document.getElementById('c2Quiz');if(qz)qz.scrollIntoView({behavior:'smooth',block:'start'})});
-      /* ---- Deck Chặng 3: 5 slide Phúc lợi (bìa -> Thăm hỏi -> Quà lễ, Tết -> Động viên -> Phong trào thi đua) — Kem chốt 13/11 ----
-         Chặng đọc, chưa có quiz 10 câu: nút "Đã xem xong" ghi nhận đã xem (lesson_progress lesson_id='phuc-loi', 0 XP)
-         để mở tuần tự Chặng 4; khi nào Kem chốt bộ 10 câu thì đổi sang tính bằng quiz như Chặng 2/5. */
-      var c3Overlay=document.getElementById('c3Overlay');
-      function openC3(){if(!c3Overlay)return;c3Overlay.classList.add('open');c3ShowSlide(0);document.body.style.overflow='hidden';var c=document.getElementById('closeC3');if(c)c.focus()}
-      function closeC3(){if(!c3Overlay)return;c3Overlay.classList.remove('open');document.body.style.overflow=''}
-      var c3Close=document.getElementById('closeC3');if(c3Close)c3Close.addEventListener('click',closeC3);
-      if(c3Overlay)c3Overlay.addEventListener('click',function(e){if(e.target===c3Overlay)closeC3()});
-      document.addEventListener('keydown',function(e){if(e.key==='Escape'&&c3Overlay&&c3Overlay.classList.contains('open'))closeC3()});
-      var c3Deck=document.getElementById('c3Deck');var c3Alts=['Chặng 3 — Phúc lợi (mở đầu)','Thăm hỏi, trợ cấp','Quà lễ, Tết','Động viên, khen thưởng','Phong trào thi đua'];if(c3Deck){if(typeof C3_SLIDES!=='undefined'&&C3_SLIDES.length){C3_SLIDES.forEach(function(src,j){var s=document.createElement('div');s.className='deck-slide'+(j===0?' active':'');var im=document.createElement('img');im.src=src;im.alt='Slide '+(j+1)+' · '+c3Alts[j];s.appendChild(im);c3Deck.appendChild(s)})}else{c3Deck.innerHTML='<p style="color:var(--muted)">Slide đang tải, bạn thử mở lại sau nhé.</p>'}}
-      var c3Slides=c3Overlay?c3Overlay.querySelectorAll('.deck-slide'):[];var c3DotsWrap=document.getElementById('c3DeckDots');if(c3DotsWrap&&c3Overlay){c3DotsWrap.innerHTML='';c3Slides.forEach(function(_,j){var b=document.createElement('button');b.type='button';b.className='deck-dot'+(j===0?' active':'');b.setAttribute('aria-label','Slide '+(j+1));b.addEventListener('click',function(){c3ShowSlide(j)});c3DotsWrap.appendChild(b)})}var c3Dots=c3DotsWrap?c3DotsWrap.querySelectorAll('.deck-dot'):[];var c3DeckCount=document.getElementById('c3DeckCount');var c3Idx=0;
-      function c3ShowSlide(i){if(!c3Slides.length)return;c3Idx=Math.max(0,Math.min(c3Slides.length-1,i));c3Slides.forEach(function(sl,j){sl.classList.toggle('active',j===c3Idx)});c3Dots.forEach(function(d,j){d.classList.toggle('active',j===c3Idx)});if(c3DeckCount)c3DeckCount.textContent=(c3Idx+1)+' / '+c3Slides.length;var pv=document.getElementById('c3DeckPrev');var nx=document.getElementById('c3DeckNext');if(pv)pv.disabled=c3Idx===0;if(nx)nx.disabled=c3Idx===c3Slides.length-1}
-      var c3dp=document.getElementById('c3DeckPrev');if(c3dp)c3dp.addEventListener('click',function(){c3ShowSlide(c3Idx-1)});
-      var c3dn=document.getElementById('c3DeckNext');if(c3dn)c3dn.addEventListener('click',function(){c3ShowSlide(c3Idx+1)});
-      if(c3Overlay){var c3tx=null;c3Overlay.addEventListener('touchstart',function(e){c3tx=e.changedTouches[0].clientX},{passive:true});c3Overlay.addEventListener('touchend',function(e){if(c3tx===null)return;var dx=e.changedTouches[0].clientX-c3tx;if(Math.abs(dx)>40){c3ShowSlide(c3Idx+(dx<0?1:-1))}c3tx=null},{passive:true})}
-      document.addEventListener('keydown',function(e){if(c3Overlay&&c3Overlay.classList.contains('open')){if(e.key==='ArrowRight')c3ShowSlide(c3Idx+1);if(e.key==='ArrowLeft')c3ShowSlide(c3Idx-1)}});
-      async function markC3Viewed(){if(c3Viewed)return true;if(!currentUser)return false;try{var r=await sb.from('lesson_progress').upsert({user_id:currentUser.id,lesson_id:'phuc-loi',completed:true,xp_earned:0},{onConflict:'user_id,lesson_id'});if(r.error)throw r.error;c3Viewed=true;refreshMyStats();return true}catch(e){dbErrorToast();return false}}
-      var c3DoneBtn=document.getElementById('c3Done');
-      if(c3DoneBtn)c3DoneBtn.addEventListener('click',async function(){var ok=await markC3Viewed();closeC3();if(ok)showToast('Đã ghi nhận bạn đã xem xong Chặng 3 — Chặng 4 đã mở')});
+      /* ---- Deck chung (generic) — Kem chốt 16/11: dùng cho các deck xem-xong-thì-xong:
+         mục nhỏ Chặng 3 Cửa hàng (Thu ngân / Tư vấn / Phản hồi cam) và Chặng 3/4/5 Văn phòng.
+         Mỗi lần mở: nạp đúng slice slide, nút "Đã xem xong" ghi lesson_progress lessonId (0 XP). */
+      var C3_ALTS_ALL=['Chặng 3 — Phúc lợi (mở đầu)','Thăm hỏi, trợ cấp','Quà lễ, Tết','Động viên, khen thưởng','Phong trào thi đua','Phúc lợi — Chính sách thưởng hiện tại','Thưởng Phản hồi cam','Chính sách lương thưởng — Thu ngân kiêm kho','Lương thử việc — Thu ngân kiêm kho','Lương chính thức — Thu ngân kiêm kho','Quy định lương — Thu ngân kiêm kho','Chính sách lương thưởng — Nhân viên Tư vấn','Lương thử việc — Nhân viên Tư vấn','Lương chính thức — Nhân viên Tư vấn','Quy định lương — Nhân viên Tư vấn','Quy định mức hoa hồng & Thưởng KPIs — Phụ kiện Tư vấn','Hoa hồng — Dán cường lực, phụ kiện & sửa chữa','Thưởng KPIs — Phụ kiện','Thưởng cá nhân cao nhất — Phụ kiện'];
+      var C5_ALTS_12=['Chặng 5 — 12 Không (mở đầu)','Không 01','Không 02','Không 03','Không 04','Không 05','Không 06','Không 07','Không 08','Không 09','Không 10','Không 11','Không 12'];
+      var genDeckOverlay=document.getElementById('genDeckOverlay');
+      var genDeckCfg=null,genDeckIdx=0;
+      async function markViewed(lessonId){
+        if(!currentUser)return false;
+        try{var r=await sb.from('lesson_progress').upsert({user_id:currentUser.id,lesson_id:lessonId,completed:true,xp_earned:0},{onConflict:'user_id,lesson_id'});if(r.error)throw r.error;return true}catch(e){dbErrorToast();return false}
+      }
+      function openGenDeck(cfg){
+        if(!genDeckOverlay)return;
+        genDeckCfg=cfg;genDeckIdx=0;
+        var deck=document.getElementById('genDeck');
+        if(deck){
+          deck.querySelectorAll('.deck-slide').forEach(function(el){el.remove()});
+          (cfg.slides||[]).forEach(function(src,j){
+            var d=document.createElement('div');d.className='deck-slide'+(j===0?' active':'');
+            var im=document.createElement('img');im.src=src;im.alt='Slide '+(j+1)+' · '+((cfg.alts||[])[j]||'Bài học');
+            d.appendChild(im);deck.appendChild(d);
+          });
+        }
+        var t=document.getElementById('genDeckTitle');if(t)t.textContent=cfg.title||'Deck bài học';
+        var nt=document.getElementById('genDeckNote');if(nt)nt.textContent=cfg.note||'';
+        var db=document.getElementById('genDeckDone');if(db)db.textContent=cfg.doneLabel||'Đã xem xong →';
+        genDeckRenderDots();
+        genDeckOverlay.classList.add('open');document.body.style.overflow='hidden';
+        var c=document.getElementById('closeGenDeck');if(c)c.focus();
+      }
+      function closeGenDeck(){if(!genDeckOverlay)return;genDeckOverlay.classList.remove('open');document.body.style.overflow=''}
+      function genDeckSlides(){return genDeckOverlay?genDeckOverlay.querySelectorAll('.deck-slide'):[]}
+      function genDeckRenderDots(){
+        var w=document.getElementById('genDeckDots');if(!w)return;
+        w.innerHTML='';
+        genDeckSlides().forEach(function(_,j){
+          var b=document.createElement('button');b.type='button';b.className='deck-dot'+(j===genDeckIdx?' active':'');
+          b.setAttribute('aria-label','Slide '+(j+1));b.addEventListener('click',function(){genDeckShowSlide(j)});w.appendChild(b);
+        });
+      }
+      function genDeckShowSlide(i){
+        var slides=genDeckSlides();if(!slides.length)return;
+        genDeckIdx=Math.max(0,Math.min(slides.length-1,i));
+        slides.forEach(function(sl,j){sl.classList.toggle('active',j===genDeckIdx)});
+        var dots=document.getElementById('genDeckDots');
+        if(dots)dots.querySelectorAll('.deck-dot').forEach(function(d,j){d.classList.toggle('active',j===genDeckIdx)});
+        var cc=document.getElementById('genDeckCount');if(cc)cc.textContent=(genDeckIdx+1)+' / '+slides.length;
+        var pv=document.getElementById('genDeckPrev');var nx=document.getElementById('genDeckNext');
+        if(pv)pv.disabled=genDeckIdx===0;if(nx)nx.disabled=genDeckIdx===slides.length-1;
+      }
+      var _gdClose=document.getElementById('closeGenDeck');if(_gdClose)_gdClose.addEventListener('click',closeGenDeck);
+      if(genDeckOverlay)genDeckOverlay.addEventListener('click',function(e){if(e.target===genDeckOverlay)closeGenDeck()});
+      document.addEventListener('keydown',function(e){if(e.key==='Escape'&&genDeckOverlay&&genDeckOverlay.classList.contains('open'))closeGenDeck()});
+      var _gdp=document.getElementById('genDeckPrev');if(_gdp)_gdp.addEventListener('click',function(){genDeckShowSlide(genDeckIdx-1)});
+      var _gdn=document.getElementById('genDeckNext');if(_gdn)_gdn.addEventListener('click',function(){genDeckShowSlide(genDeckIdx+1)});
+      if(genDeckOverlay){var _gtx=null;genDeckOverlay.addEventListener('touchstart',function(e){_gtx=e.changedTouches[0].clientX},{passive:true});genDeckOverlay.addEventListener('touchend',function(e){if(_gtx===null)return;var dx=e.changedTouches[0].clientX-_gtx;if(Math.abs(dx)>40){genDeckShowSlide(genDeckIdx+(dx<0?1:-1))}_gtx=null},{passive:true})}
+      document.addEventListener('keydown',function(e){if(genDeckOverlay&&genDeckOverlay.classList.contains('open')){if(e.key==='ArrowRight')genDeckShowSlide(genDeckIdx+1);if(e.key==='ArrowLeft')genDeckShowSlide(genDeckIdx-1)}});
+      var _gdDone=document.getElementById('genDeckDone');
+      if(_gdDone)_gdDone.addEventListener('click',async function(){
+        if(!genDeckCfg)return;
+        var cfg=genDeckCfg;
+        var ok=await markViewed(cfg.lessonId);
+        if(cfg.lessonId==='phuc-loi-cong-doan'){officeC3Viewed=true;await markViewed('phuc-loi');} /* Dashboard vẫn đếm Chặng 3 bằng 'phuc-loi' */
+        if(cfg.lessonId==='van-hoa-4c-noi-bo'){officeC4Viewed=true;}
+        if(cfg.lessonId==='muoi-hai-khong'){officeC5Viewed=true;}
+        if(cfg.lessonId==='chinh-sach-thu-ngan'||cfg.lessonId==='chinh-sach-tu-van'||cfg.lessonId==='thuong-phan-hoi-cam'){
+          ch3Subs[cfg.lessonId]=true;
+          if(storeCh3Done()){await markViewed('phuc-loi');c3Viewed=true;} /* đủ mục nhỏ → Chặng 3 xong (Dashboard vẫn đếm 'phuc-loi') */
+        }
+        closeGenDeck();
+        if(ok){showToast('Đã ghi nhận bạn đã xem xong');refreshMyStats();}
+      });
+      /* ---- Picker Chặng 3 Cửa hàng (Kem chốt 16/11): chọn mục nhỏ theo vị trí ---- */
+      function openCh3Picker(){
+        var vis=visibleCh3Subs();
+        var rows=vis.map(function(su){
+          var done=!!ch3Subs[su.lessonId];
+          var soon=su.slice===null;
+          var st=soon?'<span style="color:var(--muted)">Sắp có</span>':done?'<span style="color:var(--teal)">✓ Đã hoàn thành</span>':'<span style="color:var(--brand-strong)">Vào học →</span>';
+          return '<button type="button" data-ch3sub="'+su.key+'" style="display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:#fffefb;border:1.5px solid '+(done?'#f6d9bc':su.slice===null?'var(--line)':'var(--line)')+';border-radius:14px;padding:12px 14px;cursor:pointer;font:inherit;color:inherit;opacity:'+(soon?'.7':'1')+'"><span style="flex:1;min-width:0"><b style="display:block;font-size:15px">'+escapeHtml(su.name)+'</b><span style="display:block;font-size:13px;color:var(--muted)">'+escapeHtml(su.desc)+'</span></span><span style="flex:none;font-size:13px;font-weight:700">'+st+'</span></button>';
+        }).join('');
+        openDevModal('<div style="position:relative"><button class="close-btn" id="devModalClose" aria-label="Đóng" style="position:absolute;right:0;top:0">×</button><h3 style="margin:0 0 4px;padding-right:44px">Chặng 3 · Chính sách - Phúc lợi</h3><p style="color:var(--muted);margin:0 0 14px;font-size:14px;line-height:1.5">Chọn mục theo vị trí của bạn. Hoàn thành xong mục của mình là xong Chặng 3.</p><div style="display:grid;gap:10px">'+rows+'</div></div>');
+        var box=document.getElementById('devModalBox');
+        if(box)box.querySelectorAll('[data-ch3sub]').forEach(function(b){
+          b.addEventListener('click',function(){
+            var key=b.getAttribute('data-ch3sub');
+            var sub=CH3_SUBS.filter(function(x){return x.key===key})[0];
+            if(!sub)return;
+            if(sub.slice===null){showToast('Nội dung Kỹ thuật đang được chuẩn bị');return;}
+            closeDevModal();
+            var slides=(typeof C3_SLIDES!=='undefined'?C3_SLIDES:[]).slice(sub.slice[0],sub.slice[1]);
+            var alts=C3_ALTS_ALL.slice(sub.slice[0],sub.slice[1]);
+            openGenDeck({title:'Chặng 3 · '+sub.name,slides:slides,alts:alts,note:'Xem hết '+slides.length+' slide của mục '+sub.name+' nhé.',lessonId:sub.lessonId});
+          });
+        });
+      }
       overlay.addEventListener('click',function(e){if(e.target===overlay)closeLesson()});
       document.addEventListener('keydown',function(e){if(e.key==='Escape'&&overlay.classList.contains('open'))closeLesson()});
       document.querySelectorAll('.question').forEach(function(q){q.querySelectorAll('.option').forEach(function(opt,idx){opt.addEventListener('click',function(){q.querySelectorAll('.option').forEach(function(o){o.classList.remove('selected')});opt.classList.add('selected');q.dataset.selected=idx})})});
@@ -1623,13 +1711,14 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         updateNotifyBadge();
         if(!items.length){
           var openLeft=0;
-          for(var i=0;i<COMMON_LESSONS.length;i++){if(!commonLessonDone(i)&&commonLessonOpen(i))openLeft++}
+          var _rl=lessonsFor(primaryRoadmap());
+          for(var i=0;i<_rl.length;i++){if(!commonLessonDone(i,primaryRoadmap())&&commonLessonOpen(i,primaryRoadmap()))openLeft++}
           if(openLeft===0){
             list.innerHTML='<div class="reminder-item"><div class="reminder-icon">\u2713</div><div><strong>Da hoan thanh het!</strong><p>Ban da lam xong tat ca cac bai dang mo. Fastie tu hao ve ban!</p></div></div>';
           }else{
             list.innerHTML='<button type="button" class="reminder-item" id="reminderGoRoute"><div class="reminder-icon">'+openLeft+'</div><div><strong>Ban con '+openLeft+' bai chua lam</strong><p>Cac bai nay chua co han nop — bam de mo Lo trinh lam ngay.</p></div></button>';
             var gr=document.getElementById('reminderGoRoute');
-            if(gr)gr.addEventListener('click',function(){document.getElementById('reminderPanel').classList.remove('open');switchView('route');showDevScreen('common')});
+            if(gr)gr.addEventListener('click',function(){document.getElementById('reminderPanel').classList.remove('open');switchView('route');showDevScreen(primaryDevScreen())});
           }
           return;
         }
@@ -2022,13 +2111,30 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
           document.getElementById('annResClose').addEventListener('click',function(){box.hidden=true});
         }
       }
+      /* Lộ trình chung Khối Cửa hàng (Kem chốt 16/11): Chặng 3 đổi tên "Chính sách - Phúc lợi",
+         bấm vào hiện 3 mục nhỏ theo vị trí (Thu ngân / Tư vấn / Kỹ thuật) + Thưởng Phản hồi cam chung. */
       var COMMON_LESSONS=[
         {id:'khao-sat-module-01',name:'Chào mừng đến với FASTCARE',desc:'Văn hoá, lịch sử hình thành · +10 XP',kind:'deck'},
         {id:'quy-dinh-noi-quy',name:'Quy định - Nội quy',desc:'Đồng phục khối Cửa hàng & khối Văn phòng.',kind:'khong'},
-        {id:'phuc-loi',name:'Phúc lợi',desc:'Chính sách, chế độ phúc lợi dành cho nhân sự.',kind:'phucloi'},
+        {id:'phuc-loi',name:'Chính sách - Phúc lợi',desc:'Chính sách lương thưởng theo vị trí + thưởng Phản hồi cam.',kind:'phucloi'},
         {id:'quy-tac-4c-5s',name:'Quy tắc 4C',desc:'Văn hoá 4C — Nội bộ & Khách hàng · +20 XP',kind:'lesson4c'},
         {id:'muoi-hai-khong',name:'Quy định 4 Không và 12 Không tại FASTCARE',desc:'12 Không nội bộ + 4 Không với khách hàng.',kind:'khong'}
       ];
+      /* Lộ trình chung Khối Văn phòng (Kem chốt 16/11): Chặng 1/2 giống Cửa hàng;
+         Chặng 3 = Phúc lợi (Công đoàn, 4 slide); Chặng 4 = Văn hoá 4C nội bộ (5 slide);
+         Chặng 5 = 12 Không (không có 4 Không với khách hàng). Chặng 3/4/5 Văn phòng
+         tính bằng xem xong deck (chưa có quiz riêng). */
+      var OFFICE_LESSONS=[
+        {id:'khao-sat-module-01',name:'Chào mừng đến với FASTCARE',desc:'Văn hoá, lịch sử hình thành · +10 XP',kind:'deck'},
+        {id:'quy-dinh-noi-quy',name:'Quy định - Nội quy',desc:'Đồng phục khối Cửa hàng & khối Văn phòng.',kind:'khong'},
+        {id:'phuc-loi-cong-doan',name:'Phúc lợi',desc:'Chế độ thăm hỏi, trợ cấp, quà lễ, Tết, động viên, khen thưởng và phong trào thi đua (Công đoàn).',kind:'phucloi-office'},
+        {id:'van-hoa-4c-noi-bo',name:'Văn hoá 4C',desc:'Văn hoá 4C nội bộ — 5 slide.',kind:'lesson4c-office'},
+        {id:'muoi-hai-khong',name:'12 Không',desc:'12 điều không được làm trong nội bộ.',kind:'khong-office'}
+      ];
+      function lessonsFor(rm){return rm==='office'?OFFICE_LESSONS:COMMON_LESSONS}
+      function activeRoadmap(){return devScreen==='common-office'?'office':'store'}
+      function primaryRoadmap(){return detectUserBlock()==='vanphong'?'office':'store'}
+      function primaryDevScreen(){return primaryRoadmap()==='office'?'common-office':'common'}
       function bestScoreFor(lessonId){
         var best=0;
         (myQuizAttempts||[]).forEach(function(a){if(a.lesson_id===lessonId&&(a.score||0)>best)best=a.score||0;});
@@ -2040,48 +2146,87 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
       function xpDeltaFor(lessonId,score){
         return Math.max(0,score-bestScoreFor(lessonId));
       }
-      function prevCommonIdx(i){
-        for(var j=i-1;j>=0;j--){if(COMMON_LESSONS[j].kind!=='placeholder')return j;}
-        return -1;
-      }
-      function commonLessonDone(i){
-        if(i===0)return module1Done;
-        if(i===1)return hasAttemptFor(SURVEY2_ID);
-        if(i===2)return c3Viewed;
-        if(i===3)return lessonCompleted&&game4cDone;
-        if(i===4)return hasAttemptFor(SURVEY5_ID);
+      /* Mục nhỏ của Chặng 3 Cửa hàng (Kem chốt 16/11): Thu ngân / Tư vấn / Kỹ thuật
+         chỉ mỗi vị trí đó thấy riêng bài của mình; Thưởng Phản hồi cam là chính sách
+         chung của cửa hàng nên mọi nhân sự cửa hàng đều thấy. AM và QLCN/Phó QLCN
+         thấy cả 3 mục (làm hết mới nắm được nhân sự cửa hàng). slice = [bat dau, ket thuc)
+         trong mang C3_SLIDES (19 slide). */
+      var CH3_SUBS=[
+        {key:'thu-ngan',name:'Thu ngân kiêm kho',desc:'Chính sách lương thưởng Thu ngân kiêm kho',lessonId:'chinh-sach-thu-ngan',slice:[7,11]},
+        {key:'tu-van',name:'Nhân viên Tư vấn',desc:'Chính sách lương thưởng + Hoa hồng & Thưởng KPIs phụ kiện',lessonId:'chinh-sach-tu-van',slice:[11,19]},
+        {key:'ky-thuat',name:'Kỹ thuật',desc:'Chính sách lương thưởng Kỹ thuật',lessonId:'chinh-sach-ky-thuat',slice:null},
+        {key:'phan-hoi-cam',name:'Thưởng Phản hồi cam',desc:'Chính sách thưởng cho cửa hàng',lessonId:'thuong-phan-hoi-cam',slice:[5,7]}
+      ];
+      function ch3SubVisible(key){
+        if(userRole==='admin')return true;
+        var p=(myProfile&&myProfile.position?String(myProfile.position):'').toLowerCase();
+        var isAM=p.indexOf('quản lý khu vực')>-1||p.indexOf('(am)')>-1||/\bam\b/.test(p);
+        var isQL=p.indexOf('quản lý chi nhánh')>-1||p.indexOf('phó quản lý')>-1;
+        if(isAM||isQL)return true;
+        if(key==='thu-ngan')return p.indexOf('thu ngân')>-1;
+        if(key==='tu-van')return p.indexOf('tư vấn')>-1;
+        if(key==='ky-thuat')return p.indexOf('kỹ thuật')>-1;
+        if(key==='phan-hoi-cam')return true;
         return false;
       }
-      function commonLessonOpen(i){
-        if(commonLessonDone(i))return true; /* đã xong thì vẫn mở để xem lại / chơi lại */
-        if(COMMON_LESSONS[i].kind==='placeholder')return false;
-        var s=lessonSetting(COMMON_LESSONS[i].id);
-        if(s&&!s.is_open)return false;
-        if(userRole==='admin')return true; /* QTV test: mở được mọi chặng đã mở, không bị kẹt chuỗi */
-        var prev=prevCommonIdx(i);
-        if(prev>=0&&!commonLessonDone(prev))return false; /* mở tuần tự: xong chặng trước mới mở chặng này */
-        return true;
+      function visibleCh3Subs(){return CH3_SUBS.filter(function(s){return ch3SubVisible(s.key)})}
+      function storeCh3Done(){
+        if(c3Viewed)return true; /* đã xem deck 19 slide cũ — giữ nguyên hoàn thành */
+        var vis=visibleCh3Subs().filter(function(s){return s.slice!==null}); /* Kỹ thuật chưa có nội dung — chưa tính */
+        if(!vis.length)return false;
+        return vis.every(function(s){return !!ch3Subs[s.lessonId]});
       }
-      function currentCommonLessonIdx(){
-        for(var i=0;i<COMMON_LESSONS.length;i++){
-          if(!commonLessonDone(i)&&commonLessonOpen(i))return i;}
+      function prevCommonIdx(i,rm){
+        var L=lessonsFor(rm||activeRoadmap());
+        for(var j=i-1;j>=0;j--){if(L[j].kind!=='placeholder')return j;}
         return -1;
       }
-      function commonLessonStatus(i){
-        if(commonLessonDone(i))return 'done';
-        if(!commonLessonOpen(i))return 'locked';
+      function commonLessonDone(i,rm){
+        rm=rm||activeRoadmap();
+        if(i===0)return module1Done;
+        if(i===1)return hasAttemptFor(SURVEY2_ID);
+        if(i===2)return rm==='office'?officeC3Viewed:storeCh3Done();
+        if(i===3)return rm==='office'?officeC4Viewed:(lessonCompleted&&game4cDone);
+        if(i===4)return rm==='office'?officeC5Viewed:hasAttemptFor(SURVEY5_ID);
+        return false;
+      }
+      function commonLessonOpen(i,rm){
+        rm=rm||activeRoadmap();
+        if(commonLessonDone(i,rm))return true; /* đã xong thì vẫn mở để xem lại / chơi lại */
+        var L=lessonsFor(rm);
+        if(L[i].kind==='placeholder')return false;
+        var s=lessonSetting(L[i].id);
+        if(s&&!s.is_open)return false;
+        if(userRole==='admin')return true; /* QTV test: mở được mọi chặng đã mở, không bị kẹt chuỗi */
+        var prev=prevCommonIdx(i,rm);
+        if(prev>=0&&!commonLessonDone(prev,rm))return false; /* mở tuần tự: xong chặng trước mới mở chặng này */
+        return true;
+      }
+      function currentCommonLessonIdx(rm){
+        rm=rm||activeRoadmap();
+        var L=lessonsFor(rm);
+        for(var i=0;i<L.length;i++){
+          if(!commonLessonDone(i,rm)&&commonLessonOpen(i,rm))return i;}
+        return -1;
+      }
+      function commonLessonStatus(i,rm){
+        rm=rm||activeRoadmap();
+        if(commonLessonDone(i,rm))return 'done';
+        if(!commonLessonOpen(i,rm))return 'locked';
         /* "Bắt đầu" chỉ dành cho Chặng 1 (chặng đầu tiên); các chặng đã mở ở dưới hiển thị "Đã mở". */
         return i===0?'current':'open';
       }
-      function renderCommonLessons(){
-        var list=document.getElementById('commonLessonList');
+      function renderCommonLessons(rm){
+        rm=rm||activeRoadmap();
+        var list=document.getElementById(rm==='office'?'officeLessonList':'commonLessonList');
         if(!list)return;
         list.className='common-roadmap';
-        var cur=currentCommonLessonIdx();
-        var n=COMMON_LESSONS.length;
+        var cur=currentCommonLessonIdx(rm);
+        var L=lessonsFor(rm);
+        var n=L.length;
         var lastDone=-1;
-        var items=COMMON_LESSONS.map(function(L,i){
-          var st=commonLessonStatus(i);
+        var items=L.map(function(Li,i){
+          var st=commonLessonStatus(i,rm);
           if(st==='done')lastDone=i;
           var nodeInner=st==='done'?'\u2713':st==='locked'?'\uD83D\uDD12':(i+1<10?'0'+(i+1):String(i+1));
           var nodeCls=st==='done'?'done':st==='locked'?'locked':(i===cur?'current':'');
@@ -2089,10 +2234,11 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
           if(st==='done')action='<span class="act">\u0110\u00e3 ho\u00e0n th\u00e0nh</span>';
           else if(commonLessonExpired(i))action=userRole==='admin'?'<span class="act">\u0110\u00e3 h\u1ebft h\u1ea1n \u2014 b\u1ea5m \u0111\u1ec3 xem th\u1eed (QTV)</span>':'<span>\u0110\u00e3 h\u1ebft h\u1ea1n \u2014 b\u00e0i \u0111\u00e3 kh\u00f3a</span>';
           else if(st==='locked')action='<span>Ch\u01b0a m\u1edf \u2014 n\u1ed9i dung \u0111ang \u0111\u01b0\u1ee3c chu\u1ea9n b\u1ecb</span>';
-          else if(i===3&&lessonCompleted&&!game4cDone)action='<span class="act">Ch\u01a1i game 4C \u2192</span>';
-          else if(i===3)action='<span class="act">H\u1ecdc l\u00fd thuy\u1ebft \u2192</span>';
-          else action='<span class="act">B\u1eaft \u0111\u1ea7u \u2192</span>';
-          return{L:L,i:i,st:st,nodeInner:nodeInner,nodeCls:nodeCls,action:action};
+          else if(rm==='store'&&i===3&&lessonCompleted&&!game4cDone)action='<span class="act">Chơi game 4C →</span>';
+          else if(rm==='store'&&i===3)action='<span class="act">Học lý thuyết →</span>';
+          else if(rm==='store'&&i===2)action='<span class="act">Chọn mục →</span>';
+          else action='<span class="act">Bắt đầu →</span>';
+          return{L:Li,i:i,st:st,nodeInner:nodeInner,nodeCls:nodeCls,action:action};
         });
         var fillPct=lastDone>0?Math.round(lastDone/(n-1)*100):0;
         var stepper='<div class="common-stepper"><div class="cs-track"><div class="cs-fill" style="width:'+fillPct+'%"></div></div><div class="cs-nodes">'+items.map(function(it){
@@ -2103,42 +2249,61 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         }).join('');
         list.innerHTML=stepper+'<div class="common-list">'+rows+'</div>';
         list.querySelectorAll('[data-chang]').forEach(function(el){
-          el.addEventListener('click',function(){openCommonLesson(Number(el.getAttribute('data-chang')),el)});
+          el.addEventListener('click',function(){openCommonLesson(Number(el.getAttribute('data-chang')),el,rm)});
         });
-        var rc=document.getElementById('routeContinue');
+        var rc=document.getElementById(rm==='office'?'routeContinueOffice':'routeContinue');
         if(rc){
-          if(cur>=0){rc.textContent='B\u1eaft \u0111\u1ea7u Ch\u1eb7ng '+(cur+1);rc.disabled=false;}
-          else if(commonDone()){rc.textContent='\u0110\u00e3 ho\u00e0n th\u00e0nh L\u1ed9 tr\u00ecnh chung';rc.disabled=true;}
-          else{rc.textContent='Kh\u00f4ng c\u00f2n ch\u1eb7ng n\u00e0o \u0111ang m\u1edf';rc.disabled=true;}
+          if(cur>=0){rc.textContent='Bắt đầu Chặng '+(cur+1);rc.disabled=false;}
+          else if(commonDone(rm)){rc.textContent='Đã hoàn thành Lộ trình chung';rc.disabled=true;}
+          else{rc.textContent='Không còn chặng nào đang mở';rc.disabled=true;}
         }
       }
-      function openCommonLesson(i,btn){
-        if(i<0||i>=COMMON_LESSONS.length)return;
+      function openCommonLesson(i,btn,rm){
+        rm=rm||activeRoadmap();
+        var L=lessonsFor(rm);
+        if(i<0||i>=L.length)return;
         var isAdmin=userRole==='admin'; /* QTV test: admin không bị khóa hết hạn, không bị kẹt chặng 4 (Kem chốt 09/11) */
         if(!isAdmin&&commonLessonExpired(i)){showToast('Chặng này đã hết hạn — bài đã khóa');return;}
-        if(!isAdmin&&i===3&&!commonLessonDone(0)){var _s3=lessonSetting(COMMON_LESSONS[3].id);if(!_s3||_s3.is_open){showToast('Hoàn thành Chặng 1 trước để mở chặng này');return;}}
-        if(!commonLessonOpen(i)){showToast('Chặng này chưa mở — nội dung đang được chuẩn bị');return;}
-        var L=COMMON_LESSONS[i];
-        if(L.kind==='placeholder'){showToast('Nội dung chặng này đang được chuẩn bị');return;}
-        if(L.kind==='deck'){openWelcome();return;}
-        if(L.kind==='lesson4c'){
+        if(rm==='store'&&!isAdmin&&i===3&&!commonLessonDone(0,'store')){var _s3=lessonSetting(L[3].id);if(!_s3||_s3.is_open){showToast('Hoàn thành Chặng 1 trước để mở chặng này');return;}}
+        if(!commonLessonOpen(i,rm)){showToast('Chặng này chưa mở — nội dung đang được chuẩn bị');return;}
+        var Li=L[i];
+        if(Li.kind==='placeholder'){showToast('Nội dung chặng này đang được chuẩn bị');return;}
+        if(Li.kind==='deck'){openWelcome();return;}
+        if(Li.kind==='lesson4c'){
           /* Chặng 4C mở deck 10 slide Văn hoá 4C trước (Nội bộ 5 rồi Khách hàng 5);
              bấm nút trong overlay mới sang quiz/game (Kem chốt 11/11). */
           openC4();
           return;
         }
-        if(L.kind==='phucloi'){openC3();return;}
-        if(L.kind==='khong'){
+        if(Li.kind==='phucloi'){openCh3Picker();return;}
+        if(Li.kind==='phucloi-office'){
+          openGenDeck({title:'Chặng 3 · Phúc lợi (Công đoàn)',slides:C3_SLIDES.slice(0,5),alts:C3_ALTS_ALL.slice(0,5),note:'Xem hết 5 slide để nắm rõ chế độ thăm hỏi, trợ cấp, quà lễ, Tết, động viên, khen thưởng và phong trào thi đua nhé.',lessonId:'phuc-loi-cong-doan'});
+          return;
+        }
+        if(Li.kind==='lesson4c-office'){
+          openGenDeck({title:'Chặng 4 · Văn hoá 4C (Nội bộ)',slides:C4_SLIDES.slice(0,5),alts:['Văn hoá 4C nội bộ — Tổng quan','Văn hoá 4C nội bộ — Chủ động','Văn hoá 4C nội bộ — Cười','Văn hoá 4C nội bộ — Chào','Văn hoá 4C nội bộ — Cảm ơn'],note:'Xem hết 5 slide Văn hoá 4C nội bộ nhé.',lessonId:'van-hoa-4c-noi-bo'});
+          return;
+        }
+        if(Li.kind==='khong-office'){
+          openGenDeck({title:'Chặng 5 · 12 Không',slides:C5_SLIDES.slice(0,13),alts:C5_ALTS_12,note:'Xem hết 13 slide để nắm rõ 12 điều không được làm trong nội bộ nhé.',lessonId:'muoi-hai-khong'});
+          return;
+        }
+        if(Li.kind==='khong'){
           /* Chặng 2 (đồng phục) và Chặng 5 (4 Không/12 Không) đều là chặng đọc — mở deck riêng theo id (Kem chốt 12/11). */
-          if(L.id==='quy-dinh-noi-quy'){openC2();return;}
+          if(Li.id==='quy-dinh-noi-quy'){openC2();return;}
           openC5();
           return;
         }
         openLesson(btn||null);
       }
       document.getElementById('routeContinue').addEventListener('click',function(){
-        var cur=currentCommonLessonIdx();
-        if(cur>=0)openCommonLesson(cur);
+        var cur=currentCommonLessonIdx('store');
+        if(cur>=0)openCommonLesson(cur,null,'store');
+      });
+      var _rco=document.getElementById('routeContinueOffice');
+      if(_rco)_rco.addEventListener('click',function(){
+        var cur=currentCommonLessonIdx('office');
+        if(cur>=0)openCommonLesson(cur,null,'office');
       });
       function completeCurrentLesson(){
         if(lessonCompleted)return;
@@ -2202,7 +2367,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
       function surveyProgress(){var qs=document.querySelectorAll('.sq-question');var n=0;qs.forEach(function(q){if(q.querySelector('.sq-option.selected'))n++});var p=document.getElementById('surveyProgress');if(p)p.textContent=n>=qs.length?'Đã trả lời đủ '+qs.length+' câu — bấm Nộp bài nhé!':'Đã trả lời '+n+'/'+qs.length+' câu';}
       document.querySelectorAll('.sq-question').forEach(function(q){q.querySelectorAll('.sq-option').forEach(function(opt,idx){opt.addEventListener('click',function(){q.querySelectorAll('.sq-option').forEach(function(o){o.classList.remove('selected')});opt.classList.add('selected');q.dataset.selected=idx;var _r=document.getElementById('surveyResult');if(_r)_r.textContent='';surveyProgress()})})});
       document.getElementById('submitSurvey').addEventListener('click',async function(){
-        var _db=document.getElementById('submitSurvey');if(_db&&_db.dataset.done==='1'){closeWelcome();switchView('route');showDevScreen('common');return;}
+        var _db=document.getElementById('submitSurvey');if(_db&&_db.dataset.done==='1'){closeWelcome();switchView('route');showDevScreen(primaryDevScreen());return;}
         var qs=document.querySelectorAll('.sq-question');var answered=0,score=0;
         qs.forEach(function(q){
           var opts=q.querySelectorAll('.sq-option');
@@ -2239,7 +2404,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
       function survey2Progress(){var qs=document.querySelectorAll('.sq2-question');var n=0;qs.forEach(function(q){if(q.querySelector('.sq2-option.selected'))n++});var p=document.getElementById('survey2Progress');if(p)p.textContent=n>=qs.length?'Đã trả lời đủ '+qs.length+' câu — bấm Nộp bài nhé!':'Đã trả lời '+n+'/'+qs.length+' câu';}
       document.querySelectorAll('.sq2-question').forEach(function(q){q.querySelectorAll('.sq2-option').forEach(function(opt,idx){opt.addEventListener('click',function(){q.querySelectorAll('.sq2-option').forEach(function(o){o.classList.remove('selected')});opt.classList.add('selected');q.dataset.selected=idx;var _r=document.getElementById('survey2Result');if(_r)_r.textContent='';survey2Progress()})})});
       document.getElementById('submitSurvey2').addEventListener('click',async function(){
-        var _db=document.getElementById('submitSurvey2');if(_db&&_db.dataset.done==='1'){closeC2();switchView('route');showDevScreen('common');return;}
+        var _db=document.getElementById('submitSurvey2');if(_db&&_db.dataset.done==='1'){closeC2();switchView('route');showDevScreen(primaryDevScreen());return;}
         var qs=document.querySelectorAll('.sq2-question');var answered=0,score=0;
         qs.forEach(function(q){
           var opts=q.querySelectorAll('.sq2-option');
@@ -2275,7 +2440,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
       function survey5Progress(){var qs=document.querySelectorAll('.sq5-question');var n=0;qs.forEach(function(q){if(q.querySelector('.sq5-option.selected'))n++});var p=document.getElementById('survey5Progress');if(p)p.textContent=n>=qs.length?'Đã trả lời đủ '+qs.length+' câu — bấm Nộp bài nhé!':'Đã trả lời '+n+'/'+qs.length+' câu';}
       document.querySelectorAll('.sq5-question').forEach(function(q){q.querySelectorAll('.sq5-option').forEach(function(opt,idx){opt.addEventListener('click',function(){q.querySelectorAll('.sq5-option').forEach(function(o){o.classList.remove('selected')});opt.classList.add('selected');q.dataset.selected=idx;var _r=document.getElementById('survey5Result');if(_r)_r.textContent='';survey5Progress()})})});
       document.getElementById('submitSurvey5').addEventListener('click',async function(){
-        var _db=document.getElementById('submitSurvey5');if(_db&&_db.dataset.done==='1'){closeC5();switchView('route');showDevScreen('common');return;}
+        var _db=document.getElementById('submitSurvey5');if(_db&&_db.dataset.done==='1'){closeC5();switchView('route');showDevScreen(primaryDevScreen());return;}
         var qs=document.querySelectorAll('.sq5-question');var answered=0,score=0;
         qs.forEach(function(q){
           var opts=q.querySelectorAll('.sq5-option');
@@ -2308,8 +2473,8 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         }
       });
       document.getElementById('nextLesson').addEventListener('click',function(){closeLesson();var cur=currentCommonLessonIdx();if(cur>=0)openCommonLesson(cur);else{switchView('route');showDevScreen('common')}});
-      document.getElementById('backToRoute').addEventListener('click',function(){closeLesson();switchView('route');showDevScreen('common')});
-      document.getElementById('startNextVideo').addEventListener('click',function(){closeLesson();switchView('route');showDevScreen('common')});
+      document.getElementById('backToRoute').addEventListener('click',function(){closeLesson();switchView('route');showDevScreen(primaryDevScreen())});
+      document.getElementById('startNextVideo').addEventListener('click',function(){closeLesson();switchView('route');showDevScreen(primaryDevScreen())});
 
       document.querySelectorAll('.segmented').forEach(function(group){group.querySelectorAll('button').forEach(function(btn){btn.addEventListener('click',function(){
         group.querySelectorAll('button').forEach(function(b){b.classList.remove('active');if(group.getAttribute('data-group')==='scope')b.setAttribute('aria-pressed','false')});
@@ -3075,16 +3240,17 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
       /* Lộ trình chung được tính là xong khi xong các Bài ĐÃ CÓ nội dung thật:
          Bài 1 (khảo sát 5/5), Bài 2 (quiz Văn hoá phục vụ 10/10) và Bài 3 (game Vượt ải 4C).
          Bài 4–12 chưa có nội dung nên chưa tính vào điều kiện. */
-      function commonProgress(){
+      function commonProgress(rm){
+        rm=rm||primaryRoadmap();
         var done=0;
         if(module1Done)done++;
         if(hasAttemptFor(SURVEY2_ID))done++;
-        if(c3Viewed)done++;
-        if(commonLessonDone(3))done++;
-        if(hasAttemptFor(SURVEY5_ID))done++;
+        if(commonLessonDone(2,rm))done++;
+        if(commonLessonDone(3,rm))done++;
+        if(commonLessonDone(4,rm))done++;
         return{done:done,total:5};
       }
-      function commonDone(){return commonProgress().done>=5}
+      function commonDone(rm){return commonProgress(rm||primaryRoadmap()).done>=5}
       function detectBlock(){
         var d=myProfile&&myProfile.department?String(myProfile.department):'';
         return d.indexOf('Chi nhánh')===0?'cuahang':'vanphong';
@@ -3100,7 +3266,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         if(userRole==='admin'||hasCrossBlock())return 'all';
         var p=myProfile&&myProfile.position?String(myProfile.position):'';
         var pl=p.toLowerCase();
-        if(pl.indexOf('quản lý khu vực')>-1||pl.indexOf('(am)')>-1)return 'all';
+        if(pl.indexOf('quản lý khu vực')>-1||pl.indexOf('(am)')>-1||/\bam\b/.test(pl))return 'all';
         if(pl.indexOf('quản lý chi nhánh')>-1||pl.indexOf('phó quản lý')>-1)return 'storeAll';
         if(pl.indexOf('kỹ thuật')>-1)return 'kythuat';
         if(pl.indexOf('tư vấn')>-1||pl.indexOf('thu ngân')>-1)return 'tuvan';
@@ -3120,13 +3286,18 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
       function renderDevTabs(){
         var el=document.getElementById('devTabs');
         if(!el)return;
-        var tabs=[{key:'common',label:'Lộ trình chung'}];
+        /* Kem chốt 16/11: tab "Lộ trình chung" → "Lộ trình chung Khối Cửa hàng" + thêm tab Văn phòng.
+           Cửa hàng thấy tab Cửa hàng, Văn phòng thấy tab Văn phòng, admin/AM thấy cả 2. */
+        var _blk=detectUserBlock();
+        var tabs=[];
+        if(_blk!=='vanphong')tabs.push({key:'common',label:'Lộ trình chung Khối Cửa hàng'});
+        if(_blk==='vanphong'||_blk==='all')tabs.push({key:'common-office',label:'Lộ trình chung Khối Văn phòng'});
         var paths=visibleDevPaths();
         if(paths.indexOf('quanly')>-1)tabs.push({key:'career:quanly',label:'Quản lý & Phó Quản lý'});
         if(paths.indexOf('kythuat')>-1)tabs.push({key:'career:kythuat',label:'Kỹ thuật Trưởng & Leader'});
         if(showDevDoc())tabs.push({key:'doc',label:'Thông báo/Truyền thông chung'});
         el.innerHTML=tabs.map(function(t){
-          var active=(t.key==='common'&&devScreen==='common')||(t.key.indexOf('career:')===0&&devScreen==='career'&&devCareerPath===t.key.slice(7));
+          var active=(t.key==='common'&&devScreen==='common')||(t.key==='common-office'&&devScreen==='common-office')||(t.key.indexOf('career:')===0&&devScreen==='career'&&devCareerPath===t.key.slice(7));
           return '<button type="button" class="dev-tab'+(active?' active':'')+'" data-dev-tab="'+t.key+'" role="tab">'+escapeHtml(t.label)+'</button>';
         }).join('');
       }
@@ -3354,6 +3525,15 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
           'Tài khoản của bạn thuộc Khối Văn phòng: bạn học Lộ trình chung và Thông báo/Truyền thông chung — hai hướng nghề nghiệp chỉ áp dụng cho Khối Cửa hàng.';
         var homeNote=document.getElementById('homeOfficeNote');
         if(homeNote)homeNote.hidden=store;
+        /* Màn hình mặc định theo khối (Kem chốt 16/11): Văn phòng mở tab Văn phòng,
+           Cửa hàng mở tab Cửa hàng; admin/AM giữ nguyên lựa chọn của mình. */
+        if(devScreen==='common'&&block==='vanphong')devScreen='common-office';
+        if(devScreen==='common-office'&&block!=='vanphong'&&block!=='all')devScreen='common';
+        var _dc=document.getElementById('devCommon'),_dco=document.getElementById('devCommonOffice');
+        if(_dc)_dc.hidden=devScreen!=='common';
+        if(_dco)_dco.hidden=devScreen!=='common-office';
+        if(devScreen==='common')renderCommonLessons('store');
+        if(devScreen==='common-office')renderCommonLessons('office');
         renderDevTabs();
         renderSeed();
       }
@@ -3371,11 +3551,14 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
       }
       function showDevScreen(name,pathId,stageId){
         devScreen=name;
-        var hub=document.getElementById('devHub'),common=document.getElementById('devCommon'),career=document.getElementById('devCareer');
+        var hub=document.getElementById('devHub'),common=document.getElementById('devCommon'),commonOff=document.getElementById('devCommonOffice'),career=document.getElementById('devCareer');
         if(hub)hub.hidden=name!=='hub';
         if(common)common.hidden=name!=='common';
+        if(commonOff)commonOff.hidden=name!=='common-office';
         if(career)career.hidden=name!=='career';
         if(name==='hub')renderDevHub();
+        if(name==='common')renderCommonLessons('store');
+        if(name==='common-office')renderCommonLessons('office');
         if(name==='career'&&pathId){devCareerPath=pathId;devCareerStage=stageId||null;renderDevCareer();}
         renderDevTabs();
         window.scrollTo({top:0,behavior:'smooth'});
@@ -3463,7 +3646,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
           var b=e.target&&e.target.closest?e.target.closest('[data-dev-open]'):null;
           if(!b)return;
           var k=b.getAttribute('data-dev-open');
-          if(k==='common')showDevScreen('common');
+          if(k==='common')showDevScreen(primaryDevScreen());
           else if(k==='doc')openAnnView();
           else if(k.indexOf('career:')===0)showDevScreen('career',k.slice(7));
         });
@@ -3473,18 +3656,19 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
           if(!b)return;
           var k=b.getAttribute('data-dev-open');
           switchView('route');
-          if(k==='common')showDevScreen('common');
+          if(k==='common')showDevScreen(primaryDevScreen());
           else if(k==='doc')openAnnView();
           else if(k.indexOf('career:')===0)showDevScreen('career',k.slice(7));
         });
         var bk=document.getElementById('devBackCareer');
-        if(bk)bk.addEventListener('click',function(){showDevScreen('common')});
+        if(bk)bk.addEventListener('click',function(){showDevScreen(primaryDevScreen())});
         var tabs=document.getElementById('devTabs');
         if(tabs)tabs.addEventListener('click',function(e){
           var b=e.target&&e.target.closest?e.target.closest('[data-dev-tab]'):null;
           if(!b)return;
           var k=b.getAttribute('data-dev-tab');
           if(k==='common')showDevScreen('common');
+          else if(k==='common-office')showDevScreen('common-office');
           else if(k==='doc')openAnnView();
           else if(k.indexOf('career:')===0)showDevScreen('career',k.slice(7));
         });
