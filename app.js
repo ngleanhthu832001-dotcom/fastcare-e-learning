@@ -1491,15 +1491,34 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
       /* Nút "Đã xem xong" trong overlay Chặng 5: chỉ đóng deck (chặng đọc, chưa có quiz/game). */
       var c5DoneBtn=document.getElementById('c5Done');
       if(c5DoneBtn)c5DoneBtn.addEventListener('click',function(){var qz=document.getElementById('c5Quiz');if(qz)qz.scrollIntoView({behavior:'smooth',block:'start'})});
-      /* ---- Deck Chặng 2: 5 slide Đồng phục (Cửa hàng: Nữ, Nam, Kỹ thuật Trưởng/Leader → Văn phòng: Nữ, Nam) — Kem chốt 12/11 ---- */
+      /* ---- Deck Chặng 2 — TÁCH 2 deck theo khối (Kem chốt 16/11): Cửa hàng 13 slide
+         (đồng phục Cửa hàng + giờ làm việc + Công/Ca + Tác phong), Văn phòng 11 slide
+         (đồng phục Văn phòng + Công/Ca + Tác phong). Deck nạp động mỗi lần mở. ---- */
       var c2Overlay=document.getElementById('c2Overlay');
-      function openC2(){if(!c2Overlay)return;c2Overlay.classList.add('open');c2ShowSlide(0);document.body.style.overflow='hidden';var c=document.getElementById('closeC2');if(c)c.focus()}
+      var c2Deck=document.getElementById('c2Deck');
+      var c2DotsWrap=document.getElementById('c2DeckDots');
+      var c2DeckCount=document.getElementById('c2DeckCount');
+      var c2Slides=[];var c2Dots=[];var c2Idx=0;
+      var C2_ALTS=['Chặng 2 — Vi phạm về Đồng phục','Đồng phục Khối Cửa hàng — Nhân viên nữ','Đồng phục Khối Cửa hàng — Nhân viên nam','Đồng phục Khối Cửa hàng — Kỹ thuật Trưởng / Kỹ thuật Leader','Đồng phục Khối Văn phòng — Nhân viên nữ','Đồng phục Khối Văn phòng — Nhân viên nam','Chặng 2 — Quy định về Công/Ca làm việc','Thời gian làm việc — Khối Cửa hàng','Quy định về Công/Ca làm việc — Chấm công, đi trễ, về sớm','Quy định về Công/Ca làm việc — Kỷ luật làm việc','Chặng 2 — Quy định về Tác phong làm việc','Quy định về Tác phong làm việc — Tác phong làm việc','Quy định về Tác phong làm việc — Trách nhiệm công việc','Quy định về Tác phong làm việc — Nghiêm cấm','Chặng 2 — Kết thúc'];
+      var C2_STORE_IDX=[0,1,2,3,6,7,8,9,10,11,12,13,14];
+      var C2_OFFICE_IDX=[0,4,5,6,8,9,10,11,12,13,14];
+      function c2Pick(idx){var sl=[],al=[];idx.forEach(function(i){if(typeof C2_SLIDES!=='undefined'&&C2_SLIDES[i]){sl.push(C2_SLIDES[i]);al.push(C2_ALTS[i])}});return{slides:sl,alts:al}}
+      function buildC2Deck(slides,alts){
+        if(!c2Deck)return;
+        c2Deck.querySelectorAll('.deck-slide').forEach(function(s){s.remove()});
+        if(slides&&slides.length){slides.forEach(function(src,j){var s=document.createElement('div');s.className='deck-slide'+(j===0?' active':'');var im=document.createElement('img');im.src=src;im.alt='Slide '+(j+1)+' · '+(alts[j]||'');s.appendChild(im);c2Deck.appendChild(s)})}
+        c2Slides=c2Overlay?c2Overlay.querySelectorAll('.deck-slide'):[];
+        if(c2DotsWrap){c2DotsWrap.innerHTML='';c2Slides.forEach(function(_,j){var b=document.createElement('button');b.type='button';b.className='deck-dot'+(j===0?' active':'');b.setAttribute('aria-label','Slide '+(j+1));b.addEventListener('click',function(){c2ShowSlide(j)});c2DotsWrap.appendChild(b)})}
+        c2Dots=c2DotsWrap?c2DotsWrap.querySelectorAll('.deck-dot'):[];
+        c2Idx=0;
+      }
+      function c2SetTexts(note,quizIntro){var nt=document.getElementById('c2Note');if(nt)nt.textContent=note;var qi=document.getElementById('c2QuizIntro');if(qi)qi.textContent=quizIntro;}
+      function openC2(){if(!c2Overlay)return;var d=c2Pick(C2_STORE_IDX);buildC2Deck(d.slides,d.alts);c2SetTexts('Xem hết 13 slide để nắm rõ đồng phục khối Cửa hàng, thời gian làm việc, quy định về Công/Ca làm việc và quy định về Tác phong làm việc nhé.','Xem xong 13 slide rồi, trả lời 10 câu dưới đây nhé. Đúng 10/10 sẽ cộng 10 XP.');c2Overlay.classList.add('open');c2ShowSlide(0);document.body.style.overflow='hidden';var c=document.getElementById('closeC2');if(c)c.focus()}
+      function openC2Office(){if(!c2Overlay)return;var d=c2Pick(C2_OFFICE_IDX);buildC2Deck(d.slides,d.alts);c2SetTexts('Xem hết 11 slide để nắm rõ đồng phục khối Văn phòng, quy định về Công/Ca làm việc và quy định về Tác phong làm việc nhé.','Xem xong 11 slide rồi, trả lời 10 câu dưới đây nhé. Đúng 10/10 sẽ cộng 10 XP.');c2Overlay.classList.add('open');c2ShowSlide(0);document.body.style.overflow='hidden';var c=document.getElementById('closeC2');if(c)c.focus()}
       function closeC2(){if(!c2Overlay)return;c2Overlay.classList.remove('open');document.body.style.overflow=''}
       var c2Close=document.getElementById('closeC2');if(c2Close)c2Close.addEventListener('click',closeC2);
       if(c2Overlay)c2Overlay.addEventListener('click',function(e){if(e.target===c2Overlay)closeC2()});
       document.addEventListener('keydown',function(e){if(e.key==='Escape'&&c2Overlay&&c2Overlay.classList.contains('open'))closeC2()});
-      var c2Deck=document.getElementById('c2Deck');var c2Alts=['Chặng 2 — Vi phạm về Đồng phục','Đồng phục Khối Cửa hàng — Nhân viên nữ','Đồng phục Khối Cửa hàng — Nhân viên nam','Đồng phục Khối Cửa hàng — Kỹ thuật Trưởng / Kỹ thuật Leader','Đồng phục Khối Văn phòng — Nhân viên nữ','Đồng phục Khối Văn phòng — Nhân viên nam','Chặng 2 — Quy định về Công/Ca làm việc','Quy định về Công/Ca làm việc — Chấm công, đi trễ, về sớm','Quy định về Công/Ca làm việc — Kỷ luật làm việc','Chặng 2 — Quy định về Tác phong làm việc','Quy định về Tác phong làm việc — Tác phong làm việc','Quy định về Tác phong làm việc — Trách nhiệm công việc','Quy định về Tác phong làm việc — Nghiêm cấm','Chặng 2 — Kết thúc'];if(c2Deck){if(typeof C2_SLIDES!=='undefined'&&C2_SLIDES.length){C2_SLIDES.forEach(function(src,j){var s=document.createElement('div');s.className='deck-slide'+(j===0?' active':'');var im=document.createElement('img');im.src=src;im.alt='Slide '+(j+1)+' · '+c2Alts[j];s.appendChild(im);c2Deck.appendChild(s)})}else{c2Deck.innerHTML='<p style="color:var(--muted)">Slide đang tải, bạn thử mở lại sau nhé.</p>'}}
-      var c2Slides=c2Overlay?c2Overlay.querySelectorAll('.deck-slide'):[];var c2DotsWrap=document.getElementById('c2DeckDots');if(c2DotsWrap&&c2Overlay){c2DotsWrap.innerHTML='';c2Slides.forEach(function(_,j){var b=document.createElement('button');b.type='button';b.className='deck-dot'+(j===0?' active':'');b.setAttribute('aria-label','Slide '+(j+1));b.addEventListener('click',function(){c2ShowSlide(j)});c2DotsWrap.appendChild(b)})}var c2Dots=c2DotsWrap?c2DotsWrap.querySelectorAll('.deck-dot'):[];var c2DeckCount=document.getElementById('c2DeckCount');var c2Idx=0;
       function c2ShowSlide(i){if(!c2Slides.length)return;c2Idx=Math.max(0,Math.min(c2Slides.length-1,i));c2Slides.forEach(function(sl,j){sl.classList.toggle('active',j===c2Idx)});c2Dots.forEach(function(d,j){d.classList.toggle('active',j===c2Idx)});if(c2DeckCount)c2DeckCount.textContent=(c2Idx+1)+' / '+c2Slides.length;var pv=document.getElementById('c2DeckPrev');var nx=document.getElementById('c2DeckNext');if(pv)pv.disabled=c2Idx===0;if(nx)nx.disabled=c2Idx===c2Slides.length-1}
       var c2dp=document.getElementById('c2DeckPrev');if(c2dp)c2dp.addEventListener('click',function(){c2ShowSlide(c2Idx-1)});
       var c2dn=document.getElementById('c2DeckNext');if(c2dn)c2dn.addEventListener('click',function(){c2ShowSlide(c2Idx+1)});
@@ -2115,7 +2134,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
          bấm vào hiện 3 mục nhỏ theo vị trí (Thu ngân / Tư vấn / Kỹ thuật) + Thưởng chung Cửa hàng. */
       var COMMON_LESSONS=[
         {id:'khao-sat-module-01',name:'Chào mừng đến với FASTCARE',desc:'Văn hoá, lịch sử hình thành · +10 XP',kind:'deck'},
-        {id:'quy-dinh-noi-quy',name:'Quy định - Nội quy',desc:'Đồng phục khối Cửa hàng & khối Văn phòng.',kind:'khong'},
+        {id:'quy-dinh-noi-quy',name:'Quy định - Nội quy',desc:'Đồng phục, Công/Ca & Tác phong — Khối Cửa hàng.',kind:'khong'},
         {id:'phuc-loi',name:'Chính sách - Phúc lợi',desc:'Chính sách lương thưởng theo vị trí + thưởng Phản hồi cam.',kind:'phucloi'},
         {id:'quy-tac-4c-5s',name:'Quy tắc 4C',desc:'Văn hoá 4C — Nội bộ & Khách hàng · +20 XP',kind:'lesson4c'},
         {id:'muoi-hai-khong',name:'Quy định 4 Không và 12 Không tại FASTCARE',desc:'12 Không nội bộ + 4 Không với khách hàng.',kind:'khong'}
@@ -2126,7 +2145,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
          tính bằng xem xong deck (chưa có quiz riêng). */
       var OFFICE_LESSONS=[
         {id:'khao-sat-module-01',name:'Chào mừng đến với FASTCARE',desc:'Văn hoá, lịch sử hình thành · +10 XP',kind:'deck'},
-        {id:'quy-dinh-noi-quy',name:'Quy định - Nội quy',desc:'Đồng phục khối Cửa hàng & khối Văn phòng.',kind:'khong'},
+        {id:'quy-dinh-noi-quy',name:'Quy định - Nội quy',desc:'Đồng phục, Công/Ca & Tác phong — Khối Văn phòng.',kind:'khong'},
         {id:'phuc-loi-cong-doan',name:'Phúc lợi',desc:'Chế độ thăm hỏi, trợ cấp, quà lễ, Tết, động viên, khen thưởng và phong trào thi đua (Công đoàn).',kind:'phucloi-office'},
         {id:'van-hoa-4c-noi-bo',name:'Văn hoá 4C',desc:'Văn hoá 4C nội bộ — 5 slide.',kind:'lesson4c-office'},
         {id:'muoi-hai-khong',name:'12 Không',desc:'12 điều không được làm trong nội bộ.',kind:'khong-office'}
@@ -2290,7 +2309,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         }
         if(Li.kind==='khong'){
           /* Chặng 2 (đồng phục) và Chặng 5 (4 Không/12 Không) đều là chặng đọc — mở deck riêng theo id (Kem chốt 12/11). */
-          if(Li.id==='quy-dinh-noi-quy'){openC2();return;}
+          if(Li.id==='quy-dinh-noi-quy'){if(rm==='office')openC2Office();else openC2();return;}
           openC5();
           return;
         }
