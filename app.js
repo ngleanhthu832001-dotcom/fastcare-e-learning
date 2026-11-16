@@ -3431,7 +3431,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         var paths=visibleDevPaths();
         var store=paths.length>0;
         var showDoc=showDevDoc();
-        var cp=commonProgress();
+        var cpStore=commonProgress('store'),cpOffice=commonProgress('office');
         var di=(typeof DEV_IMGS!=='undefined')?DEV_IMGS:{learning:'',screwdriver:''};
         var intro=document.getElementById('devHubIntro');
         if(intro)intro.textContent=adminAll?
@@ -3450,17 +3450,34 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         }
         var note=document.getElementById('devOfficeNote');
         if(note)note.hidden=store;
-        var vhStatus=cp.done>=cp.total?{cls:'done',text:'Đã hoàn thành'}:{cls:'open',text:cp.done>0?'Đang học · Vào học tiếp':'Đang mở · Vào học'};
+        var vhStatus=cpStore.done>=cpStore.total?{cls:'done',text:'Đã hoàn thành'}:{cls:'open',text:cpStore.done>0?'Đang học · Vào học tiếp':'Đang mở · Vào học'};
         var cards=[];
+        /* Kem chốt 16/11: đồng bộ ô hub với tách lộ trình — ô Cửa hàng đổi tên,
+           thêm ô Văn phòng. Cửa hàng thấy ô Cửa hàng, Văn phòng thấy ô Văn phòng,
+           admin/AM thấy cả 2 (cùng logic hiển thị tab ở renderDevTabs). */
+        if(block!=='vanphong'){
         cards.push(devCardHTML({
           openKey:'common',img:'assets/fastie-wave.webp',imgAlt:'Sóc Fastie chính thức của FASTCARE — mặc áo cam FASTCARE, nhảy mừng giơ nắm tay',
-          tag:'Ô 1 · Lộ trình chung',kicker:'Chào mừng đến với',title:'Văn hoá FASTCARE',
+          tag:'Ô 1 · Khối Cửa hàng',kicker:'',title:'Lộ trình chung Khối Cửa hàng',
           desc:'Khám phá lịch sử hình thành, văn hoá và môi trường làm việc, nội quy – quy định, chính sách phúc lợi và những điều cần biết để trở thành một thành viên FASTCARE',
           chips:[{label:'Hội nhập'},{label:'Nội quy'},{label:'Phúc lợi'},{label:'Văn hoá phục vụ'},{label:'Game 4C'}],
-          audience:'Dành cho <b>tất cả nhân viên</b> hai khối',
-          progressLabel:'Tiến độ lộ trình chung',progressText:cp.done+'/'+cp.total+' bài',progressPct:Math.round(cp.done*100/cp.total),
+          audience:'Dành cho <b>nhân sự Khối Cửa hàng</b>',
+          progressLabel:'Tiến độ lộ trình chung',progressText:cpStore.done+'/'+cpStore.total+' bài',progressPct:Math.round(cpStore.done*100/cpStore.total),
           statusClass:vhStatus.cls,statusText:vhStatus.text
         }));
+        }
+        if(block==='vanphong'||block==='all'){
+        var offStatus=cpOffice.done>=cpOffice.total?{cls:'done',text:'Đã hoàn thành'}:{cls:'open',text:cpOffice.done>0?'Đang học · Vào học tiếp':'Đang mở · Vào học'};
+        cards.push(devCardHTML({
+          openKey:'common-office',img:'assets/fastie-hero.webp',imgAlt:'Sóc Fastie chính thức của FASTCARE — đeo kính, mặc đồng phục FASTCARE và học cùng sách',
+          tag:'Ô 1 · Khối Văn phòng',kicker:'',title:'Lộ trình chung Khối Văn phòng',
+          desc:'Lộ trình chung dành cho Khối Văn phòng: chào mừng, quy định – nội quy, phúc lợi Công đoàn, văn hoá 4C nội bộ và 12 Không — xem xong deck là hoàn thành từng chặng.',
+          chips:[{label:'Chào mừng'},{label:'Nội quy'},{label:'Phúc lợi'},{label:'Văn hoá 4C'},{label:'12 Không'}],
+          audience:'Dành cho <b>nhân sự Khối Văn phòng</b>',
+          progressLabel:'Tiến độ lộ trình chung',progressText:cpOffice.done+'/'+cpOffice.total+' bài',progressPct:Math.round(cpOffice.done*100/cpOffice.total),
+          statusClass:offStatus.cls,statusText:offStatus.text
+        }));
+        }
         var gate2=myXp<XP_GATE_MID?XP_GATE_MID:XP_GATE_TOP;
         if(paths.indexOf('quanly')>-1){
           var qlStatus;
@@ -3514,14 +3531,14 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         if(homeEl)homeEl.innerHTML=cards.join('');
         var homeSub=document.getElementById('homeDevSub');
         if(homeSub)homeSub.textContent=adminAll?
-          'Tài khoản Quản trị viên: bạn thấy đủ cả 3 hướng Khối Cửa hàng và Thông báo/Truyền thông chung.':
+          'Tài khoản Quản trị viên: bạn thấy đủ 2 lộ trình chung (Cửa hàng + Văn phòng), 2 hướng nghề nghiệp và Thông báo/Truyền thông chung.':
           block==='kythuat'?
-          'Bắt đầu từ Văn hoá FASTCARE, rồi mở khoá các cấp bậc Kỹ thuật khi đủ điểm và thứ hạng.':
+          'Bắt đầu từ Lộ trình chung Khối Cửa hàng, rồi mở khoá các cấp bậc Kỹ thuật khi đủ điểm và thứ hạng.':
           block==='tuvan'?
-          'Bắt đầu từ Văn hoá FASTCARE, rồi mở khoá Phó Quản lý và Quản lý chi nhánh khi đủ điểm và thứ hạng.':
+          'Bắt đầu từ Lộ trình chung Khối Cửa hàng, rồi mở khoá Phó Quản lý và Quản lý chi nhánh khi đủ điểm và thứ hạng.':
           store?
-          'Ba hướng học: bắt đầu từ Văn hoá FASTCARE, rồi mở khoá Quản lý hoặc Kỹ thuật khi đủ điểm và thứ hạng.':
-          'Tài khoản của bạn thuộc Khối Văn phòng: bạn học Lộ trình chung và Thông báo/Truyền thông chung — hai hướng nghề nghiệp chỉ áp dụng cho Khối Cửa hàng.';
+          'Ba hướng học: bắt đầu từ Lộ trình chung Khối Cửa hàng, rồi mở khoá Quản lý hoặc Kỹ thuật khi đủ điểm và thứ hạng.':
+          'Tài khoản của bạn thuộc Khối Văn phòng: bạn học Lộ trình chung Khối Văn phòng và Thông báo/Truyền thông chung — hai hướng nghề nghiệp chỉ áp dụng cho Khối Cửa hàng.';
         var homeNote=document.getElementById('homeOfficeNote');
         if(homeNote)homeNote.hidden=store;
         /* Màn hình mặc định theo khối (Kem chốt 16/11): Văn phòng mở tab Văn phòng,
@@ -3646,6 +3663,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
           if(!b)return;
           var k=b.getAttribute('data-dev-open');
           if(k==='common')showDevScreen(primaryDevScreen());
+          else if(k==='common-office')showDevScreen('common-office');
           else if(k==='doc')openAnnView();
           else if(k.indexOf('career:')===0)showDevScreen('career',k.slice(7));
         });
@@ -3656,6 +3674,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
           var k=b.getAttribute('data-dev-open');
           switchView('route');
           if(k==='common')showDevScreen(primaryDevScreen());
+          else if(k==='common-office')showDevScreen('common-office');
           else if(k==='doc')openAnnView();
           else if(k.indexOf('career:')===0)showDevScreen('career',k.slice(7));
         });
