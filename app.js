@@ -875,8 +875,8 @@
       /* Cài đặt bài học gồm cả 2 lộ trình (Kem chốt 16/11): 5 chặng Cửa hàng + 2 chặng
          riêng của Văn phòng (Phúc lợi Công đoàn, Văn hoá 4C nội bộ). Chặng 1/2/5 dùng
          chung id nên chỉ liệt kê một lần. */
-      var LS_ALL_LESSONS=COMMON_LESSONS.concat(OFFICE_LESSONS.filter(function(L){return L.id==='phuc-loi-cong-doan'||L.id==='van-hoa-4c-noi-bo'}));
-      function lsDirtyCount(){return LS_ALL_LESSONS.filter(function(L){return lsIsDirty(L.id)}).length}
+      function lsAllLessons(){return COMMON_LESSONS.concat(OFFICE_LESSONS.filter(function(L){return L.id==='phuc-loi-cong-doan'||L.id==='van-hoa-4c-noi-bo'}))}
+      function lsDirtyCount(){return lsAllLessons().filter(function(L){return lsIsDirty(L.id)}).length}
       function lsRefreshSaveBtn(){
         var btn=document.getElementById('lsSave'),msg=document.getElementById('lsSaveMsg');
         var n=lsDirtyCount();
@@ -911,7 +911,7 @@
           if(res.error)throw res.error;
           var map={};(res.data||[]).forEach(function(r){map[r.lesson_id]=r});
           lsState={};lsBase={};
-          LS_ALL_LESSONS.forEach(function(L,i){
+          lsAllLessons().forEach(function(L,i){
             var r=map[L.id];
             var st;
             if(r)st={open:!!r.is_open,deadline:deadlineIsoToInput(r.deadline)};
@@ -929,7 +929,7 @@
         var box=document.getElementById('lsTable');
         if(!box)return;
         box.innerHTML='<div class="pt-wrap"><table class="pt-table"><thead><tr><th>Chặng</th><th>Mở</th><th>Hạn nộp</th><th>Trạng thái hiện tại</th></tr></thead><tbody>'+
-          LS_ALL_LESSONS.map(function(L,i){
+          lsAllLessons().map(function(L,i){
             var st=lsState[L.id]||{open:false,deadline:''};
             var isOffice=L.id==='phuc-loi-cong-doan'||L.id==='van-hoa-4c-noi-bo';
             var _rm=isOffice?'office':'store';
@@ -952,13 +952,13 @@
         var btn=document.getElementById('lsSave');
         if(btn)btn.disabled=true;
         try{
-          var rows=LS_ALL_LESSONS.map(function(L){
+          var rows=lsAllLessons().map(function(L){
             var st=lsState[L.id]||{open:false,deadline:''};
             return{lesson_id:L.id,is_open:!!st.open,deadline:deadlineInputToIso(st.deadline)};
           });
           var res=await sb.from('lesson_settings').upsert(rows,{onConflict:'lesson_id'});
           if(res.error)throw res.error;
-          LS_ALL_LESSONS.forEach(function(L){lsBase[L.id]=lsVal(lsState[L.id])});
+          lsAllLessons().forEach(function(L){lsBase[L.id]=lsVal(lsState[L.id])});
           lsRefreshSaveBtn();
           await loadLessonSettings();
           renderCommonLessons('store');renderCommonLessons('office');
