@@ -2333,7 +2333,6 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         }
         renderCommonLessons();
         document.getElementById('heroTitle').textContent='Chuẩn tác phong tạo nên sự chuyên nghiệp.';
-        document.getElementById('heroAction').innerHTML='Bài tiếp theo · 8 phút <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg>';
       }
       document.getElementById('submitQuiz').addEventListener('click',async function(){
         var questions=document.querySelectorAll('.question');var answered=0,score=0;
