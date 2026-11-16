@@ -1511,7 +1511,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
       /* ---- Deck chung (generic) — Kem chốt 16/11: dùng cho các deck xem-xong-thì-xong:
          mục nhỏ Chặng 3 Cửa hàng (Thu ngân / Tư vấn / Phản hồi cam) và Chặng 3/4/5 Văn phòng.
          Mỗi lần mở: nạp đúng slice slide, nút "Đã xem xong" ghi lesson_progress lessonId (0 XP). */
-      var C3_ALTS_ALL=['Chặng 3 — Phúc lợi (mở đầu)','Thăm hỏi, trợ cấp','Quà lễ, Tết','Động viên, khen thưởng','Phong trào thi đua','Phúc lợi — Chính sách thưởng hiện tại','Thưởng Phản hồi cam','Chính sách lương thưởng — Thu ngân kiêm kho','Lương thử việc — Thu ngân kiêm kho','Lương chính thức — Thu ngân kiêm kho','Quy định lương — Thu ngân kiêm kho','Chính sách lương thưởng — Nhân viên Tư vấn','Lương thử việc — Nhân viên Tư vấn','Lương chính thức — Nhân viên Tư vấn','Quy định lương — Nhân viên Tư vấn','Quy định mức hoa hồng & Thưởng KPIs — Phụ kiện Tư vấn','Hoa hồng — Dán cường lực, phụ kiện & sửa chữa','Thưởng KPIs — Phụ kiện','Thưởng cá nhân cao nhất — Phụ kiện'];
+      var C3_ALTS_ALL=['Chặng 3 — Phúc lợi (mở đầu)','Thăm hỏi, trợ cấp','Quà lễ, Tết','Động viên, khen thưởng','Phong trào thi đua','Phúc lợi — Chính sách thưởng hiện tại','Thưởng chung Cửa hàng','Chính sách lương thưởng — Thu ngân kiêm kho','Lương thử việc — Thu ngân kiêm kho','Lương chính thức — Thu ngân kiêm kho','Quy định lương — Thu ngân kiêm kho','Chính sách lương thưởng — Nhân viên Tư vấn','Lương thử việc — Nhân viên Tư vấn','Lương chính thức — Nhân viên Tư vấn','Quy định lương — Nhân viên Tư vấn','Quy định mức hoa hồng & Thưởng KPIs — Phụ kiện Tư vấn','Hoa hồng — Dán cường lực, phụ kiện & sửa chữa','Thưởng KPIs — Phụ kiện','Thưởng cá nhân cao nhất — Phụ kiện'];
       var C5_ALTS_12=['Chặng 5 — 12 Không (mở đầu)','Không 01','Không 02','Không 03','Không 04','Không 05','Không 06','Không 07','Không 08','Không 09','Không 10','Không 11','Không 12'];
       var genDeckOverlay=document.getElementById('genDeckOverlay');
       var genDeckCfg=null,genDeckIdx=0;
@@ -2112,7 +2112,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         }
       }
       /* Lộ trình chung Khối Cửa hàng (Kem chốt 16/11): Chặng 3 đổi tên "Chính sách - Phúc lợi",
-         bấm vào hiện 3 mục nhỏ theo vị trí (Thu ngân / Tư vấn / Kỹ thuật) + Thưởng Phản hồi cam chung. */
+         bấm vào hiện 3 mục nhỏ theo vị trí (Thu ngân / Tư vấn / Kỹ thuật) + Thưởng chung Cửa hàng. */
       var COMMON_LESSONS=[
         {id:'khao-sat-module-01',name:'Chào mừng đến với FASTCARE',desc:'Văn hoá, lịch sử hình thành · +10 XP',kind:'deck'},
         {id:'quy-dinh-noi-quy',name:'Quy định - Nội quy',desc:'Đồng phục khối Cửa hàng & khối Văn phòng.',kind:'khong'},
@@ -2147,7 +2147,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         return Math.max(0,score-bestScoreFor(lessonId));
       }
       /* Mục nhỏ của Chặng 3 Cửa hàng (Kem chốt 16/11): Thu ngân / Tư vấn / Kỹ thuật
-         chỉ mỗi vị trí đó thấy riêng bài của mình; Thưởng Phản hồi cam là chính sách
+         chỉ mỗi vị trí đó thấy riêng bài của mình; Thưởng chung Cửa hàng là chính sách
          chung của cửa hàng nên mọi nhân sự cửa hàng đều thấy. AM và QLCN/Phó QLCN
          thấy cả 3 mục (làm hết mới nắm được nhân sự cửa hàng). slice = [bat dau, ket thuc)
          trong mang C3_SLIDES (19 slide). */
@@ -2155,7 +2155,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         {key:'thu-ngan',name:'Thu ngân kiêm kho',desc:'Chính sách lương thưởng Thu ngân kiêm kho',lessonId:'chinh-sach-thu-ngan',slice:[7,11]},
         {key:'tu-van',name:'Nhân viên Tư vấn',desc:'Chính sách lương thưởng + Hoa hồng & Thưởng KPIs phụ kiện',lessonId:'chinh-sach-tu-van',slice:[11,19]},
         {key:'ky-thuat',name:'Kỹ thuật',desc:'Chính sách lương thưởng Kỹ thuật',lessonId:'chinh-sach-ky-thuat',slice:null},
-        {key:'phan-hoi-cam',name:'Thưởng Phản hồi cam',desc:'Chính sách thưởng cho cửa hàng',lessonId:'thuong-phan-hoi-cam',slice:[5,7]}
+        {key:'phan-hoi-cam',name:'Thưởng chung Cửa hàng',desc:'Chính sách thưởng cho cửa hàng',lessonId:'thuong-phan-hoi-cam',slice:[5,7]}
       ];
       function ch3SubVisible(key){
         if(userRole==='admin')return true;
