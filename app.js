@@ -3451,20 +3451,23 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         var note=document.getElementById('devOfficeNote');
         if(note)note.hidden=store;
         var vhStatus=cpStore.done>=cpStore.total?{cls:'done',text:'Đã hoàn thành'}:{cls:'open',text:cpStore.done>0?'Đang học · Vào học tiếp':'Đang mở · Vào học'};
+        var gate2=myXp<XP_GATE_MID?XP_GATE_MID:XP_GATE_TOP;
         var cards=[];
-        /* Kem chốt 16/11: đồng bộ ô hub với tách lộ trình — ô Cửa hàng đổi tên,
-           thêm ô Văn phòng. Cửa hàng thấy ô Cửa hàng, Văn phòng thấy ô Văn phòng,
-           admin/AM thấy cả 2 (cùng logic hiển thị tab ở renderDevTabs). */
-        if(block!=='vanphong'){
-        cards.push(devCardHTML({
-          openKey:'common',img:'assets/fastie-wave.webp',imgAlt:'Sóc Fastie chính thức của FASTCARE — mặc áo cam FASTCARE, nhảy mừng giơ nắm tay',
-          tag:'Ô 1 · Khối Cửa hàng',kicker:'',title:'Lộ trình chung Khối Cửa hàng',
-          desc:'Khám phá lịch sử hình thành, văn hoá và môi trường làm việc, nội quy – quy định, chính sách phúc lợi và những điều cần biết để trở thành một thành viên FASTCARE',
-          chips:[{label:'Hội nhập'},{label:'Nội quy'},{label:'Phúc lợi'},{label:'Văn hoá phục vụ'},{label:'Game 4C'}],
-          audience:'Dành cho <b>nhân sự Khối Cửa hàng</b>',
-          progressLabel:'Tiến độ lộ trình chung',progressText:cpStore.done+'/'+cpStore.total+' bài',progressPct:Math.round(cpStore.done*100/cpStore.total),
-          statusClass:vhStatus.cls,statusText:vhStatus.text
-        }));
+        /* Kem chốt 16/11: thứ tự ô hub — Thông báo/Truyền thông chung lên đầu,
+           rồi Lộ trình chung Khối Văn phòng, Lộ trình chung Khối Cửa hàng,
+           Lộ trình Kỹ thuật, cuối cùng Lộ trình Quản lý. Hiển thị theo khối
+           như cũ (cùng logic tab ở renderDevTabs); nhãn Ô 2/Ô 3 của 2 ô nghề
+           nghiệp đổi theo thứ tự mới. */
+        if(showDoc){
+          cards.push(devCardHTML({
+            openKey:'doc',img:'assets/fastie-celebrate.webp',imgAlt:'Sóc Fastie chính thức của FASTCARE — cầm loa thông báo',
+            tag:'Toàn thể nhân sự',kicker:'',title:'Thông báo/Truyền thông chung',
+            desc:'Các bài học và bài test ngắn theo từng đợt truyền thông của Ban Lãnh đạo, dành cho toàn thể nhân sự cả hai khối — cũng là công cụ đo hiệu quả truyền thông nội bộ.',
+            chips:[{label:'Bài test theo đợt truyền thông'},{label:'Khảo sát'},{label:'Clip bài học'}],
+            audience:'Dành cho <b>toàn thể nhân sự</b>',
+            progressLabel:'',progressText:'',progressPct:0,
+            statusClass:'open',statusText:'Đang mở · Vào học'
+          }));
         }
         if(block==='vanphong'||block==='all'){
         var offStatus=cpOffice.done>=cpOffice.total?{cls:'done',text:'Đã hoàn thành'}:{cls:'open',text:cpOffice.done>0?'Đang học · Vào học tiếp':'Đang mở · Vào học'};
@@ -3478,24 +3481,16 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
           statusClass:offStatus.cls,statusText:offStatus.text
         }));
         }
-        var gate2=myXp<XP_GATE_MID?XP_GATE_MID:XP_GATE_TOP;
-        if(paths.indexOf('quanly')>-1){
-          var qlStatus;
-          if(!commonDone())qlStatus={cls:'lock',text:'Khoá · Cần hoàn thành Lộ trình chung'};
-          else if(myXp<XP_GATE_MID)qlStatus={cls:'lock',text:'Khoá · Cần '+fmt(XP_GATE_MID)+' XP để mở Phó Quản lý'};
-          else if(myXp<XP_GATE_TOP)qlStatus={cls:'open',text:'Phó Quản lý đang mở · Quản lý khoá tới '+fmt(XP_GATE_TOP)+' XP'};
-          else qlStatus={cls:'open',text:'Đang mở cả 2 giai đoạn'};
-          cards.push(devCardHTML({
-            openKey:'career:quanly',img:di.manager,imgAlt:'Sóc Fastie chính thức của FASTCARE — đeo kính, giơ tay thumbs-up',
-            tag:'Ô 2 · Hướng nghề nghiệp',kicker:'Lộ trình "nảy mầm"',title:'Quản lý & Phó Quản lý',
-            desc:'Mỗi nỗ lực là một bước tiến! Hãy chủ động học hỏi, rèn luyện và tích luỹ đủ điểm số, kinh nghiệm để sẵn sàng chinh phục vị trí Phó Quản lý, Quản lý chi nhánh',
-            chips:[{label:'Lộ trình chung'},{label:'Phó Quản lý · '+fmt(XP_GATE_MID)+' XP',lock:!commonDone()||myXp<XP_GATE_MID},{label:'Quản lý · '+fmt(XP_GATE_TOP)+' XP',lock:myXp<XP_GATE_TOP}],
-            audience:'Thường tuyển nội bộ từ <b>Tư vấn / Thu ngân</b>',
-            progressLabel:myXp<XP_GATE_TOP?'XP của bạn so với mốc '+fmt(gate2):'Tiến độ hướng Quản lý',
-            progressText:myXp<XP_GATE_TOP?fmt(myXp)+'/'+fmt(gate2)+' XP':'Đang mở cả 2 giai đoạn',
-            progressPct:myXp<XP_GATE_TOP?Math.min(100,Math.round(myXp*100/gate2)):100,
-            statusClass:qlStatus.cls,statusText:qlStatus.text
-          }));
+        if(block!=='vanphong'){
+        cards.push(devCardHTML({
+          openKey:'common',img:'assets/fastie-wave.webp',imgAlt:'Sóc Fastie chính thức của FASTCARE — mặc áo cam FASTCARE, nhảy mừng giơ nắm tay',
+          tag:'Ô 1 · Khối Cửa hàng',kicker:'',title:'Lộ trình chung Khối Cửa hàng',
+          desc:'Khám phá lịch sử hình thành, văn hoá và môi trường làm việc, nội quy – quy định, chính sách phúc lợi và những điều cần biết để trở thành một thành viên FASTCARE',
+          chips:[{label:'Hội nhập'},{label:'Nội quy'},{label:'Phúc lợi'},{label:'Văn hoá phục vụ'},{label:'Game 4C'}],
+          audience:'Dành cho <b>nhân sự Khối Cửa hàng</b>',
+          progressLabel:'Tiến độ lộ trình chung',progressText:cpStore.done+'/'+cpStore.total+' bài',progressPct:Math.round(cpStore.done*100/cpStore.total),
+          statusClass:vhStatus.cls,statusText:vhStatus.text
+        }));
         }
         if(paths.indexOf('kythuat')>-1){
           var ktStatus;
@@ -3505,7 +3500,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
           else ktStatus={cls:'open',text:'Đang mở tới Kỹ thuật Trưởng'};
           cards.push(devCardHTML({
             openKey:'career:kythuat',img:di.screwdriver,imgAlt:'Sóc Fastie chính thức của FASTCARE — cầm tua vít xanh, đang sửa điện thoại tại bàn kỹ thuật',
-            tag:'Ô 3 · Hướng nghề nghiệp',kicker:'Lộ trình "nảy mầm"',title:'Kỹ thuật Trưởng & Kỹ thuật Leader',
+            tag:'Ô 2 · Hướng nghề nghiệp',kicker:'Lộ trình "nảy mầm"',title:'Kỹ thuật Trưởng & Kỹ thuật Leader',
             desc:'Không ngừng học hỏi, rèn luyện và nâng cao tay nghề; tích luỹ kinh nghiệm thực tế để nâng cao năng lực chuyên môn và chinh phục những cấp bậc Kỹ thuật cao hơn tại FASTCARE.',
             chips:[{label:'Thay thế: Học việc → Trưởng'},{label:'Kỹ thuật Phần cứng'}],
             audience:'Thường tuyển nội bộ từ <b>nhân sự Kỹ thuật</b>',
@@ -3514,15 +3509,22 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
             statusClass:ktStatus.cls,statusText:ktStatus.text
           }));
         }
-        if(showDoc){
+        if(paths.indexOf('quanly')>-1){
+          var qlStatus;
+          if(!commonDone())qlStatus={cls:'lock',text:'Khoá · Cần hoàn thành Lộ trình chung'};
+          else if(myXp<XP_GATE_MID)qlStatus={cls:'lock',text:'Khoá · Cần '+fmt(XP_GATE_MID)+' XP để mở Phó Quản lý'};
+          else if(myXp<XP_GATE_TOP)qlStatus={cls:'open',text:'Phó Quản lý đang mở · Quản lý khoá tới '+fmt(XP_GATE_TOP)+' XP'};
+          else qlStatus={cls:'open',text:'Đang mở cả 2 giai đoạn'};
           cards.push(devCardHTML({
-            openKey:'doc',img:'assets/fastie-celebrate.webp',imgAlt:'Sóc Fastie chính thức của FASTCARE — cầm loa thông báo',
-            tag:'Toàn thể nhân sự',kicker:'',title:'Thông báo/Truyền thông chung',
-            desc:'Các bài học và bài test ngắn theo từng đợt truyền thông của Ban Lãnh đạo, dành cho toàn thể nhân sự cả hai khối — cũng là công cụ đo hiệu quả truyền thông nội bộ.',
-            chips:[{label:'Bài test theo đợt truyền thông'},{label:'Khảo sát'},{label:'Clip bài học'}],
-            audience:'Dành cho <b>toàn thể nhân sự</b>',
-            progressLabel:'',progressText:'',progressPct:0,
-            statusClass:'open',statusText:'Đang mở · Vào học'
+            openKey:'career:quanly',img:di.manager,imgAlt:'Sóc Fastie chính thức của FASTCARE — đeo kính, giơ tay thumbs-up',
+            tag:'Ô 3 · Hướng nghề nghiệp',kicker:'Lộ trình "nảy mầm"',title:'Quản lý & Phó Quản lý',
+            desc:'Mỗi nỗ lực là một bước tiến! Hãy chủ động học hỏi, rèn luyện và tích luỹ đủ điểm số, kinh nghiệm để sẵn sàng chinh phục vị trí Phó Quản lý, Quản lý chi nhánh',
+            chips:[{label:'Lộ trình chung'},{label:'Phó Quản lý · '+fmt(XP_GATE_MID)+' XP',lock:!commonDone()||myXp<XP_GATE_MID},{label:'Quản lý · '+fmt(XP_GATE_TOP)+' XP',lock:myXp<XP_GATE_TOP}],
+            audience:'Thường tuyển nội bộ từ <b>Tư vấn / Thu ngân</b>',
+            progressLabel:myXp<XP_GATE_TOP?'XP của bạn so với mốc '+fmt(gate2):'Tiến độ hướng Quản lý',
+            progressText:myXp<XP_GATE_TOP?fmt(myXp)+'/'+fmt(gate2)+' XP':'Đang mở cả 2 giai đoạn',
+            progressPct:myXp<XP_GATE_TOP?Math.min(100,Math.round(myXp*100/gate2)):100,
+            statusClass:qlStatus.cls,statusText:qlStatus.text
           }));
         }
         if(cardsEl)cardsEl.innerHTML=cards.join('');

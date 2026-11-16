@@ -6,7 +6,7 @@
    - File tĩnh (JS, ảnh, icon): cache-first, tải mới rồi ghi đè cache.
    - Mọi request tới supabase.co và request không phải GET: chỉ đi mạng.
    Đổi CACHE khi muốn ép toàn bộ máy cập nhật vỏ app. */
-var CACHE = 'fastcare-elearning-v7';
+var CACHE = 'fastcare-elearning-v8';
 var CORE = [
   './',
   './index.html',
