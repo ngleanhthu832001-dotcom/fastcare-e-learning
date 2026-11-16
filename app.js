@@ -3432,7 +3432,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         var store=paths.length>0;
         var showDoc=showDevDoc();
         var cpStore=commonProgress('store'),cpOffice=commonProgress('office');
-        var di=(typeof DEV_IMGS!=='undefined')?DEV_IMGS:{learning:'',screwdriver:''};
+        var di=(typeof DEV_IMGS!=='undefined')?DEV_IMGS:{manager:'',screwdriver:''};
         var intro=document.getElementById('devHubIntro');
         if(intro)intro.textContent=adminAll?
           'Tài khoản Quản trị viên: bạn thấy giao diện đầy đủ của cả hai khối — 3 ô Khối Cửa hàng và Thông báo/Truyền thông chung.':
@@ -3486,7 +3486,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
           else if(myXp<XP_GATE_TOP)qlStatus={cls:'open',text:'Phó Quản lý đang mở · Quản lý khoá tới '+fmt(XP_GATE_TOP)+' XP'};
           else qlStatus={cls:'open',text:'Đang mở cả 2 giai đoạn'};
           cards.push(devCardHTML({
-            openKey:'career:quanly',img:di.learning,imgAlt:'Sóc Fastie chính thức của FASTCARE — đeo kính, ngồi đọc sách bên chồng sách',
+            openKey:'career:quanly',img:di.manager,imgAlt:'Sóc Fastie chính thức của FASTCARE — đeo kính, giơ tay thumbs-up',
             tag:'Ô 2 · Hướng nghề nghiệp',kicker:'Lộ trình "nảy mầm"',title:'Quản lý & Phó Quản lý',
             desc:'Mỗi nỗ lực là một bước tiến! Hãy chủ động học hỏi, rèn luyện và tích luỹ đủ điểm số, kinh nghiệm để sẵn sàng chinh phục vị trí Phó Quản lý, Quản lý chi nhánh',
             chips:[{label:'Lộ trình chung'},{label:'Phó Quản lý · '+fmt(XP_GATE_MID)+' XP',lock:!commonDone()||myXp<XP_GATE_MID},{label:'Quản lý · '+fmt(XP_GATE_TOP)+' XP',lock:myXp<XP_GATE_TOP}],
