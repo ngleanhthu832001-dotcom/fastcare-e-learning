@@ -1535,7 +1535,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
       /* ---- Deck chung (generic) — Kem chốt 16/11: dùng cho các deck xem-xong-thì-xong:
          mục nhỏ Chặng 3 Cửa hàng (Thu ngân / Tư vấn / Phản hồi cam) và Chặng 3/4/5 Văn phòng.
          Mỗi lần mở: nạp đúng slice slide, nút "Đã xem xong" ghi lesson_progress lessonId (0 XP). */
-      var C3_ALTS_ALL=['Chặng 3 — Phúc lợi (mở đầu)','Thăm hỏi, trợ cấp','Quà lễ, Tết','Động viên, khen thưởng','Phong trào thi đua','Phúc lợi — Chính sách thưởng hiện tại','Thưởng chung Cửa hàng','Chính sách lương thưởng — Thu ngân kiêm kho','Lương thử việc — Thu ngân kiêm kho','Lương chính thức — Thu ngân kiêm kho','Quy định lương — Thu ngân kiêm kho','Chính sách lương thưởng — Nhân viên Tư vấn','Lương thử việc — Nhân viên Tư vấn','Lương chính thức — Nhân viên Tư vấn','Quy định lương — Nhân viên Tư vấn','Quy định mức hoa hồng & Thưởng KPIs — Phụ kiện Tư vấn','Hoa hồng — Dán cường lực, phụ kiện & sửa chữa','Thưởng KPIs — Phụ kiện','Thưởng cá nhân cao nhất — Phụ kiện'];
+      var C3_ALTS_ALL=['Chặng 3 — Phúc lợi (mở đầu)','Thăm hỏi, trợ cấp','Quà lễ, Tết','Động viên, khen thưởng','Phong trào thi đua','Phúc lợi — Chính sách thưởng hiện tại','Thưởng chung Cửa hàng','Chính sách lương thưởng — Thu ngân kiêm kho','Lương thử việc — Thu ngân kiêm kho','Lương chính thức — Thu ngân kiêm kho','Quy định lương — Thu ngân kiêm kho','Chính sách lương thưởng — Nhân viên Tư vấn','Lương thử việc — Nhân viên Tư vấn','Lương chính thức — Nhân viên Tư vấn','Quy định lương — Nhân viên Tư vấn','Quy định mức hoa hồng & Thưởng KPIs — Phụ kiện Tư vấn','Hoa hồng — Dán cường lực, phụ kiện & sửa chữa','Thưởng KPIs — Phụ kiện','Thưởng cá nhân cao nhất — Phụ kiện','Chính sách hoa hồng — Kỹ thuật thay thế','Đối tượng áp dụng & Mức hoa hồng — Kỹ thuật thay thế','Trả phí, bảo hành khi nghỉ việc — Kỹ thuật thay thế','Bảng hoa hồng dịch vụ Mobile (1/3) — Kỹ thuật','Bảng hoa hồng dịch vụ Mobile (2/3) — Kỹ thuật','Bảng hoa hồng dịch vụ Mobile (3/3) — Kỹ thuật','Bảng hoa hồng dịch vụ Laptop (1/2) — Kỹ thuật','Bảng hoa hồng dịch vụ Laptop (2/2) — Kỹ thuật','Quy định chung — Kỹ thuật thay thế'];
       var C5_ALTS_12=['Chặng 5 — 12 Không (mở đầu)','Không 01','Không 02','Không 03','Không 04','Không 05','Không 06','Không 07','Không 08','Không 09','Không 10','Không 11','Không 12'];
       var genDeckOverlay=document.getElementById('genDeckOverlay');
       var genDeckCfg=null,genDeckIdx=0;
@@ -1600,7 +1600,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         if(cfg.lessonId==='phuc-loi-cong-doan'){officeC3Viewed=true;await markViewed('phuc-loi');} /* Dashboard vẫn đếm Chặng 3 bằng 'phuc-loi' */
         if(cfg.lessonId==='van-hoa-4c-noi-bo'){officeC4Viewed=true;}
         if(cfg.lessonId==='muoi-hai-khong'){officeC5Viewed=true;}
-        if(cfg.lessonId==='chinh-sach-thu-ngan'||cfg.lessonId==='chinh-sach-tu-van'||cfg.lessonId==='thuong-phan-hoi-cam'){
+        if(cfg.lessonId==='chinh-sach-thu-ngan'||cfg.lessonId==='chinh-sach-tu-van'||cfg.lessonId==='chinh-sach-ky-thuat'||cfg.lessonId==='thuong-phan-hoi-cam'){
           ch3Subs[cfg.lessonId]=true;
           if(storeCh3Done()){await markViewed('phuc-loi');c3Viewed=true;} /* đủ mục nhỏ → Chặng 3 xong (Dashboard vẫn đếm 'phuc-loi') */
         }
@@ -2177,11 +2177,11 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
          chỉ mỗi vị trí đó thấy riêng bài của mình; Thưởng chung Cửa hàng là chính sách
          chung của cửa hàng nên mọi nhân sự cửa hàng đều thấy. AM và QLCN/Phó QLCN
          thấy cả 3 mục (làm hết mới nắm được nhân sự cửa hàng). slice = [bat dau, ket thuc)
-         trong mang C3_SLIDES (19 slide). */
+         trong mang C3_SLIDES (28 slide: 19 Phuc loi + 9 Ky thuat thay the). */
       var CH3_SUBS=[
         {key:'thu-ngan',name:'Thu ngân kiêm kho',desc:'Chính sách lương thưởng Thu ngân kiêm kho',lessonId:'chinh-sach-thu-ngan',slice:[7,11]},
         {key:'tu-van',name:'Nhân viên Tư vấn',desc:'Chính sách lương thưởng + Hoa hồng & Thưởng KPIs phụ kiện',lessonId:'chinh-sach-tu-van',slice:[11,19]},
-        {key:'ky-thuat',name:'Kỹ thuật',desc:'Chính sách lương thưởng Kỹ thuật',lessonId:'chinh-sach-ky-thuat',slice:null},
+        {key:'ky-thuat',name:'Kỹ thuật',desc:'Chính sách hoa hồng Kỹ thuật thay thế',lessonId:'chinh-sach-ky-thuat',slice:[19,28]},
         {key:'phan-hoi-cam',name:'Thưởng chung Cửa hàng',desc:'Chính sách thưởng cho cửa hàng',lessonId:'thuong-phan-hoi-cam',slice:[5,7]}
       ];
       function ch3SubVisible(key){
@@ -2199,7 +2199,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
       function visibleCh3Subs(){return CH3_SUBS.filter(function(s){return ch3SubVisible(s.key)})}
       function storeCh3Done(){
         if(c3Viewed)return true; /* đã xem deck 19 slide cũ — giữ nguyên hoàn thành */
-        var vis=visibleCh3Subs().filter(function(s){return s.slice!==null}); /* Kỹ thuật chưa có nội dung — chưa tính */
+        var vis=visibleCh3Subs(); /* Kỹ thuật đã có nội dung từ 16/11 (9 slide, slice [19,28)) — tính như các mục khác */
         if(!vis.length)return false;
         return vis.every(function(s){return !!ch3Subs[s.lessonId]});
       }
