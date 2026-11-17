@@ -790,7 +790,7 @@
         if(btn)btn.disabled=false;
       }
       function lessonLabel(id){
-        var map={'bai-3-4-van-hoa-phuc-vu':'Văn hoá phục vụ — Quiz 10 câu','khao-sat-module-01':'Khảo sát Bài 1 (10 câu)','khao-sat-chang-2':'Khảo sát Chặng 2 — Quy định, Nội quy (10 câu)','khao-sat-chang-5':'Khảo sát Chặng 5 — Quy định 4 Không và 12 Không (10 câu)','mini-game-vuot-ai-4c':'Game Vượt ải 4C (tổng kết)','mini-game-chay-cung-fastie':'Game Chạy cùng Fastie (4C Nội bộ)','mini-game-vuot-ai-4c-ai-1':'Game 4C · Ải 1 Chủ động','mini-game-vuot-ai-4c-ai-2':'Game 4C · Ải 2 Cười','mini-game-vuot-ai-4c-ai-3':'Game 4C · Ải 3 Chào'};
+        var map={'bai-3-4-van-hoa-phuc-vu':'Quy tắc 4C — Quiz 10 câu','khao-sat-module-01':'Khảo sát Bài 1 (10 câu)','khao-sat-chang-2':'Khảo sát Chặng 2 — Quy định, Nội quy (10 câu)','khao-sat-chang-5':'Khảo sát Chặng 5 — Quy định 4 Không và 12 Không (10 câu)','mini-game-vuot-ai-4c':'Game Vượt ải 4C (tổng kết)','mini-game-chay-cung-fastie':'Game Chạy cùng Fastie (4C Nội bộ)','mini-game-vuot-ai-4c-ai-1':'Game 4C · Ải 1 Chủ động','mini-game-vuot-ai-4c-ai-2':'Game 4C · Ải 2 Cười','mini-game-vuot-ai-4c-ai-3':'Game 4C · Ải 3 Chào'};
         return map[id]||id;
       }
       async function renderScopeProgress(){
