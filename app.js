@@ -1502,9 +1502,9 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         var sc=el.closest?el.closest('.lesson'):null;
         if(sc&&sc.scrollTo){
           var r=el.getBoundingClientRect(),sr=sc.getBoundingClientRect();
-          sc.scrollTo({top:sc.scrollTop+(r.top-sr.top),behavior:'smooth'});
+          sc.scrollTo({top:sc.scrollTop+(r.top-sr.top),behavior:'auto'});
         }else{
-          el.scrollIntoView({behavior:'smooth',block:'start'});
+          el.scrollIntoView({behavior:'auto',block:'start'});
         }
       }
       /* Nút "Đã xem xong" trong overlay Chặng 5: chỉ đóng deck (chặng đọc, chưa có quiz/game). */
@@ -1561,6 +1561,9 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
       function openGenDeck(cfg){
         if(!genDeckOverlay)return;
         genDeckCfg=cfg;genDeckIdx=0;
+        var _gdr=document.getElementById('genDeck');if(_gdr)_gdr.style.display='';
+        var _gnr=document.getElementById('genDeckNote');if(_gnr)_gnr.style.display='';
+        var _bkr=document.getElementById('genDeckBack');if(_bkr)_bkr.style.display='none';
         var deck=document.getElementById('genDeck');
         if(deck){
           deck.querySelectorAll('.deck-slide').forEach(function(el){el.remove()});
@@ -1579,6 +1582,21 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         var c=document.getElementById('closeGenDeck');if(c)c.focus();
       }
       function closeGenDeck(){if(!genDeckOverlay)return;genDeckOverlay.classList.remove('open');document.body.style.overflow=''}
+      /* Bấm "Làm bài kiểm tra →" (Thu ngân/Tư vấn): ẨN deck, hiện quiz ngay đầu khung — KHÔNG phụ thuộc cuộn
+         (Kem bấm nút vẫn không thấy quiz sau cả fix scroll v18, 17/11). */
+      function showCh3Quiz(quizId){
+        var gd=document.getElementById('genDeck');if(gd)gd.style.display='none';
+        var gn=document.getElementById('genDeckNote');if(gn)gn.style.display='none';
+        var q=document.getElementById(quizId);if(q)q.style.display='';
+        var bk=document.getElementById('genDeckBack');if(bk)bk.style.display='';
+        var sc=genDeckOverlay?genDeckOverlay.querySelector('.lesson'):null;if(sc)sc.scrollTop=0;
+      }
+      function hideCh3Quiz(){
+        var gd=document.getElementById('genDeck');if(gd)gd.style.display='';
+        var gn=document.getElementById('genDeckNote');if(gn)gn.style.display='';
+        var bk=document.getElementById('genDeckBack');if(bk)bk.style.display='none';
+        var sc=genDeckOverlay?genDeckOverlay.querySelector('.lesson'):null;if(sc)sc.scrollTop=0;
+      }
       function genDeckSlides(){return genDeckOverlay?genDeckOverlay.querySelectorAll('.deck-slide'):[]}
       function genDeckRenderDots(){
         var w=document.getElementById('genDeckDots');if(!w)return;
@@ -1599,6 +1617,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         if(pv)pv.disabled=genDeckIdx===0;if(nx)nx.disabled=genDeckIdx===slides.length-1;
       }
       var _gdClose=document.getElementById('closeGenDeck');if(_gdClose)_gdClose.addEventListener('click',closeGenDeck);
+      var _gdBack=document.getElementById('genDeckBackBtn');if(_gdBack)_gdBack.addEventListener('click',hideCh3Quiz);
       if(genDeckOverlay)genDeckOverlay.addEventListener('click',function(e){if(e.target===genDeckOverlay)closeGenDeck()});
       document.addEventListener('keydown',function(e){if(e.key==='Escape'&&genDeckOverlay&&genDeckOverlay.classList.contains('open'))closeGenDeck()});
       var _gdp=document.getElementById('genDeckPrev');if(_gdp)_gdp.addEventListener('click',function(){genDeckShowSlide(genDeckIdx-1)});
@@ -1609,8 +1628,8 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
       if(_gdDone)_gdDone.addEventListener('click',async function(){
         if(!genDeckCfg)return;
         var cfg=genDeckCfg;
-        if(cfg.lessonId==='chinh-sach-thu-ngan'){var _q=document.getElementById('ch3ThuNganQuiz');if(_q)scrollQuizIntoView(_q);return;}
-        if(cfg.lessonId==='chinh-sach-tu-van'){var _q2=document.getElementById('ch3TuVanQuiz');if(_q2)scrollQuizIntoView(_q2);return;}
+        if(cfg.lessonId==='chinh-sach-thu-ngan'){showCh3Quiz('ch3ThuNganQuiz');return;}
+        if(cfg.lessonId==='chinh-sach-tu-van'){showCh3Quiz('ch3TuVanQuiz');return;}
         var ok=await markViewed(cfg.lessonId);
         if(cfg.lessonId==='phuc-loi-cong-doan'){officeC3Viewed=true;await markViewed('phuc-loi');} /* Dashboard vẫn đếm Chặng 3 bằng 'phuc-loi' */
         if(cfg.lessonId==='van-hoa-4c-noi-bo'){officeC4Viewed=true;}
