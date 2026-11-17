@@ -1577,7 +1577,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         var nt=document.getElementById('genDeckNote');if(nt)nt.textContent=cfg.note||'';
         var db=document.getElementById('genDeckDone');if(db)db.textContent=(cfg.lessonId==='chinh-sach-thu-ngan'||cfg.lessonId==='chinh-sach-tu-van')?'Làm bài kiểm tra →':(cfg.doneLabel||'Đã xem xong →');
         var _q3tn=document.getElementById('ch3ThuNganQuiz');if(_q3tn)_q3tn.style.display=cfg.lessonId==='chinh-sach-thu-ngan'?'':'none';var _q3tv=document.getElementById('ch3TuVanQuiz');if(_q3tv)_q3tv.style.display=cfg.lessonId==='chinh-sach-tu-van'?'':'none';
-        genDeckRenderDots();
+        genDeckRenderDots();genDeckShowSlide(0);
         genDeckOverlay.classList.add('open');document.body.style.overflow='hidden';
         var c=document.getElementById('closeGenDeck');if(c)c.focus();
       }
