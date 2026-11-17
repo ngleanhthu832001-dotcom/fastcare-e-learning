@@ -1494,9 +1494,22 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
       var c5dn=document.getElementById('c5DeckNext');if(c5dn)c5dn.addEventListener('click',function(){c5ShowSlide(c5Idx+1)});
       if(c5Overlay){var c5tx=null;c5Overlay.addEventListener('touchstart',function(e){c5tx=e.changedTouches[0].clientX},{passive:true});c5Overlay.addEventListener('touchend',function(e){if(c5tx===null)return;var dx=e.changedTouches[0].clientX-c5tx;if(Math.abs(dx)>40){c5ShowSlide(c5Idx+(dx<0?1:-1))}c5tx=null},{passive:true})}
       document.addEventListener('keydown',function(e){if(c5Overlay&&c5Overlay.classList.contains('open')){if(e.key==='ArrowRight')c5ShowSlide(c5Idx+1);if(e.key==='ArrowLeft')c5ShowSlide(c5Idx-1)}});
+      /* Cuộn tới quiz trong overlay deck: cuộn TRỰC TIẾP khung .lesson (khung cuộn thật, overflow:auto).
+         scrollIntoView() thuần đôi khi không cuộn được trong overlay fixed + body overflow:hidden
+         (Kem bấm "Làm bài kiểm tra →" nhiều lần vẫn không thấy quiz, 17/11). */
+      function scrollQuizIntoView(el){
+        if(!el)return;
+        var sc=el.closest?el.closest('.lesson'):null;
+        if(sc&&sc.scrollTo){
+          var r=el.getBoundingClientRect(),sr=sc.getBoundingClientRect();
+          sc.scrollTo({top:sc.scrollTop+(r.top-sr.top),behavior:'smooth'});
+        }else{
+          el.scrollIntoView({behavior:'smooth',block:'start'});
+        }
+      }
       /* Nút "Đã xem xong" trong overlay Chặng 5: chỉ đóng deck (chặng đọc, chưa có quiz/game). */
       var c5DoneBtn=document.getElementById('c5Done');
-      if(c5DoneBtn)c5DoneBtn.addEventListener('click',function(){var qz=document.getElementById('c5Quiz');if(qz)qz.scrollIntoView({behavior:'smooth',block:'start'})});
+      if(c5DoneBtn)c5DoneBtn.addEventListener('click',function(){var qz=document.getElementById('c5Quiz');if(qz)scrollQuizIntoView(qz)});
       /* ---- Deck Chặng 2 — TÁCH 2 deck theo khối (Kem chốt 16/11): Cửa hàng 13 slide
          (đồng phục Cửa hàng + giờ làm việc + Công/Ca + Tác phong), Văn phòng 11 slide
          (đồng phục Văn phòng + Công/Ca + Tác phong). Deck nạp động mỗi lần mở. ---- */
@@ -1533,7 +1546,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
       document.addEventListener('keydown',function(e){if(c2Overlay&&c2Overlay.classList.contains('open')){if(e.key==='ArrowRight')c2ShowSlide(c2Idx+1);if(e.key==='ArrowLeft')c2ShowSlide(c2Idx-1)}});
       /* Nút "Đã xem xong" trong overlay Chặng 2: chỉ đóng deck (chặng đọc, chưa có quiz/game). */
       var c2DoneBtn=document.getElementById('c2Done');
-      if(c2DoneBtn)c2DoneBtn.addEventListener('click',function(){var qo=document.getElementById('c2QuizOffice');if(qo&&qo.style.display!=='none'){qo.scrollIntoView({behavior:'smooth',block:'start'});return;}var qz=document.getElementById('c2Quiz');if(qz)qz.scrollIntoView({behavior:'smooth',block:'start'})});
+      if(c2DoneBtn)c2DoneBtn.addEventListener('click',function(){var qo=document.getElementById('c2QuizOffice');if(qo&&qo.style.display!=='none'){scrollQuizIntoView(qo);return;}var qz=document.getElementById('c2Quiz');if(qz)scrollQuizIntoView(qz)});
       /* ---- Deck chung (generic) — Kem chốt 16/11: dùng cho các deck xem-xong-thì-xong:
          mục nhỏ Chặng 3 Cửa hàng (Thu ngân / Tư vấn / Phản hồi cam) và Chặng 3/4/5 Văn phòng.
          Mỗi lần mở: nạp đúng slice slide, nút "Đã xem xong" ghi lesson_progress lessonId (0 XP). */
@@ -1596,8 +1609,8 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
       if(_gdDone)_gdDone.addEventListener('click',async function(){
         if(!genDeckCfg)return;
         var cfg=genDeckCfg;
-        if(cfg.lessonId==='chinh-sach-thu-ngan'){var _q=document.getElementById('ch3ThuNganQuiz');if(_q)_q.scrollIntoView({behavior:'smooth',block:'start'});return;}
-        if(cfg.lessonId==='chinh-sach-tu-van'){var _q2=document.getElementById('ch3TuVanQuiz');if(_q2)_q2.scrollIntoView({behavior:'smooth',block:'start'});return;}
+        if(cfg.lessonId==='chinh-sach-thu-ngan'){var _q=document.getElementById('ch3ThuNganQuiz');if(_q)scrollQuizIntoView(_q);return;}
+        if(cfg.lessonId==='chinh-sach-tu-van'){var _q2=document.getElementById('ch3TuVanQuiz');if(_q2)scrollQuizIntoView(_q2);return;}
         var ok=await markViewed(cfg.lessonId);
         if(cfg.lessonId==='phuc-loi-cong-doan'){officeC3Viewed=true;await markViewed('phuc-loi');} /* Dashboard vẫn đếm Chặng 3 bằng 'phuc-loi' */
         if(cfg.lessonId==='van-hoa-4c-noi-bo'){officeC4Viewed=true;}
