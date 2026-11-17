@@ -115,7 +115,9 @@
           atts.forEach(function(a){if(a.lesson_id===LESSON_ID)done=true;});
           if(done&&!lessonCompleted)completeCurrentLesson();
           rows.forEach(function(r){if(r.lesson_id==='phuc-loi'&&r.completed)c3Viewed=true});
-          rows.forEach(function(r){if(r.completed){if(r.lesson_id==='chinh-sach-thu-ngan'||r.lesson_id==='chinh-sach-tu-van'||r.lesson_id==='thuong-phan-hoi-cam')ch3Subs[r.lesson_id]=true;if(r.lesson_id==='phuc-loi-cong-doan')officeC3Viewed=true;if(r.lesson_id==='van-hoa-4c-noi-bo')officeC4Viewed=true;if(r.lesson_id==='muoi-hai-khong')officeC5Viewed=true;}});
+          rows.forEach(function(r){if(r.completed){if(r.lesson_id==='chinh-sach-ky-thuat'||r.lesson_id==='thuong-phan-hoi-cam')ch3Subs[r.lesson_id]=true;if(r.lesson_id==='phuc-loi-cong-doan')officeC3Viewed=true;if(r.lesson_id==='van-hoa-4c-noi-bo')officeC4Viewed=true;if(r.lesson_id==='muoi-hai-khong')officeC5Viewed=true;}});
+          /* Thu ngan / Tu van: 'hoan thanh' = DA NOP BAI (giong Chang 1/2/5), khong tinh viec chi xem deck. Cac dong lesson_progress cu (xem deck truoc khi co quiz, 14-16/11) khong duoc tinh. */
+          atts.forEach(function(a){if(a.lesson_id===SURVEY3_THU_NGAN_ID)ch3Subs['chinh-sach-thu-ngan']=true;if(a.lesson_id===SURVEY3_TU_VAN_ID)ch3Subs['chinh-sach-tu-van']=true;});
           atts.forEach(function(a){if(a.lesson_id===SURVEY_ID)markModule1Done()});
           atts.forEach(function(a){if(a.lesson_id===SURVEY_ID&&a.score===a.total&&a.total===10){var b1=document.getElementById('submitSurvey');if(b1){b1.disabled=false;b1.textContent='Đã hoàn thành';b1.dataset.done='1';}}});
           atts.forEach(function(a){if(a.lesson_id===SURVEY2_ID&&a.score===a.total&&a.total===10){var b2=document.getElementById('submitSurvey2');if(b2){b2.disabled=false;b2.textContent='Đã hoàn thành';b2.dataset.done='1';}var b2o=document.getElementById('submitSurvey2Office');if(b2o){b2o.disabled=false;b2o.textContent='Đã hoàn thành';b2o.dataset.done='1';}}});
@@ -1430,7 +1432,7 @@
       var lastFocus=null;
       var lessonCompleted=false;
       var c3Viewed=false; /* Chặng 3 Cửa hàng (cũ): đã xem deck 19 slide thì xong — giữ để không mất hoàn thành cũ (Kem tách Chặng 3 16/11) */
-      var ch3Subs={}; /* Chặng 3 Cửa hàng (mới): từng mục nhỏ đã xem xong — lesson_id 'chinh-sach-thu-ngan' / 'chinh-sach-tu-van' / 'thuong-phan-hoi-cam' */
+      var ch3Subs={}; /* Chặng 3 Cửa hàng: từng mục nhỏ đã hoàn thành — Thu ngan/Tu van = đã nộp bài; Ky thuat/Thuong chung = đã xem xong deck */
       var officeC3Viewed=false,officeC4Viewed=false,officeC5Viewed=false; /* Lộ trình Văn phòng: Chặng 3 Công đoàn / Chặng 4 4C Nội bộ / Chặng 5 12 Không (xem xong deck thì xong) */
       function openLesson(btn){
         lastFocus=btn;
@@ -2199,7 +2201,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
       function visibleCh3Subs(){return CH3_SUBS.filter(function(s){return ch3SubVisible(s.key)})}
       function storeCh3Done(){
         if(c3Viewed)return true; /* đã xem deck 19 slide cũ — giữ nguyên hoàn thành */
-        var vis=visibleCh3Subs(); /* Kỹ thuật đã có nội dung từ 16/11 (9 slide, slice [19,28)) — tính như các mục khác */
+        var vis=visibleCh3Subs(); /* Thu ngan/Tu van: hoan thanh = da nop bai (xem refreshMyStats); Ky thuat/Thuong chung: hoan thanh = da xem deck */
         if(!vis.length)return false;
         return vis.every(function(s){return !!ch3Subs[s.lessonId]});
       }
