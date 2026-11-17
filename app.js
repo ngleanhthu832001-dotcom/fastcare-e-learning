@@ -9,6 +9,7 @@
       var SURVEY2_ID='khao-sat-chang-2';
       var SURVEY3_THU_NGAN_ID='khao-sat-chang-3-thu-ngan';
       var SURVEY3_TU_VAN_ID='khao-sat-chang-3-tu-van';
+      var SURVEY3_THUONG_CHUNG_ID='khao-sat-chang-3-thuong-chung';
       var SURVEY5_ID='khao-sat-chang-5';
       var SURVEY_XP=10;
       var module1Done=false;
@@ -115,14 +116,15 @@
           atts.forEach(function(a){if(a.lesson_id===LESSON_ID)done=true;});
           if(done&&!lessonCompleted)completeCurrentLesson();
           rows.forEach(function(r){if(r.lesson_id==='phuc-loi'&&r.completed)c3Viewed=true});
-          rows.forEach(function(r){if(r.completed){if(r.lesson_id==='chinh-sach-ky-thuat'||r.lesson_id==='thuong-phan-hoi-cam')ch3Subs[r.lesson_id]=true;if(r.lesson_id==='phuc-loi-cong-doan')officeC3Viewed=true;if(r.lesson_id==='van-hoa-4c-noi-bo')officeC4Viewed=true;if(r.lesson_id==='muoi-hai-khong')officeC5Viewed=true;}});
+          rows.forEach(function(r){if(r.completed){if(r.lesson_id==='chinh-sach-ky-thuat')ch3Subs[r.lesson_id]=true;if(r.lesson_id==='phuc-loi-cong-doan')officeC3Viewed=true;if(r.lesson_id==='van-hoa-4c-noi-bo')officeC4Viewed=true;if(r.lesson_id==='muoi-hai-khong')officeC5Viewed=true;}});
           /* Thu ngan / Tu van: 'hoan thanh' = DA NOP BAI (giong Chang 1/2/5), khong tinh viec chi xem deck. Cac dong lesson_progress cu (xem deck truoc khi co quiz, 14-16/11) khong duoc tinh. */
-          atts.forEach(function(a){if(a.lesson_id===SURVEY3_THU_NGAN_ID)ch3Subs['chinh-sach-thu-ngan']=true;if(a.lesson_id===SURVEY3_TU_VAN_ID)ch3Subs['chinh-sach-tu-van']=true;});
+          atts.forEach(function(a){if(a.lesson_id===SURVEY3_THU_NGAN_ID)ch3Subs['chinh-sach-thu-ngan']=true;if(a.lesson_id===SURVEY3_TU_VAN_ID)ch3Subs['chinh-sach-tu-van']=true;if(a.lesson_id===SURVEY3_THUONG_CHUNG_ID)ch3Subs['thuong-phan-hoi-cam']=true;});
           atts.forEach(function(a){if(a.lesson_id===SURVEY_ID)markModule1Done()});
           atts.forEach(function(a){if(a.lesson_id===SURVEY_ID&&a.score===a.total&&a.total===10){var b1=document.getElementById('submitSurvey');if(b1){b1.disabled=false;b1.textContent='Đã hoàn thành';b1.dataset.done='1';}}});
           atts.forEach(function(a){if(a.lesson_id===SURVEY2_ID&&a.score===a.total&&a.total===10){var b2=document.getElementById('submitSurvey2');if(b2){b2.disabled=false;b2.textContent='Đã hoàn thành';b2.dataset.done='1';}var b2o=document.getElementById('submitSurvey2Office');if(b2o){b2o.disabled=false;b2o.textContent='Đã hoàn thành';b2o.dataset.done='1';}}});
           atts.forEach(function(a){if(a.lesson_id===SURVEY3_THU_NGAN_ID&&a.score===a.total&&a.total===10){var b3t=document.getElementById('submitSurvey3ThuNgan');if(b3t){b3t.disabled=false;b3t.textContent='Đã hoàn thành';b3t.dataset.done='1';}}});
           atts.forEach(function(a){if(a.lesson_id===SURVEY3_TU_VAN_ID&&a.score===a.total&&a.total===10){var b3v=document.getElementById('submitSurvey3TuVan');if(b3v){b3v.disabled=false;b3v.textContent='Đã hoàn thành';b3v.dataset.done='1';}}});
+          atts.forEach(function(a){if(a.lesson_id===SURVEY3_THUONG_CHUNG_ID&&a.score===a.total&&a.total===10){var b3c=document.getElementById('submitSurvey3ThuongChung');if(b3c){b3c.disabled=false;b3c.textContent='Đã hoàn thành';b3c.dataset.done='1';}}});
           atts.forEach(function(a){if(a.lesson_id===SURVEY5_ID&&a.score===a.total&&a.total===10){var b5=document.getElementById('submitSurvey5');if(b5){b5.disabled=false;b5.textContent='Đã hoàn thành';b5.dataset.done='1';}}});
           if(!done){var _cp=document.getElementById('currentProgress');if(_cp)_cp.style.width='0%'}
           myXp=totalXp;
@@ -1432,7 +1434,7 @@
       var lastFocus=null;
       var lessonCompleted=false;
       var c3Viewed=false; /* Chặng 3 Cửa hàng (cũ): đã xem deck 19 slide thì xong — giữ để không mất hoàn thành cũ (Kem tách Chặng 3 16/11) */
-      var ch3Subs={}; /* Chặng 3 Cửa hàng: từng mục nhỏ đã hoàn thành — Thu ngan/Tu van = đã nộp bài; Ky thuat/Thuong chung = đã xem xong deck */
+      var ch3Subs={}; /* Chặng 3 Cửa hàng: từng mục nhỏ đã hoàn thành — Thu ngan/Tu van/Thuong chung = đã nộp bài; Ky thuat = đã xem xong deck */
       var officeC3Viewed=false,officeC4Viewed=false,officeC5Viewed=false; /* Lộ trình Văn phòng: Chặng 3 Công đoàn / Chặng 4 4C Nội bộ / Chặng 5 12 Không (xem xong deck thì xong) */
       function openLesson(btn){
         lastFocus=btn;
@@ -1572,8 +1574,8 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         }
         var t=document.getElementById('genDeckTitle');if(t)t.textContent=cfg.title||'Deck bài học';
         var nt=document.getElementById('genDeckNote');if(nt)nt.textContent=cfg.note||'';
-        var db=document.getElementById('genDeckDone');if(db)db.textContent=(cfg.lessonId==='chinh-sach-thu-ngan'||cfg.lessonId==='chinh-sach-tu-van')?'Làm bài kiểm tra →':(cfg.doneLabel||'Đã xem xong →');
-        var _q3tn=document.getElementById('ch3ThuNganQuiz');if(_q3tn)_q3tn.style.display=cfg.lessonId==='chinh-sach-thu-ngan'?'':'none';var _q3tv=document.getElementById('ch3TuVanQuiz');if(_q3tv)_q3tv.style.display=cfg.lessonId==='chinh-sach-tu-van'?'':'none';
+        var db=document.getElementById('genDeckDone');if(db)db.textContent=(cfg.lessonId==='chinh-sach-thu-ngan'||cfg.lessonId==='chinh-sach-tu-van'||cfg.lessonId==='thuong-phan-hoi-cam')?'Làm bài kiểm tra →':(cfg.doneLabel||'Đã xem xong →');
+        var _q3tn=document.getElementById('ch3ThuNganQuiz');if(_q3tn)_q3tn.style.display=cfg.lessonId==='chinh-sach-thu-ngan'?'':'none';var _q3tv=document.getElementById('ch3TuVanQuiz');if(_q3tv)_q3tv.style.display=cfg.lessonId==='chinh-sach-tu-van'?'':'none';var _q3tc=document.getElementById('ch3ThuongChungQuiz');if(_q3tc)_q3tc.style.display=cfg.lessonId==='thuong-phan-hoi-cam'?'':'none';
         genDeckRenderDots();genDeckShowSlide(0);
         genDeckOverlay.classList.add('open');document.body.style.overflow='hidden';
         var c=document.getElementById('closeGenDeck');if(c)c.focus();
@@ -1611,6 +1613,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         var cfg=genDeckCfg;
         if(cfg.lessonId==='chinh-sach-thu-ngan'){var _q=document.getElementById('ch3ThuNganQuiz');if(_q)scrollQuizIntoView(_q);return;}
         if(cfg.lessonId==='chinh-sach-tu-van'){var _q2=document.getElementById('ch3TuVanQuiz');if(_q2)scrollQuizIntoView(_q2);return;}
+        if(cfg.lessonId==='thuong-phan-hoi-cam'){var _q3=document.getElementById('ch3ThuongChungQuiz');if(_q3)scrollQuizIntoView(_q3);return;}
         var ok=await markViewed(cfg.lessonId);
         if(cfg.lessonId==='phuc-loi-cong-doan'){officeC3Viewed=true;await markViewed('phuc-loi');} /* Dashboard vẫn đếm Chặng 3 bằng 'phuc-loi' */
         if(cfg.lessonId==='van-hoa-4c-noi-bo'){officeC4Viewed=true;}
@@ -2214,7 +2217,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
       function visibleCh3Subs(){return CH3_SUBS.filter(function(s){return ch3SubVisible(s.key)})}
       function storeCh3Done(){
         if(c3Viewed)return true; /* đã xem deck 19 slide cũ — giữ nguyên hoàn thành */
-        var vis=visibleCh3Subs(); /* Thu ngan/Tu van: hoan thanh = da nop bai (xem refreshMyStats); Ky thuat/Thuong chung: hoan thanh = da xem deck */
+        var vis=visibleCh3Subs(); /* Thu ngan/Tu van/Thuong chung: hoan thanh = da nop bai (xem refreshMyStats); Ky thuat: hoan thanh = da xem deck */
         if(!vis.length)return false;
         return vis.every(function(s){return !!ch3Subs[s.lessonId]});
       }
@@ -2587,6 +2590,44 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         }else{
           sBtn.textContent='Nộp lại bài';
           showToast(_d3v>0?'Đã cộng '+_d3v+' XP — làm lại để tăng điểm nhé':'Bạn có thể chọn lại đáp án rồi nộp lại');
+        }
+      });
+      /* ---- Bài tập Thưởng chung Cửa hàng (Chặng 3 Cửa hàng, Kem chốt 17/11): 10 câu Thưởng 5 tiêu chí ---- */
+      function survey3ThuongChungProgress(){var qs=document.querySelectorAll('.sq3tc-question');var n=0;qs.forEach(function(q){if(q.querySelector('.sq3tc-option.selected'))n++});var p=document.getElementById('survey3ThuongChungProgress');if(p)p.textContent=n>=qs.length?'Đã trả lời đủ '+qs.length+' câu — bấm Nộp bài nhé!':'Đã trả lời '+n+'/'+qs.length+' câu';}
+      document.querySelectorAll('.sq3tc-question').forEach(function(q){q.querySelectorAll('.sq3tc-option').forEach(function(opt,idx){opt.addEventListener('click',function(){q.querySelectorAll('.sq3tc-option').forEach(function(o){o.classList.remove('selected')});opt.classList.add('selected');q.dataset.selected=idx;var _r=document.getElementById('survey3ThuongChungResult');if(_r)_r.textContent='';survey3ThuongChungProgress()})})});
+      document.getElementById('submitSurvey3ThuongChung').addEventListener('click',async function(){
+        var _db=document.getElementById('submitSurvey3ThuongChung');if(_db&&_db.dataset.done==='1'){closeGenDeck();switchView('route');showDevScreen(primaryDevScreen());return;}
+        var qs=document.querySelectorAll('.sq3tc-question');var answered=0,score=0;
+        qs.forEach(function(q){
+          var opts=q.querySelectorAll('.sq3tc-option');
+          var sel=q.querySelector('.sq3tc-option.selected');
+          var selected=sel!==null?Array.prototype.indexOf.call(opts,sel):(q.dataset.selected!==undefined?Number(q.dataset.selected):undefined);
+          if(selected!==undefined){answered++}
+          opts.forEach(function(o,i){o.classList.remove('correct','wrong');if(i===Number(q.dataset.answer))o.classList.add('correct');if(selected!==undefined&&i===selected&&i!==Number(q.dataset.answer))o.classList.add('wrong')});
+          if(selected===Number(q.dataset.answer))score++;
+        });
+        var result=document.getElementById('survey3ThuongChungResult');
+        if(answered<qs.length){result.textContent='Hãy trả lời đủ '+qs.length+' câu.';survey3ThuongChungProgress();return}
+        result.textContent='Kết quả: '+score+'/'+qs.length+' câu đúng';
+        var _d3c=xpDeltaFor(SURVEY3_THUONG_CHUNG_ID,score);
+        var suc=document.getElementById('survey3ThuongChungSuccess');
+        if(suc){
+          var st=document.getElementById('survey3ThuongChungSuccessTitle');if(st)st.textContent=score===qs.length?'Chúc mừng bạn đã hoàn thành bài tập!':'Bạn đã nộp bài!';
+          var sx=document.getElementById('survey3ThuongChungSuccessText');if(sx)sx.textContent='Số điểm của bạn là '+score+'/10'+(score===qs.length?' · +'+_d3c+' XP — mục Thưởng chung Cửa hàng đã hoàn thành!':(_d3c>0?' · +'+_d3c+' XP — làm lại để tăng điểm nhé.':' · Chọn lại đáp án rồi nộp lại để cải thiện điểm nhé.'));
+          suc.classList.remove('show');void suc.offsetWidth;suc.classList.add('show');
+          suc.scrollIntoView({behavior:'smooth',block:'nearest'});
+        }
+        if(currentUser){try{var r=await sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:SURVEY3_THUONG_CHUNG_ID,score:score,total:qs.length,xp_earned:_d3c});if(r.error)throw r.error}catch(e){dbErrorToast()}}
+        /* Nộp bài = xong mục Tư vấn (giống Thu ngân); ghi nhan vao lesson_progress + ch3Subs. */
+        if(currentUser){try{var ok2=await markViewed('thuong-phan-hoi-cam');if(ok2){ch3Subs['thuong-phan-hoi-cam']=true;if(storeCh3Done()){await markViewed('phuc-loi');c3Viewed=true;}}}catch(e){}}
+        var sBtn=document.getElementById('submitSurvey3ThuongChung');
+        refreshMyStats();
+        if(score===qs.length){
+          sBtn.textContent='Đã hoàn thành';sBtn.dataset.done='1';
+          showToast('Xuất sắc! Đã cộng '+_d3c+' XP và hoàn thành mục Thưởng chung Cửa hàng');
+        }else{
+          sBtn.textContent='Nộp lại bài';
+          showToast(_d3c>0?'Đã cộng '+_d3c+' XP — làm lại để tăng điểm nhé':'Bạn có thể chọn lại đáp án rồi nộp lại');
         }
       });
       /* ---- Bài kiểm tra Chặng 5: 10 câu Quy định 4 Không và 12 Không (Kem chốt 13/11) ---- */
