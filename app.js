@@ -116,7 +116,7 @@
           atts.forEach(function(a){if(a.lesson_id===LESSON_ID)done=true;});
           if(done&&!lessonCompleted)completeCurrentLesson();
           rows.forEach(function(r){if(r.lesson_id==='phuc-loi'&&r.completed)c3Viewed=true});
-          rows.forEach(function(r){if(r.completed){if(r.lesson_id==='chinh-sach-ky-thuat')ch3Subs[r.lesson_id]=true;if(r.lesson_id==='phuc-loi-cong-doan')officeC3Viewed=true;if(r.lesson_id==='van-hoa-4c-noi-bo')officeC4Viewed=true;if(r.lesson_id==='muoi-hai-khong')officeC5Viewed=true;}});
+          rows.forEach(function(r){if(r.completed){if(r.lesson_id==='chinh-sach-ky-thuat')ch3Subs[r.lesson_id]=true;if(r.lesson_id==='van-hoa-4c-noi-bo')officeC3Viewed=true;if(r.lesson_id==='muoi-hai-khong')officeC4Viewed=true;}});
           /* Thu ngan / Tu van: 'hoan thanh' = DA NOP BAI (giong Chang 1/2/5), khong tinh viec chi xem deck. Cac dong lesson_progress cu (xem deck truoc khi co quiz, 14-16/11) khong duoc tinh. */
           atts.forEach(function(a){if(a.lesson_id===SURVEY3_THU_NGAN_ID)ch3Subs['chinh-sach-thu-ngan']=true;if(a.lesson_id===SURVEY3_TU_VAN_ID)ch3Subs['chinh-sach-tu-van']=true;if(a.lesson_id===SURVEY3_THUONG_CHUNG_ID)ch3Subs['thuong-phan-hoi-cam']=true;});
           atts.forEach(function(a){if(a.lesson_id===SURVEY_ID)markModule1Done()});
@@ -880,10 +880,10 @@
       var lsState={},lsBase={},lsWired=false;
       function lsVal(st){return{open:!!st.open,deadline:st.deadline||''}}
       function lsIsDirty(id){return lsState[id]&&lsBase[id]&&JSON.stringify(lsVal(lsState[id]))!==JSON.stringify(lsBase[id])}
-      /* Cài đặt bài học gồm cả 2 lộ trình (Kem chốt 16/11): 5 chặng Cửa hàng + 2 chặng
-         riêng của Văn phòng (Phúc lợi Công đoàn, Văn hoá 4C nội bộ). Chặng 1/2/5 dùng
+      /* Cài đặt bài học gồm cả 2 lộ trình (Kem chốt 16/11, sua 18/11): 5 chặng Cửa hàng + 1 chặng
+         riêng của Văn phòng (Văn hoá 4C nội bộ; Phúc lợi Công đoàn bo 18/11). Chặng 1/2/4 dùng
          chung id nên chỉ liệt kê một lần. */
-      function lsAllLessons(){return COMMON_LESSONS.concat(OFFICE_LESSONS.filter(function(L){return L.id==='phuc-loi-cong-doan'||L.id==='van-hoa-4c-noi-bo'}))}
+      function lsAllLessons(){return COMMON_LESSONS.concat(OFFICE_LESSONS.filter(function(L){return L.id==='van-hoa-4c-noi-bo'}))}
       function lsDirtyCount(){return lsAllLessons().filter(function(L){return lsIsDirty(L.id)}).length}
       function lsRefreshSaveBtn(){
         var btn=document.getElementById('lsSave'),msg=document.getElementById('lsSaveMsg');
@@ -939,7 +939,7 @@
         box.innerHTML='<div class="pt-wrap"><table class="pt-table"><thead><tr><th>Chặng</th><th>Mở</th><th>Hạn nộp</th><th>Trạng thái hiện tại</th></tr></thead><tbody>'+
           lsAllLessons().map(function(L,i){
             var st=lsState[L.id]||{open:false,deadline:''};
-            var isOffice=L.id==='phuc-loi-cong-doan'||L.id==='van-hoa-4c-noi-bo';
+            var isOffice=L.id==='van-hoa-4c-noi-bo';
             var _rm=isOffice?'office':'store';
             var _idx=lessonsFor(_rm).findIndex(function(x){return x.id===L.id});
             var cur;
@@ -1435,7 +1435,7 @@
       var lessonCompleted=false;
       var c3Viewed=false; /* Chặng 3 Cửa hàng (cũ): đã xem deck 19 slide thì xong — giữ để không mất hoàn thành cũ (Kem tách Chặng 3 16/11) */
       var ch3Subs={}; /* Chặng 3 Cửa hàng: từng mục nhỏ đã hoàn thành — Thu ngan/Tu van/Thuong chung = đã nộp bài; Ky thuat = đã xem xong deck */
-      var officeC3Viewed=false,officeC4Viewed=false,officeC5Viewed=false; /* Lộ trình Văn phòng: Chặng 3 Công đoàn / Chặng 4 4C Nội bộ / Chặng 5 12 Không (xem xong deck thì xong) */
+      var officeC3Viewed=false,officeC4Viewed=false; /* Lộ trình Văn phòng (4 chặng, từ 18/11): Chặng 3 = Văn hoá 4C Nội bộ / Chặng 4 = 12 Không (xem xong deck thì xong). Flag C3/C4 cu (Phúc lợi) da xoa. */
       function openLesson(btn){
         lastFocus=btn;
         overlay.classList.add('open');document.body.style.overflow='hidden';
@@ -1550,7 +1550,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
       var c2DoneBtn=document.getElementById('c2Done');
       if(c2DoneBtn)c2DoneBtn.addEventListener('click',function(){var qo=document.getElementById('c2QuizOffice');if(qo&&qo.style.display!=='none'){scrollQuizIntoView(qo);return;}var qz=document.getElementById('c2Quiz');if(qz)scrollQuizIntoView(qz)});
       /* ---- Deck chung (generic) — Kem chốt 16/11: dùng cho các deck xem-xong-thì-xong:
-         mục nhỏ Chặng 3 Cửa hàng (Thu ngân / Tư vấn / Phản hồi cam) và Chặng 3/4/5 Văn phòng.
+         mục nhỏ Chặng 3 Cửa hàng (Thu ngân / Tư vấn / Phản hồi cam) và Chặng 3/4 Văn phòng (tu 18/11).
          Mỗi lần mở: nạp đúng slice slide, nút "Đã xem xong" ghi lesson_progress lessonId (0 XP). */
       var C3_ALTS_ALL=['Chặng 3 — Phúc lợi (mở đầu)','Thăm hỏi, trợ cấp','Quà lễ, Tết','Động viên, khen thưởng','Phong trào thi đua','Chính sách thưởng — Cửa hàng','Thưởng Phản hồi cam — 4 tiêu chí tính điểm','Thưởng 5 tiêu chí — Cửa hàng','Thưởng dịch vụ cá nhân — Mức thưởng & cách tính điểm','Thưởng dịch vụ cá nhân — Lỗi trừ điểm','Thang điểm cửa hàng — 5 tiêu chí','Cách tính các tỷ lệ — Thưởng 5 tiêu chí','Mức thưởng theo điểm cửa hàng','Hệ số doanh thu & Điều kiện kèm theo','Thưởng khách hài lòng','Chính sách lương thưởng — Thu ngân kiêm kho','Lương thử việc — Thu ngân kiêm kho','Lương chính thức — Thu ngân kiêm kho','Quy định lương — Thu ngân kiêm kho','Chính sách lương thưởng — Nhân viên Tư vấn','Lương thử việc — Nhân viên Tư vấn','Lương chính thức — Nhân viên Tư vấn','Quy định lương — Nhân viên Tư vấn','Quy định mức hoa hồng & Thưởng KPIs — Phụ kiện Tư vấn','Hoa hồng — Dán cường lực, phụ kiện & sửa chữa','Thưởng KPIs — Phụ kiện','Thưởng cá nhân cao nhất — Phụ kiện','Chính sách hoa hồng — Kỹ thuật thay thế','Đối tượng áp dụng & Mức hoa hồng — Kỹ thuật thay thế','Trả phí, bảo hành khi nghỉ việc — Kỹ thuật thay thế','Bảng hoa hồng dịch vụ Mobile (1/3) — Kỹ thuật','Bảng hoa hồng dịch vụ Mobile (2/3) — Kỹ thuật','Bảng hoa hồng dịch vụ Mobile (3/3) — Kỹ thuật','Bảng hoa hồng dịch vụ Laptop (1/2) — Kỹ thuật','Bảng hoa hồng dịch vụ Laptop (2/2) — Kỹ thuật','Quy định chung — Kỹ thuật thay thế'];
       var C5_ALTS_12=['Chặng 5 — 12 Không (mở đầu)','Không 01','Không 02','Không 03','Không 04','Không 05','Không 06','Không 07','Không 08','Không 09','Không 10','Không 11','Không 12'];
@@ -1615,9 +1615,8 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         if(cfg.lessonId==='chinh-sach-tu-van'){var _q2=document.getElementById('ch3TuVanQuiz');if(_q2)scrollQuizIntoView(_q2);return;}
         if(cfg.lessonId==='thuong-phan-hoi-cam'){var _q3=document.getElementById('ch3ThuongChungQuiz');if(_q3)scrollQuizIntoView(_q3);return;}
         var ok=await markViewed(cfg.lessonId);
-        if(cfg.lessonId==='phuc-loi-cong-doan'){officeC3Viewed=true;await markViewed('phuc-loi');} /* Dashboard vẫn đếm Chặng 3 bằng 'phuc-loi' */
-        if(cfg.lessonId==='van-hoa-4c-noi-bo'){officeC4Viewed=true;}
-        if(cfg.lessonId==='muoi-hai-khong'){officeC5Viewed=true;}
+        if(cfg.lessonId==='van-hoa-4c-noi-bo'){officeC3Viewed=true;} /* Chặng 3 VP (tu 18/11) */
+        if(cfg.lessonId==='muoi-hai-khong'){officeC4Viewed=true;} /* Chặng 4 VP (tu 18/11) */
         if(cfg.lessonId==='chinh-sach-thu-ngan'||cfg.lessonId==='chinh-sach-tu-van'||cfg.lessonId==='chinh-sach-ky-thuat'||cfg.lessonId==='thuong-phan-hoi-cam'){
           ch3Subs[cfg.lessonId]=true;
           if(storeCh3Done()){await markViewed('phuc-loi');c3Viewed=true;} /* đủ mục nhỏ → Chặng 3 xong (Dashboard vẫn đếm 'phuc-loi') */
@@ -2165,14 +2164,14 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         {id:'quy-tac-4c-5s',name:'Quy tắc 4C',desc:'Văn hoá 4C — Nội bộ & Khách hàng · +20 XP',kind:'lesson4c'},
         {id:'muoi-hai-khong',name:'Quy định 4 Không và 12 Không tại FASTCARE',desc:'12 Không nội bộ + 4 Không với khách hàng.',kind:'khong'}
       ];
-      /* Lộ trình chung Khối Văn phòng (Kem chốt 16/11): Chặng 1/2 giống Cửa hàng;
-         Chặng 3 = Phúc lợi (Công đoàn, 4 slide); Chặng 4 = Văn hoá 4C nội bộ (5 slide);
-         Chặng 5 = 12 Không (không có 4 Không với khách hàng). Chặng 3/4/5 Văn phòng
-         tính bằng xem xong deck (chưa có quiz riêng). */
+      /* Lộ trình chung Khối Văn phòng (Kem chốt 16/11, sua 18/11): Chặng 1/2 giống Cửa hàng;
+         Chặng 3 = Văn hoá 4C nội bộ (5 slide); Chặng 4 = 12 Không (không có 4 Không với
+         khách hàng). Chặng 3/4 Văn phòng tính bằng xem xong deck (chưa có quiz riêng).
+         Chặng 3 Phúc lợi (Công đoàn) BO 18/11 — slide van trong bundle (C3_SLIDES[0,5)),
+         khong xoa, de khoi phuc khi Kem can. */
       var OFFICE_LESSONS=[
         {id:'khao-sat-module-01',name:'Chào mừng đến với FASTCARE',desc:'Văn hoá, lịch sử hình thành · +10 XP',kind:'deck'},
         {id:'quy-dinh-noi-quy',name:'Quy định - Nội quy',desc:'Đồng phục, Công/Ca & Tác phong — Khối Văn phòng.',kind:'khong'},
-        {id:'phuc-loi-cong-doan',name:'Phúc lợi',desc:'Chế độ thăm hỏi, trợ cấp, quà lễ, Tết, động viên, khen thưởng và phong trào thi đua (Công đoàn).',kind:'phucloi-office'},
         {id:'van-hoa-4c-noi-bo',name:'Văn hoá 4C',desc:'Văn hoá 4C nội bộ — 5 slide.',kind:'lesson4c-office'},
         {id:'muoi-hai-khong',name:'12 Không',desc:'12 điều không được làm trong nội bộ.',kind:'khong-office'}
       ];
@@ -2232,7 +2231,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         if(i===1)return hasAttemptFor(SURVEY2_ID);
         if(i===2)return rm==='office'?officeC3Viewed:storeCh3Done();
         if(i===3)return rm==='office'?officeC4Viewed:(lessonCompleted&&game4cDone);
-        if(i===4)return rm==='office'?officeC5Viewed:hasAttemptFor(SURVEY5_ID);
+        if(i===4)return rm==='office'?false:hasAttemptFor(SURVEY5_ID); /* VP chi co 4 chang tu 18/11 */
         return false;
       }
       function commonLessonOpen(i,rm){
@@ -2321,16 +2320,12 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
           return;
         }
         if(Li.kind==='phucloi'){openCh3Picker();return;}
-        if(Li.kind==='phucloi-office'){
-          openGenDeck({title:'Chặng 3 · Phúc lợi (Công đoàn)',slides:C3_SLIDES.slice(0,5),alts:C3_ALTS_ALL.slice(0,5),note:'Xem hết 5 slide để nắm rõ chế độ thăm hỏi, trợ cấp, quà lễ, Tết, động viên, khen thưởng và phong trào thi đua nhé.',lessonId:'phuc-loi-cong-doan'});
-          return;
-        }
         if(Li.kind==='lesson4c-office'){
-          openGenDeck({title:'Chặng 4 · Văn hoá 4C (Nội bộ)',slides:C4_SLIDES.slice(0,5),alts:['Văn hoá 4C nội bộ — Tổng quan','Văn hoá 4C nội bộ — Chủ động','Văn hoá 4C nội bộ — Cười','Văn hoá 4C nội bộ — Chào','Văn hoá 4C nội bộ — Cảm ơn'],note:'Xem hết 5 slide Văn hoá 4C nội bộ nhé.',lessonId:'van-hoa-4c-noi-bo'});
+          openGenDeck({title:'Chặng 3 · Văn hoá 4C (Nội bộ)',slides:C4_SLIDES.slice(0,5),alts:['Văn hoá 4C nội bộ — Tổng quan','Văn hoá 4C nội bộ — Chủ động','Văn hoá 4C nội bộ — Cười','Văn hoá 4C nội bộ — Chào','Văn hoá 4C nội bộ — Cảm ơn'],note:'Xem hết 5 slide Văn hoá 4C nội bộ nhé.',lessonId:'van-hoa-4c-noi-bo'});
           return;
         }
         if(Li.kind==='khong-office'){
-          openGenDeck({title:'Chặng 5 · 12 Không',slides:C5_SLIDES.slice(0,13),alts:C5_ALTS_12,note:'Xem hết 13 slide để nắm rõ 12 điều không được làm trong nội bộ nhé.',lessonId:'muoi-hai-khong'});
+          openGenDeck({title:'Chặng 4 · 12 Không',slides:C5_SLIDES.slice(0,13),alts:C5_ALTS_12,note:'Xem hết 13 slide để nắm rõ 12 điều không được làm trong nội bộ nhé.',lessonId:'muoi-hai-khong'});
           return;
         }
         if(Li.kind==='khong'){
@@ -3436,15 +3431,12 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
          Bài 4–12 chưa có nội dung nên chưa tính vào điều kiện. */
       function commonProgress(rm){
         rm=rm||primaryRoadmap();
+        var L=lessonsFor(rm);
         var done=0;
-        if(module1Done)done++;
-        if(hasAttemptFor(SURVEY2_ID))done++;
-        if(commonLessonDone(2,rm))done++;
-        if(commonLessonDone(3,rm))done++;
-        if(commonLessonDone(4,rm))done++;
-        return{done:done,total:5};
+        for(var i=0;i<L.length;i++){if(commonLessonDone(i,rm))done++;}
+        return{done:done,total:L.length}; /* VP 4 chang, Cua hang 5 chang (tu 18/11) */
       }
-      function commonDone(rm){return commonProgress(rm||primaryRoadmap()).done>=5}
+      function commonDone(rm){var p=commonProgress(rm||primaryRoadmap());return p.done>=p.total}
       function detectBlock(){
         var d=myProfile&&myProfile.department?String(myProfile.department):'';
         return d.indexOf('Chi nhánh')===0?'cuahang':'vanphong';
