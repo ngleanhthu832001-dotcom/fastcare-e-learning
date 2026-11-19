@@ -2372,7 +2372,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
           }
         }
         renderCommonLessons();
-        document.getElementById('heroTitle').textContent='Chuẩn tác phong tạo nên sự chuyên nghiệp.';
+        document.getElementById('heroTitle').innerHTML='Chuẩn tác phong<br>tạo nên sự chuyên nghiệp.';
       }
       document.getElementById('submitQuiz').addEventListener('click',async function(){
         var questions=document.querySelectorAll('.question');var answered=0,score=0;
