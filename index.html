@@ -110,6 +110,7 @@
     .reject-btn:disabled{opacity:.6;cursor:default}
     .restore-btn{border:1.5px solid #94a3b8;background:#fff;color:#475569;padding:8px 14px;border-radius:10px;font-weight:800;cursor:pointer;font-size:12px}
     .restore-btn:disabled{opacity:.6;cursor:default}
+    a.restore-btn{text-decoration:none;display:inline-flex;align-items:center}
     .del-btn{border:0;background:#dc2626;color:#fff;padding:9px 16px;border-radius:10px;font-weight:800;cursor:pointer;font-size:12px;white-space:nowrap}
     .del-btn:disabled{opacity:.6;cursor:default}
     .perm-h{font-size:22px;margin:26px 0 4px}
@@ -880,7 +881,7 @@
         <div id="dirSection" hidden>
           <h2 class="perm-h">Danh bạ nhân sự</h2>
           <p class="perm-sub">Toàn bộ danh bạ công ty (nạp từ Sheet "Data E-Learning") — chỉ Quản trị viên xem được, Quản lý và nhân viên không thấy mục này. Cột trạng thái cho biết ai đã có tài khoản trên web.</p>
-          <div class="perm-controls"><input id="dirSearch" type="search" placeholder="Tìm theo tên, email hoặc mã NS…"><select id="dirUnit"><option value="">Tất cả đơn vị</option></select><button class="restore-btn" id="dirReload" type="button">↻ Tải lại</button></div>
+          <div class="perm-controls"><input id="dirSearch" type="search" placeholder="Tìm theo tên, email hoặc mã NS…"><select id="dirUnit"><option value="">Tất cả đơn vị</option></select><button class="restore-btn" id="dirReload" type="button">↻ Tải lại</button><a class="restore-btn" href="https://docs.google.com/spreadsheets/d/1rib5XTfdOqS3z9fz32A2HB-3xKPPPH27svPMJ0rj_Ys/edit" target="_blank" rel="noopener">Mở Google Sheet ↗</a></div>
           <p class="dir-summary" id="dirSummary"></p>
           <div class="leaderboard" id="dirTable" aria-live="polite"><p class="muted-center">Đang tải danh bạ…</p></div>
         </div>
