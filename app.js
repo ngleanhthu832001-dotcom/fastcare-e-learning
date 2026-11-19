@@ -162,7 +162,7 @@
           if(res.error)throw res.error;
           var rows=res.data||[];
           if(!rows.length){podium.innerHTML=emptyRankHTML();return}
-          var top=rows.slice(0,3),rest=rows.slice(3,10);
+          var top=rows.slice(0,3),rest=rows.slice(3);
           podium.innerHTML=[1,0,2].map(function(i){
             var it=top[i];if(!it)return '';
             var cls=i===0?' first':'';
