@@ -173,7 +173,7 @@
     .dash-pct .dash-bar{flex:1}
     .dash-pct b{font-size:13px;white-space:nowrap}
     .dash-last{font-size:12.5px;font-weight:700;color:var(--muted)}
-    @media(max-width:700px){.dash-summary{grid-template-columns:1fr 1fr}.dash-donut-card{grid-column:1/-1}.dash-bar-row{grid-template-columns:minmax(110px,1fr) minmax(80px,1.4fr) 46px}.dash-row{grid-template-columns:minmax(0,1fr) minmax(120px,170px) 56px}.dash-last{display:none}.dash-row-head .dash-last{display:none}}
+    @media(max-width:700px){.dash-summary{grid-template-columns:1fr 1fr}.dash-donut-card{grid-column:1/-1}.dash-bar-row{grid-template-columns:minmax(110px,1fr) minmax(80px,1.4fr) 46px}.dash-sec{padding:16px 14px}.dash-row-head{display:none}.dash-row{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"person xp" "pct pct";gap:6px 12px;padding:12px 0}.dash-row .person{grid-area:person;min-width:0}.dash-row .dash-pct{grid-area:pct}.dash-row .xp{grid-area:xp;text-align:right}.dash-row .xp b{font-size:17px}.dash-row .xp b::after{content:" XP";font-size:11px;font-weight:700;color:var(--muted)}.dash-last{display:none}}
     .dash-ann-folders{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
     .dash-ann-folder{display:flex;gap:12px;align-items:flex-start;text-align:left;background:var(--surface);border:1.5px solid var(--line);border-radius:16px;padding:16px;cursor:pointer;font:inherit;color:inherit;width:100%}
     .dash-ann-folder:hover{border-color:var(--brand)}
