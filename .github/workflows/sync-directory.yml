@@ -5,7 +5,7 @@ name: Dong bo danh ba tu Google Sheet
 # Can secret SUPABASE_SERVICE_ROLE_KEY (repo Settings -> Secrets and variables -> Actions).
 on:
   schedule:
-    - cron: '*/30 * * * *'
+    - cron: '7,37 * * * *'
   workflow_dispatch:
 
 jobs:
