@@ -2201,15 +2201,17 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         {key:'ky-thuat',name:'Kỹ thuật',desc:'Chính sách hoa hồng Kỹ thuật thay thế',lessonId:'chinh-sach-ky-thuat',slice:[27,36]},
         {key:'phan-hoi-cam',name:'Thưởng chung Cửa hàng',desc:'Thưởng Phản hồi cam + Thưởng 5 tiêu chí (thử nghiệm Q4/2026)',lessonId:'thuong-phan-hoi-cam',slice:[5,15]}
       ];
+      /* Chuẩn hoá chức vụ để nhận diện QL/Phó QL (và các khối) không bị rớt vì gõ sai dấu: 'chí'→'chi', 'quản lí'→'quan li'... — 20/11: 1 QLCN ghi 'Quản lý chí nhánh' nên không thấy đủ 4 mục Chặng 3. */
+      function normPosStr(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d').replace(/y/g,'i').replace(/[^a-z0-9]+/g,' ').replace(/\s+/g,' ').trim();}
       function ch3SubVisible(key){
         if(userRole==='admin')return true;
-        var p=(myProfile&&myProfile.position?String(myProfile.position):'').toLowerCase();
-        var isAM=p.indexOf('quản lý khu vực')>-1||p.indexOf('(am)')>-1||/\bam\b/.test(p);
-        var isQL=p.indexOf('quản lý chi nhánh')>-1||p.indexOf('phó quản lý')>-1;
+        var p=normPosStr(myProfile&&myProfile.position?String(myProfile.position):'');
+        var isAM=p.indexOf('quan li khu vuc')>-1||/\bam\b/.test(p);
+        var isQL=p.indexOf('quan li chi nhanh')>-1||p.indexOf('pho quan li')>-1;
         if(isAM||isQL)return true;
-        if(key==='thu-ngan')return p.indexOf('thu ngân')>-1;
-        if(key==='tu-van')return p.indexOf('tư vấn')>-1;
-        if(key==='ky-thuat')return p.indexOf('kỹ thuật')>-1;
+        if(key==='thu-ngan')return p.indexOf('thu ngan')>-1;
+        if(key==='tu-van')return p.indexOf('tu van')>-1;
+        if(key==='ky-thuat')return p.indexOf('ki thuat')>-1;
         if(key==='phan-hoi-cam')return true;
         return false;
       }
@@ -3451,11 +3453,11 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
       function detectUserBlock(){
         if(userRole==='admin'||hasCrossBlock())return 'all';
         var p=myProfile&&myProfile.position?String(myProfile.position):'';
-        var pl=p.toLowerCase();
-        if(pl.indexOf('quản lý khu vực')>-1||pl.indexOf('(am)')>-1||/\bam\b/.test(pl))return 'all';
-        if(pl.indexOf('quản lý chi nhánh')>-1||pl.indexOf('phó quản lý')>-1)return 'storeAll';
-        if(pl.indexOf('kỹ thuật')>-1)return 'kythuat';
-        if(pl.indexOf('tư vấn')>-1||pl.indexOf('thu ngân')>-1)return 'tuvan';
+        var pl=normPosStr(p);
+        if(pl.indexOf('quan li khu vuc')>-1||/\bam\b/.test(pl))return 'all';
+        if(pl.indexOf('quan li chi nhanh')>-1||pl.indexOf('pho quan li')>-1)return 'storeAll';
+        if(pl.indexOf('ki thuat')>-1)return 'kythuat';
+        if(pl.indexOf('tu van')>-1||pl.indexOf('thu ngan')>-1)return 'tuvan';
         return detectBlock()==='cuahang'?'tuvan':'vanphong';
       }
       function visibleDevPaths(){
