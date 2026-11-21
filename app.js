@@ -161,13 +161,6 @@
           var res=await sb.rpc(scope==='unit'?'get_unit_leaderboard':'get_leaderboard');
           if(res.error)throw res.error;
           var rows=res.data||[];
-          var totalStaff=null;
-          if(scope!=='unit'){
-            try{
-              var tm=await sb.from('app_meta').select('value').eq('key','directory_total_rows').maybeSingle();
-              if(tm.data&&tm.data.value)totalStaff=parseInt(tm.data.value,10)||null;
-            }catch(e){}
-          }
           if(!rows.length){podium.innerHTML=emptyRankHTML();return}
           var top=rows.slice(0,3),rest=rows.slice(3);
           podium.innerHTML=[1,0,2].map(function(i){
@@ -186,7 +179,7 @@
               return '<div class="rank-row"><b>'+rank+'</b><div class="person"><div class="person-dot">'+escapeHtml(initials(it.department))+'</div><div><strong>'+escapeHtml(it.department||'Chưa rõ')+'</strong><span>'+(it.member_count||0)+' thành viên</span></div></div><span class="dept">Đơn vị</span><span class="xp">'+fmt(it.total_xp)+' XP</span></div>';
             }
             var you2=currentUser&&it.user_id===currentUser.id?' · Bạn':'';
-            return '<div class="rank-row"><b>'+(totalStaff?(idx+4)+'/'+totalStaff:rank)+'</b><div class="person"><div class="person-dot">'+dotAvatar(it.avatar_url,it.full_name)+'</div><div><strong>'+escapeHtml(it.full_name||'Học viên')+you2+'</strong><span>'+escapeHtml(it.department||'FASTCARE')+'</span></div></div><span class="dept">'+escapeHtml(it.department||'—')+'</span><span class="xp">'+fmt(it.total_xp)+'</span></div>';
+            return '<div class="rank-row"><b>'+rank+'</b><div class="person"><div class="person-dot">'+dotAvatar(it.avatar_url,it.full_name)+'</div><div><strong>'+escapeHtml(it.full_name||'Học viên')+you2+'</strong><span>'+escapeHtml(it.department||'FASTCARE')+'</span></div></div><span class="dept">'+escapeHtml(it.department||'—')+'</span><span class="xp">'+fmt(it.total_xp)+'</span></div>';
           }).join('');
           table.innerHTML='<div class="rank-row rank-head"><span>Hạng</span><span>'+head[0]+'</span><span class="dept">'+head[1]+'</span><span class="xp">'+head[2]+'</span></div>'+body;
           table.setAttribute('aria-label',scope==='unit'?'Bảng xếp hạng đơn vị theo tổng XP':'Bảng xếp hạng cá nhân theo điểm XP');
