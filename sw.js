@@ -6,7 +6,7 @@
    - File tĩnh (JS, ảnh, icon): cache-first, tải mới rồi ghi đè cache.
    - Mọi request tới supabase.co và request không phải GET: chỉ đi mạng.
    Đổi CACHE khi muốn ép toàn bộ máy cập nhật vỏ app. */
-var CACHE = 'fastcare-elearning-v37';
+var CACHE = 'fastcare-elearning-v39';
 var CORE = [
   './',
   './index.html',
@@ -66,6 +66,37 @@ self.addEventListener('fetch', function (e) {
         }
         return res;
       });
+    })
+  );
+});
+
+/* Thông báo đẩy (web push) — hiện lên màn hình khóa khi có bài mới / sắp hết hạn.
+   Payload do sender gửi: {title, body, url, tag}. */
+self.addEventListener('push', function (e) {
+  var data = {};
+  try { data = e.data ? e.data.json() : {}; } catch (err) {}
+  var title = data.title || 'FASTCARE E-learning';
+  var icon = self.registration.scope + 'assets/icon-192.png';
+  var url = data.url || self.registration.scope;
+  var options = {
+    body: data.body || '',
+    icon: icon,
+    badge: icon,
+    tag: data.tag || 'fastcare-elearning',
+    data: { url: url }
+  };
+  e.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener('notificationclick', function (e) {
+  e.notification.close();
+  var url = (e.notification.data && e.notification.data.url) || self.registration.scope;
+  e.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (list) {
+      for (var i = 0; i < list.length; i++) {
+        if (list[i].url.indexOf(url) !== -1) return list[i].focus();
+      }
+      if (clients.openWindow) return clients.openWindow(url);
     })
   );
 });
