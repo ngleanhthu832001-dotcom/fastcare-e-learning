@@ -649,7 +649,7 @@
       var scopeRows=[],scopeWired=false;
       var adminTab='students';
       var PT_ROLES=['Quản trị viên','PNS','BLĐ','AM','QLCN','Phó QL','Trưởng phòng/Bộ phận','Nhân viên'];
-      var PT_SCOPES=[['all','Toàn hệ thống'],['all_stores','Tất cả chi nhánh'],['own_branch','Chi nhánh của mình'],['own_dept','Phòng ban của mình'],['none','—']];
+      var PT_SCOPES=[['all','Toàn hệ thống'],['all_stores','Tất cả chi nhánh'],['region1','Khu vực 1'],['region2','Khu vực 2'],['own_branch','Chi nhánh của mình'],['own_dept','Phòng ban của mình'],['none','—']];
       function ptScopeLabel(s){for(var i=0;i<PT_SCOPES.length;i++)if(PT_SCOPES[i][0]===s)return PT_SCOPES[i][1];return '—'}
       /* Gợi ý vai trò từ chức vụ/phòng ban trong hồ sơ (Kem sửa tay được trong bảng). */
       function suggestRole(p){
@@ -1012,6 +1012,8 @@
         var sc=myPerms&&myPerms.scope;
         if(sc==='all')return 'Toàn hệ thống';
         if(sc==='all_stores')return 'Tất cả chi nhánh';
+        if(sc==='region1')return 'Khu vực 1';
+        if(sc==='region2')return 'Khu vực 2';
         if(sc==='own_branch'||sc==='own_dept')return (myProfile&&myProfile.department)||'Đơn vị của bạn';
         return 'Chưa được cấp phạm vi';
       }
