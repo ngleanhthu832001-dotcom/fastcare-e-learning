@@ -6,7 +6,8 @@
  * Nguồn: Sheet "Danh bạ nhân sự FASTCARE — Web E-learning" (tab "Data E-Learning"),
  *        đọc qua CSV export công khai (Sheet đã mở "ai có link cũng xem được").
  * Đích: bảng staff_directory (upsert theo email) + bảng profiles (cập nhật thông
- *        tin cho tài khoản có email khớp danh bạ).
+ *        tin cho tài khoản có email khớp danh bạ) + bảng app_meta (ghi tổng số
+ *        dòng danh bạ = tổng nhân sự công ty, để web hiển thị hạng dạng 4/210).
  *
  * AN TOÀN:
  * - KHÔNG xóa dòng nào, KHÔNG động vào XP / tiến trình học / Auth / role.
@@ -193,6 +194,11 @@ async function main() {
     profilesUpdated++;
   }
   console.log(`profiles: ${profilesMatched} tài khoản khớp email danh bạ, đã cập nhật ${profilesUpdated} hồ sơ (bỏ qua admin).`);
+
+  // 6. Ghi tổng số dòng danh bạ (= tổng nhân sự công ty) vào app_meta để web hiển thị hạng dạng 4/210.
+  const totalStaff = rows.length - 1;
+  await sb('/app_meta?on_conflict=key', { method: 'POST', body: [{ key: 'directory_total_rows', value: String(totalStaff), updated_at: new Date().toISOString() }] });
+  console.log(`app_meta: tổng nhân sự = ${totalStaff}.`);
 
   console.log('ĐỒNG BỘ XONG.');
 }
