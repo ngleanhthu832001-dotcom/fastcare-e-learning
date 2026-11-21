@@ -3480,8 +3480,10 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         return [];
       }
       function showDevDoc(){
-        var b=detectUserBlock();
-        return b==='all'||b==='vanphong';
+        /* Kem chốt: Thông báo/Truyền thông chung dành cho toàn thể nhân sự cả hai khối
+           (12/10) — trước đây chỉ hiện với Khối Văn phòng + admin/AM nên toàn bộ nhân sự
+           cửa hàng không thấy ô này ở Trang chủ (phải bấm chuông mới tới được). Mở cho tất cả. */
+        return true;
       }
       function renderDevTabs(){
         var el=document.getElementById('devTabs');
