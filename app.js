@@ -73,7 +73,7 @@
         var dt=document.getElementById('demoTag');if(dt)dt.style.display='none';
         var roleEl=document.getElementById('userRole');
         if(profile&&profile.role==='admin'){userRole='admin';roleEl.textContent='Quản trị viên';document.getElementById('adminNav').style.display=''}
-        else if(profile&&profile.role==='manager'){userRole='manager';roleEl.textContent='Quản lý';document.getElementById('adminNav').style.display=''}
+        else if(profile&&profile.role==='manager'){userRole='manager';roleEl.textContent='Quản lý';var _an2=document.getElementById('adminNav');if(_an2)_an2.style.display='none'}
         else{userRole='staff';roleEl.textContent=(profile&&profile.position)||'Nhân sự FASTCARE';var _an=document.getElementById('adminNav');if(_an)_an.style.display=(myPerms&&myPerms.can_view_progress)?'':'none'}
         setDashNavVisible(userRole==='admin'||(myPerms&&myPerms.can_view_progress));
         var ps=document.getElementById('permSection');if(ps)ps.hidden=!(profile&&profile.role==='admin');
@@ -846,11 +846,14 @@
           return '<div class="rank-row scope-row"><b>•</b><div class="person"><div class="person-dot">'+dotAvatar(null,p.full_name)+'</div><div><strong>'+escapeHtml(p.full_name||'Học viên')+'</strong><span>'+escapeHtml(p.department||'')+(p.employee_code?' · '+escapeHtml(p.employee_code):'')+'</span><span class="scope-prog">'+(p.lessons_done||0)+'/'+total+' bài · '+pct+'% · Hoạt động gần nhất: '+last+'</span></div></div><span class="xp row-actions"><b style="margin-right:10px">'+fmt(p.total_xp)+'</b>'+btn+'</span></div>';
         }).join('');
       }
-      async function renderScopeDetail(userId){
-        var box=document.getElementById('scopeDetail');
+      async function renderScopeDetail(userId,opts){
+        opts=opts||{};
+        var box=document.getElementById(opts.boxId||'scopeDetail');
         if(!box)return;
         if(!(userRole==='admin'||(myPerms&&myPerms.can_view_details))){showToast('Bạn chưa được cấp quyền xem bài làm chi tiết');return}
-        var p=null;scopeRows.forEach(function(x){if(x.user_id===userId)p=x});
+        var srcRows=opts.rows||scopeRows;
+        var closeId=opts.closeId||'scopeDetailClose';
+        var p=null;srcRows.forEach(function(x){if(x.user_id===userId)p=x});
         box.hidden=false;
         box.innerHTML='<div class="side-card"><h3>Bài làm của '+(p?escapeHtml(p.full_name):'nhân sự')+'</h3><p class="muted-center">Đang tải…</p></div>';
         try{
@@ -866,8 +869,8 @@
               return '<div class="scope-attempt"><div><strong>'+escapeHtml(lessonLabel(a.lesson_id))+'</strong><span>'+line+'</span></div><span class="scope-date">'+d+'</span></div>';
             }).join('');
           }
-          box.innerHTML='<div class="side-card"><h3>Bài làm của '+(p?escapeHtml(p.full_name):'nhân sự')+'</h3>'+body+'<div style="margin-top:12px"><button class="btn-secondary" id="scopeDetailClose" type="button">Đóng</button></div></div>';
-          var c=document.getElementById('scopeDetailClose');
+          box.innerHTML='<div class="side-card"><h3>Bài làm của '+(p?escapeHtml(p.full_name):'nhân sự')+'</h3>'+body+'<div style="margin-top:12px"><button class="btn-secondary" id="'+closeId+'" type="button">Đóng</button></div></div>';
+          var c=document.getElementById(closeId);
           if(c)c.addEventListener('click',function(){box.hidden=true});
           box.scrollIntoView({behavior:'smooth',block:'nearest'});
         }catch(e){
@@ -1076,7 +1079,7 @@
           }
           h+='<div class="dash-sec"><h3>Phân bố mức hoàn thành</h3><p>Nhân sự đang ở mức nào trong 3 bài.</p><div class="dash-dist">'+distBar+'</div><div class="dash-legend">'+distLegend+'</div></div>';
           h+='<div class="dash-sec"><h3>Báo cáo từng bộ khảo sát</h3><p>Bấm vào từng thư mục để xem báo cáo chi tiết của bộ đó.</p><div id="dashAnnFolders"><p class="muted-center">Đang tải báo cáo…</p></div><div id="dashAnnDetail"></div></div>';
-          h+='<div class="dash-sec"><h3>Tiến độ từng nhân sự</h3><p>Tỉ lệ % đã làm được / tổng số bài đã mở (3 bài). Bấm "Tải lại" để cập nhật số liệu mới nhất.</p><div class="dash-tools"><input id="dashSearch" type="search" placeholder="Tìm tên, mã nhân sự…" aria-label="Tìm nhân sự"><select id="dashUnit" aria-label="Lọc đơn vị"><option value="">Tất cả đơn vị</option></select><button class="secondary" id="dashReload" type="button">↻ Tải lại</button></div><div id="dashRows"></div></div>';
+          h+='<div class="dash-sec"><h3>Tiến độ từng nhân sự</h3><p>Tỉ lệ % đã làm được / tổng số bài đã mở (3 bài). Bấm "Tải lại" để cập nhật số liệu mới nhất.</p><div class="dash-tools"><input id="dashSearch" type="search" placeholder="Tìm tên, mã nhân sự…" aria-label="Tìm nhân sự"><select id="dashUnit" aria-label="Lọc đơn vị"><option value="">Tất cả đơn vị</option></select><button class="secondary" id="dashReload" type="button">↻ Tải lại</button></div><div id="dashRows"></div><div id="dashDetail" hidden style="margin-top:16px"></div></div>';
           body.innerHTML=h;
           var unitSel=document.getElementById('dashUnit');
           var units=[];dashRows.forEach(function(p){if(p.department&&units.indexOf(p.department)<0)units.push(p.department)});
@@ -1086,6 +1089,12 @@
           unitSel.addEventListener('change',function(){pagerState.dash.page=1;renderDashRows()});
           document.getElementById('dashReload').addEventListener('click',async function(){await renderDashboard();showToast('Đã tải lại Dashboard')});
           renderDashRows();
+          var drBox=document.getElementById('dashRows');
+          if(drBox)drBox.addEventListener('click',function(e){
+            var b=e.target&&e.target.closest?e.target.closest('[data-dash-detail]'):null;
+            if(!b)return;
+            renderScopeDetail(b.getAttribute('data-dash-detail'),{boxId:'dashDetail',rows:dashRows,closeId:'dashDetailClose'});
+          });
           renderDashAnnFolders();
         }catch(e){
           body.innerHTML='<p class="muted-center">Chưa tải được Dashboard. Nếu đây là lần đầu dùng mục này, hãy chạy file SQL v13 (supabase-v13-dashboard-progress.sql) rồi tải lại trang.</p>';
@@ -1102,11 +1111,12 @@
           return true;
         });
         if(!rows.length){box.innerHTML='<p class="muted-center">Không có nhân sự nào trong phạm vi của bạn.</p>';return}
+        var canDetail=userRole==='admin'||(myPerms&&myPerms.can_view_details);
         var page=pagerSlice(rows,'dash');
-        box.innerHTML='<div class="dash-row dash-row-head"><span>Nhân sự ('+rows.length+')</span><span>Tiến độ</span><span class="xp">Tổng XP</span><span class="dash-last">Hoạt động gần nhất</span></div>'+page.map(function(p){
+        box.innerHTML='<div class="dash-row dash-row-head"><span>Nhân sự ('+rows.length+')</span><span>Tiến độ</span><span class="xp">Tổng XP</span><span class="dash-last">Hoạt động gần nhất</span><span>Bài làm</span></div>'+page.map(function(p){
           var total=p.lessons_total||3,done=p.lessons_done||0,pct=Math.round(done*100/total);
           var last=p.last_activity?new Date(p.last_activity).toLocaleDateString('vi-VN'):'Chưa học';
-          return '<div class="dash-row"><div class="person"><div class="person-dot">'+dotAvatar(null,p.full_name)+'</div><div><strong>'+escapeHtml(p.full_name||'Học viên')+'</strong><span>'+escapeHtml(p.department||'')+(p.employee_code?' · '+escapeHtml(p.employee_code):'')+(p.position?' · '+escapeHtml(p.position):'')+'</span></div></div><div class="dash-pct"><div class="dash-bar"><i style="width:'+pct+'%"></i></div><b>'+done+'/'+total+' · '+pct+'%</b></div><span class="xp"><b>'+fmt(p.total_xp)+'</b></span><span class="dash-last">'+last+'</span></div>';
+          return '<div class="dash-row"><div class="person"><div class="person-dot">'+dotAvatar(null,p.full_name)+'</div><div><strong>'+escapeHtml(p.full_name||'Học viên')+'</strong><span>'+escapeHtml(p.department||'')+(p.employee_code?' · '+escapeHtml(p.employee_code):'')+(p.position?' · '+escapeHtml(p.position):'')+'</span></div></div><div class="dash-pct"><div class="dash-bar"><i style="width:'+pct+'%"></i></div><b>'+done+'/'+total+' · '+pct+'%</b></div><span class="xp"><b>'+fmt(p.total_xp)+'</b></span><span class="dash-last">'+last+'</span>'+(canDetail?'<span class="dash-detail"><button class="restore-btn" type="button" data-dash-detail="'+p.user_id+'">Xem bài làm</button></span>':'<span class="dash-detail"></span>')+'</div>';
         }).join('')+pagerHTML('dash',rows.length);
       }
 
