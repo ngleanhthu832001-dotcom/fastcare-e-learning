@@ -153,6 +153,14 @@
         return delta;
       }
       function emptyRankHTML(){return '<p class="muted-center">Chưa có dữ liệu — hãy là người đầu tiên học!</p>'}
+      /* Kem 22/11: BXH cá nhân — QTV thấy toàn bộ; các tài khoản khác chỉ thấy Top 20 (tránh spoil hết, dễ tiêu cực). BXH đơn vị (12 chi nhánh) giữ nguyên. Trả về {shown, myRankIdx, myRow, sliced}: myRankIdx là hạng thật trong danh sách đầy đủ, để hiện "Hạng của bạn" khi người xem nằm ngoài Top 20. */
+      function rankingVisibleRows(rows, scope, role, userId){
+        var out={shown:rows,myRankIdx:-1,myRow:null,sliced:false};
+        if(scope!=='individual'||role==='admin'||rows.length<=20)return out;
+        for(var i=0;i<rows.length;i++){if(rows[i].user_id===userId){out.myRankIdx=i;out.myRow=rows[i];break}}
+        out.shown=rows.slice(0,20);out.sliced=true;
+        return out;
+      }
       async function renderRanking(scope){
         var podium=document.getElementById('rankPodium'),table=document.getElementById('rankTable');
         if(!podium||!table)return;
@@ -162,6 +170,8 @@
           if(res.error)throw res.error;
           var rows=res.data||[];
           if(!rows.length){podium.innerHTML=emptyRankHTML();return}
+          var vis=rankingVisibleRows(rows,scope,userRole,currentUser&&currentUser.id);
+          rows=vis.shown;
           var top=rows.slice(0,3),rest=rows.slice(3);
           podium.innerHTML=[1,0,2].map(function(i){
             var it=top[i];if(!it)return '';
@@ -182,6 +192,11 @@
             return '<div class="rank-row"><b>'+rank+'</b><div class="person"><div class="person-dot">'+dotAvatar(it.avatar_url,it.full_name)+'</div><div><strong>'+escapeHtml(it.full_name||'Học viên')+you2+'</strong><span>'+escapeHtml(it.department||'FASTCARE')+'</span></div></div><span class="dept">'+escapeHtml(it.department||'—')+'</span><span class="xp">'+fmt(it.total_xp)+'</span></div>';
           }).join('');
           table.innerHTML='<div class="rank-row rank-head"><span>Hạng</span><span>'+head[0]+'</span><span class="dept">'+head[1]+'</span><span class="xp">'+head[2]+'</span></div>'+body;
+          if(vis.sliced){
+            var _note='<p class="muted-center" style="margin-top:12px">Đang hiển thị Top 20 — Quản trị viên xem được toàn bộ bảng xếp hạng.</p>';
+            if(vis.myRankIdx>=20&&vis.myRow){_note+='<p class="muted-center">Hạng của bạn: '+(vis.myRankIdx+1)+' · '+fmt(vis.myRow.total_xp)+' XP</p>'}
+            table.innerHTML+=_note;
+          }
           table.setAttribute('aria-label',scope==='unit'?'Bảng xếp hạng đơn vị theo tổng XP':'Bảng xếp hạng cá nhân theo điểm XP');
         }catch(e){podium.innerHTML=emptyRankHTML()}
       }
