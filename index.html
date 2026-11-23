@@ -253,6 +253,17 @@
     .topline p{margin:0;color:var(--muted);font-weight:600}.topline strong{color:var(--ink)}
     .top-actions{display:flex;align-items:center;gap:10px}.install-btn{display:inline-flex;align-items:center;gap:7px;height:42px;padding:0 16px;border:2px solid var(--brand);border-radius:999px;background:transparent;color:var(--brand);font:800 13px "Be Vietnam Pro",sans-serif;cursor:pointer;white-space:nowrap}.install-btn:hover{background:var(--brand);color:#fff}.install-btn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}.install-btn[hidden]{display:none}.icon-btn{width:42px;height:42px;border:1px solid var(--line);border-radius:12px;background:var(--surface);display:grid;place-items:center;cursor:pointer;position:relative}
     .icon-btn svg{width:19px;fill:none;stroke:currentColor;stroke-width:1.8}.notify-dot{position:absolute;width:7px;height:7px;border-radius:50%;background:var(--brand);top:9px;right:9px}.notify-badge{position:absolute;min-width:16px;height:16px;border-radius:9px;background:var(--brand);color:#fff;top:5px;right:5px;font-size:10px;font-weight:800;display:grid;place-items:center;padding:0 4px}
+.avatar-wrap{position:relative}
+.avatar-btn{width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:var(--brand-soft);color:var(--brand-strong);font:800 14px "Be Vietnam Pro",sans-serif;cursor:pointer;display:grid;place-items:center;overflow:hidden;padding:0}
+.avatar-btn img{width:100%;height:100%;object-fit:cover;display:block}
+.avatar-menu{position:absolute;right:0;top:calc(100% + 8px);min-width:220px;background:var(--surface);border:1.5px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:6px;z-index:60}
+.am-head{padding:10px 12px 8px;border-bottom:1px solid var(--line);margin-bottom:4px}
+.am-head b{display:block;font-size:14px}
+.am-head span{display:block;font-size:12px;color:var(--muted);word-break:break-all}
+.avatar-menu button{display:flex;align-items:center;width:100%;padding:11px 12px;border:0;background:transparent;font:600 14px "Be Vietnam Pro",sans-serif;color:var(--ink);cursor:pointer;border-radius:9px;text-align:left}
+.avatar-menu button:hover{background:var(--surface-2)}
+.am-sep{height:1px;background:var(--line);margin:5px 4px}
+.avatar-menu .am-logout{color:var(--brand-strong);font-weight:800}
     .view{display:none}.view.active{display:block}
     .hero{background:var(--ink);color:var(--surface);border-radius:22px;padding:clamp(24px,4vw,46px);position:relative;overflow:hidden;display:grid;grid-template-columns:minmax(0,1.35fr) minmax(240px,.65fr);gap:30px;align-items:center}
     .hero:after{content:"";position:absolute;width:250px;height:250px;border:52px solid var(--brand);border-radius:50%;right:-95px;top:-115px;opacity:.95}
@@ -774,7 +785,7 @@
     </aside>
 
     <main class="content">
-      <header class="topline"><button type="button" class="mobile-logo-btn" data-view="home" aria-label="Về Trang chủ"><img class="mobile-logo" src="assets/fastie-logo.png" alt="FASTCARE"></button><p><strong id="greetingName">Xin chào, Minh!</strong> Sẵn sàng cho bài học hôm nay?</p><div class="top-actions"><button class="install-btn" id="installAppBtn" type="button" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5M4 19h16" /></svg>Cài ứng dụng</button><button class="icon-btn" id="notifyBtn" aria-label="Thông báo"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span class="notify-dot" id="notifyDot"></span></button></div></header>
+      <header class="topline"><button type="button" class="mobile-logo-btn" data-view="home" aria-label="Về Trang chủ"><img class="mobile-logo" src="assets/fastie-logo.png" alt="FASTCARE"></button><p><strong id="greetingName">Xin chào, Minh!</strong> Sẵn sàng cho bài học hôm nay?</p><div class="top-actions"><button class="install-btn" id="installAppBtn" type="button" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5M4 19h16" /></svg>Cài ứng dụng</button><button class="icon-btn" id="notifyBtn" aria-label="Thông báo"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span class="notify-dot" id="notifyDot"></span></button><div class="avatar-wrap"><button class="avatar-btn" id="avatarMenuBtn" type="button" aria-label="Tài khoản" aria-haspopup="true" aria-expanded="false"><span id="topAvatar">?</span></button><div class="avatar-menu" id="avatarMenu" hidden><div class="am-head"><b id="avatarMenuName">—</b><span id="avatarMenuEmail">—</span></div><button type="button" id="avatarMenuProfile">Thông tin cá nhân</button><div class="am-sep"></div><button type="button" class="am-logout" id="avatarMenuLogout">Đăng xuất</button></div></div></div></header>
 
       <section id="home" class="view active">
         <div class="hero">
@@ -1091,7 +1102,6 @@
     <button data-view="route"><svg viewBox="0 0 24 24"><path d="M5 3v18M5 6h10l-2 3 2 3H5M5 17h13l-2 3"/></svg>Lộ trình</button>
     <button data-view="rank"><svg viewBox="0 0 24 24"><path d="M8 21v-8H3v8M14.5 21V3h-5v18M21 21V8h-5v13"/></svg>Xếp hạng</button>
     <button data-view="dash" class="dashNav" style="display:none"><svg viewBox="0 0 24 24"><path d="M3 3h8v8H3zM13 3h8v5h-8zM13 10h8v10h-8zM3 13h8v7H3z"/></svg>Dashboard</button>
-    <button id="mobileLogoutBtn"><svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>Đăng xuất</button>
   </nav>
 
   <section class="reminder-panel" id="reminderPanel" aria-label="Nhắc nhở học tập">

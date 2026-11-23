@@ -67,6 +67,8 @@
         var avEl=document.getElementById('userAvatar');
         if(profile&&profile.avatar_url){avEl.innerHTML='<img src="'+escapeHtml(profile.avatar_url)+'" alt="Ảnh đại diện của '+escapeHtml(name)+'">'}
         else{avEl.textContent=initials(name)}
+        var tp=document.getElementById('topAvatar');if(tp)tp.innerHTML=dotAvatar(profile&&profile.avatar_url,name);
+        var amn=document.getElementById('avatarMenuName');if(amn)amn.textContent=name;var ame=document.getElementById('avatarMenuEmail');if(ame)ame.textContent=currentUser.email||'';
         document.getElementById('userName').innerHTML=escapeHtml(name)+(currentUser.email?' <span class="u-email">('+escapeHtml(currentUser.email)+')</span>':'');
         document.getElementById('greetingName').textContent='Xin chào, '+first+'!';
         var rg=document.getElementById('reminderGreeting');if(rg)rg.textContent=first+' ơi, mình hoàn thành bài đúng hạn để giữ chuỗi học nhé!';
@@ -1463,7 +1465,14 @@
           btn.disabled=false;btn.textContent='Tạo tài khoản';
         });
         document.getElementById('logoutBtn').addEventListener('click',async function(){try{await sb.auth.signOut()}catch(e){lockApp()}});
-        document.getElementById('mobileLogoutBtn').addEventListener('click',async function(){try{await sb.auth.signOut()}catch(e){lockApp()}});
+        var avBtn=document.getElementById('avatarMenuBtn'),avMenu=document.getElementById('avatarMenu');
+        if(avBtn&&avMenu){
+          avBtn.addEventListener('click',function(e){e.stopPropagation();var o=avMenu.hidden;avMenu.hidden=!o;avBtn.setAttribute('aria-expanded',String(o));});
+          document.addEventListener('click',function(e){if(!avMenu.hidden&&!avMenu.contains(e.target)&&!avBtn.contains(e.target)){avMenu.hidden=true;avBtn.setAttribute('aria-expanded','false');}});
+          document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!avMenu.hidden){avMenu.hidden=true;avBtn.setAttribute('aria-expanded','false');}});
+          var amp=document.getElementById('avatarMenuProfile');if(amp)amp.addEventListener('click',function(){avMenu.hidden=true;avBtn.setAttribute('aria-expanded','false');openProfile();});
+          var aml=document.getElementById('avatarMenuLogout');if(aml)aml.addEventListener('click',async function(){avMenu.hidden=true;avBtn.setAttribute('aria-expanded','false');try{await sb.auth.signOut()}catch(e){lockApp()}});
+        }
         document.getElementById('pendingLogout').addEventListener('click',async function(){hidePending();try{await sb.auth.signOut()}catch(e){lockApp()}});
         document.getElementById('rejectedLogout').addEventListener('click',async function(){hideRejected();try{await sb.auth.signOut()}catch(e){lockApp()}});
         function renderPfAvatar(url,name){var el=document.getElementById('pfAvatarPreview');if(!el)return;if(url){el.innerHTML='<img src="'+escapeHtml(url)+'" alt="Ảnh đại diện">'}else{el.textContent=initials(name||'HV')}}
