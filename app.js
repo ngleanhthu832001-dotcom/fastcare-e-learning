@@ -111,24 +111,27 @@
           var qAvg=document.getElementById('quizAvg'),qNote=document.getElementById('quizAvgNote');
           if(qAvg)qAvg.textContent=atts.length&&qT?Math.round(qS/qT*100)+'%':'—';
           if(qNote)qNote.textContent=atts.length?atts.length+' lượt làm bài':'Chưa có dữ liệu';
-          var done=false;
-          rows.forEach(function(r){if(r.lesson_id===LESSON_ID&&r.completed)done=true});
-          atts.forEach(function(a){if(a.lesson_id===LESSON_ID)done=true;});
+          var done=bestScoreFor(LESSON_ID)>=PASS_SCORE; /* Chang 4: chi tinh xong khi quiz dat tu 8/10 */
           if(done&&!lessonCompleted)completeCurrentLesson();
           rows.forEach(function(r){if(r.lesson_id==='phuc-loi'&&r.completed)c3Viewed=true});
           rows.forEach(function(r){if(r.completed){if(r.lesson_id==='chinh-sach-ky-thuat')ch3Subs[r.lesson_id]=true;if(r.lesson_id==='van-hoa-4c-noi-bo')officeC3Viewed=true;if(r.lesson_id==='muoi-hai-khong')officeC4Viewed=true;}});
           /* Thu ngan / Tu van: 'hoan thanh' = DA NOP BAI (giong Chang 1/2/5), khong tinh viec chi xem deck. Cac dong lesson_progress cu (xem deck truoc khi co quiz, 14-16/11) khong duoc tinh. */
-          atts.forEach(function(a){if(a.lesson_id===SURVEY3_THU_NGAN_ID)ch3Subs['chinh-sach-thu-ngan']=true;if(a.lesson_id===SURVEY3_TU_VAN_ID)ch3Subs['chinh-sach-tu-van']=true;if(a.lesson_id===SURVEY3_THUONG_CHUNG_ID)ch3Subs['thuong-phan-hoi-cam']=true;});
-          atts.forEach(function(a){if(a.lesson_id===SURVEY_ID)markModule1Done()});
-          atts.forEach(function(a){if(a.lesson_id===SURVEY_ID&&a.score===a.total&&a.total===10){var b1=document.getElementById('submitSurvey');if(b1){b1.disabled=false;b1.textContent='Đã hoàn thành';b1.dataset.done='1';}}});
-          atts.forEach(function(a){if(a.lesson_id===SURVEY2_ID&&a.score===a.total&&a.total===10){var b2=document.getElementById('submitSurvey2');if(b2){b2.disabled=false;b2.textContent='Đã hoàn thành';b2.dataset.done='1';}var b2o=document.getElementById('submitSurvey2Office');if(b2o){b2o.disabled=false;b2o.textContent='Đã hoàn thành';b2o.dataset.done='1';}}});
-          atts.forEach(function(a){if(a.lesson_id===SURVEY3_THU_NGAN_ID&&a.score===a.total&&a.total===10){var b3t=document.getElementById('submitSurvey3ThuNgan');if(b3t){b3t.disabled=false;b3t.textContent='Đã hoàn thành';b3t.dataset.done='1';}}});
-          atts.forEach(function(a){if(a.lesson_id===SURVEY3_TU_VAN_ID&&a.score===a.total&&a.total===10){var b3v=document.getElementById('submitSurvey3TuVan');if(b3v){b3v.disabled=false;b3v.textContent='Đã hoàn thành';b3v.dataset.done='1';}}});
-          atts.forEach(function(a){if(a.lesson_id===SURVEY3_THUONG_CHUNG_ID&&a.score===a.total&&a.total===10){var b3c=document.getElementById('submitSurvey3ThuongChung');if(b3c){b3c.disabled=false;b3c.textContent='Đã hoàn thành';b3c.dataset.done='1';}}});
-          atts.forEach(function(a){if(a.lesson_id===SURVEY5_ID&&a.score===a.total&&a.total===10){var b5=document.getElementById('submitSurvey5');if(b5){b5.disabled=false;b5.textContent='Đã hoàn thành';b5.dataset.done='1';}}});
+          atts.forEach(function(a){if(a.lesson_id===SURVEY3_THU_NGAN_ID&&a.score>=PASS_SCORE)ch3Subs['chinh-sach-thu-ngan']=true;if(a.lesson_id===SURVEY3_TU_VAN_ID&&a.score>=PASS_SCORE)ch3Subs['chinh-sach-tu-van']=true;if(a.lesson_id===SURVEY3_THUONG_CHUNG_ID&&a.score>=PASS_SCORE)ch3Subs['thuong-phan-hoi-cam']=true;});
+          atts.forEach(function(a){if(a.lesson_id===SURVEY_ID&&a.score>=PASS_SCORE)markModule1Done()});
+          syncQuizButton(SURVEY_ID,'submitSurvey');
+          syncQuizButton(SURVEY2_ID,'submitSurvey2');syncQuizButton(SURVEY2_ID,'submitSurvey2Office');
+          syncQuizButton(SURVEY3_THU_NGAN_ID,'submitSurvey3ThuNgan');
+          syncQuizButton(SURVEY3_TU_VAN_ID,'submitSurvey3TuVan');
+          syncQuizButton(SURVEY3_THUONG_CHUNG_ID,'submitSurvey3ThuongChung');
+          syncQuizButton(SURVEY5_ID,'submitSurvey5');
+          var _bq=document.getElementById('submitQuiz');
+          if(_bq){
+            if(bestPassScoreFor(LESSON_ID,10)>0){_bq.style.display='none';var _ca=document.getElementById('completionActions');if(_ca)_ca.classList.add('show');}
+            else if(hasAttemptFor(LESSON_ID)){_bq.style.display='';_bq.textContent=isQuizLocked(LESSON_ID)?'Xem lại bài học →':'Nộp lại bài kiểm tra';}
+          }
           if(!done){var _cp=document.getElementById('currentProgress');if(_cp)_cp.style.width='0%'}
           myXp=totalXp;
-          var _g4=false;atts.forEach(function(a){if(a.lesson_id==='mini-game-vuot-ai-4c')_g4=true});game4cDone=_g4;
+          var _g4=false;atts.forEach(function(a){if(a.lesson_id==='mini-game-vuot-ai-4c'&&a.score>=PASS_SCORE)_g4=true});game4cDone=_g4;
           renderDevHub();
           renderCommonLessons();
           renderReminders();
@@ -1561,7 +1564,7 @@
       document.addEventListener('keydown',function(e){if(e.key==='Escape'&&welcomeOverlay&&welcomeOverlay.classList.contains('open'))closeWelcome()});
 var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến với Văn hoá FASTCARE','Giới thiệu FASTCARE','Lịch sử hình thành','Sơ đồ tổ chức','Tầm nhìn','Sứ mệnh','Giá trị cốt lõi 3T — 01 Trung thực','Giá trị cốt lõi 3T — 02 Trách nhiệm','Giá trị cốt lõi 3T — 03 Tận tâm','Giá trị cốt lõi 3T — Nội bộ: 01 Trung thực','Giá trị cốt lõi 3T — Nội bộ: 02 Trách nhiệm','Giá trị cốt lõi 3T — Nội bộ: 03 Tận tâm','Ý nghĩa Logo FASTCARE','Chặng 1 đến đây thôi — Hẹn gặp ở Chặng 2'];if(ch1Deck){if(typeof CHANG1_SLIDES!=='undefined'&&CHANG1_SLIDES.length){CHANG1_SLIDES.forEach(function(src,j){var s=document.createElement('div');s.className='deck-slide'+(j===0?' active':'');var im=document.createElement('img');im.src=src;im.alt='Slide '+(j+1)+' · '+ch1Alts[j];s.appendChild(im);ch1Deck.appendChild(s)})}else{ch1Deck.innerHTML='<p style="color:var(--muted)">Slide đang tải, bạn thử mở lại sau nhé.</p>'}}
       var deckSlides=welcomeOverlay?welcomeOverlay.querySelectorAll('.deck-slide'):[];var dotsWrap=document.getElementById('deckDots');if(dotsWrap&&welcomeOverlay){dotsWrap.innerHTML='';deckSlides.forEach(function(_,j){var b=document.createElement('button');b.type='button';b.className='deck-dot'+(j===0?' active':'');b.setAttribute('aria-label','Slide '+(j+1));b.addEventListener('click',function(){showSlide(j)});dotsWrap.appendChild(b)})}var deckDots=dotsWrap?dotsWrap.querySelectorAll('.deck-dot'):[];var deckCount=document.getElementById('deckCount');var deckIdx=0;
-      function showSlide(i){if(!deckSlides.length)return;deckIdx=Math.max(0,Math.min(deckSlides.length-1,i));deckSlides.forEach(function(sl,j){sl.classList.toggle('active',j===deckIdx)});deckDots.forEach(function(d,j){d.classList.toggle('active',j===deckIdx)});if(deckCount)deckCount.textContent=(deckIdx+1)+' / '+deckSlides.length;var pv=document.getElementById('deckPrev');var nx=document.getElementById('deckNext');if(pv)pv.disabled=deckIdx===0;if(nx)nx.disabled=deckIdx===deckSlides.length-1}
+      function showSlide(i){if(!deckSlides.length)return;deckIdx=Math.max(0,Math.min(deckSlides.length-1,i));deckSlides.forEach(function(sl,j){sl.classList.toggle('active',j===deckIdx)});deckDots.forEach(function(d,j){d.classList.toggle('active',j===deckIdx)});if(deckCount)deckCount.textContent=(deckIdx+1)+' / '+deckSlides.length;var pv=document.getElementById('deckPrev');var nx=document.getElementById('deckNext');if(pv)pv.disabled=deckIdx===0;if(nx)nx.disabled=deckIdx===deckSlides.length-1;deckSeen(SURVEY_ID,deckIdx,deckSlides.length);}
       var dp=document.getElementById('deckPrev');if(dp)dp.addEventListener('click',function(){showSlide(deckIdx-1)});
       var dn=document.getElementById('deckNext');if(dn)dn.addEventListener('click',function(){showSlide(deckIdx+1)});
       var deckBody=document.querySelector('.lesson-body.deck');if(deckBody){deckBody.addEventListener('click',function(e){var t=e.target;if(t&&t.classList&&t.classList.contains('deck-info')){var z=document.createElement('div');z.className='deck-zoomed';var im=document.createElement('img');im.src=t.src;im.alt=t.alt||'';z.appendChild(im);z.addEventListener('click',function(){z.remove()});document.body.appendChild(z)}})}
@@ -1576,7 +1579,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
       document.addEventListener('keydown',function(e){if(e.key==='Escape'&&c4Overlay&&c4Overlay.classList.contains('open'))closeC4()});
       var c4Deck=document.getElementById('c4Deck');var c4Alts=['Văn hoá 4C — Nội bộ (tổng quan)','C1 · Chủ động — Nội bộ','C2 · Cười — Nội bộ','C3 · Chào — Nội bộ','C4 · Cảm ơn — Nội bộ','Văn hoá 4C — Khách hàng (tổng quan)','C1 · Chủ động — Khách hàng','C2 · Cười — Khách hàng','C3 · Chào — Khách hàng','C4 · Cảm ơn — Khách hàng','Chặng 4 — Kết thúc'];if(c4Deck){if(typeof C4_SLIDES!=='undefined'&&C4_SLIDES.length){C4_SLIDES.forEach(function(src,j){var s=document.createElement('div');s.className='deck-slide'+(j===0?' active':'');var im=document.createElement('img');im.src=src;im.alt='Slide '+(j+1)+' · '+c4Alts[j];s.appendChild(im);c4Deck.appendChild(s)})}else{c4Deck.innerHTML='<p style="color:var(--muted)">Slide đang tải, bạn thử mở lại sau nhé.</p>'}}
       var c4Slides=c4Overlay?c4Overlay.querySelectorAll('.deck-slide'):[];var c4DotsWrap=document.getElementById('c4DeckDots');if(c4DotsWrap&&c4Overlay){c4DotsWrap.innerHTML='';c4Slides.forEach(function(_,j){var b=document.createElement('button');b.type='button';b.className='deck-dot'+(j===0?' active':'');b.setAttribute('aria-label','Slide '+(j+1));b.addEventListener('click',function(){c4ShowSlide(j)});c4DotsWrap.appendChild(b)})}var c4Dots=c4DotsWrap?c4DotsWrap.querySelectorAll('.deck-dot'):[];var c4DeckCount=document.getElementById('c4DeckCount');var c4Idx=0;
-      function c4ShowSlide(i){if(!c4Slides.length)return;c4Idx=Math.max(0,Math.min(c4Slides.length-1,i));c4Slides.forEach(function(sl,j){sl.classList.toggle('active',j===c4Idx)});c4Dots.forEach(function(d,j){d.classList.toggle('active',j===c4Idx)});if(c4DeckCount)c4DeckCount.textContent=(c4Idx+1)+' / '+c4Slides.length;var pv=document.getElementById('c4DeckPrev');var nx=document.getElementById('c4DeckNext');if(pv)pv.disabled=c4Idx===0;if(nx)nx.disabled=c4Idx===c4Slides.length-1}
+      function c4ShowSlide(i){if(!c4Slides.length)return;c4Idx=Math.max(0,Math.min(c4Slides.length-1,i));c4Slides.forEach(function(sl,j){sl.classList.toggle('active',j===c4Idx)});c4Dots.forEach(function(d,j){d.classList.toggle('active',j===c4Idx)});if(c4DeckCount)c4DeckCount.textContent=(c4Idx+1)+' / '+c4Slides.length;var pv=document.getElementById('c4DeckPrev');var nx=document.getElementById('c4DeckNext');if(pv)pv.disabled=c4Idx===0;if(nx)nx.disabled=c4Idx===c4Slides.length-1;deckSeen(LESSON_ID,c4Idx,c4Slides.length);}
       var c4dp=document.getElementById('c4DeckPrev');if(c4dp)c4dp.addEventListener('click',function(){c4ShowSlide(c4Idx-1)});
       var c4dn=document.getElementById('c4DeckNext');if(c4dn)c4dn.addEventListener('click',function(){c4ShowSlide(c4Idx+1)});
       if(c4Overlay){var c4tx=null;c4Overlay.addEventListener('touchstart',function(e){c4tx=e.changedTouches[0].clientX},{passive:true});c4Overlay.addEventListener('touchend',function(e){if(c4tx===null)return;var dx=e.changedTouches[0].clientX-c4tx;if(Math.abs(dx)>40){c4ShowSlide(c4Idx+(dx<0?1:-1))}c4tx=null},{passive:true})}
@@ -1597,7 +1600,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
       document.addEventListener('keydown',function(e){if(e.key==='Escape'&&c5Overlay&&c5Overlay.classList.contains('open'))closeC5()});
       var c5Deck=document.getElementById('c5Deck');var c5Alts=['Quy định 12 Không — Nội bộ (mở đầu)','Không 01 · Biển thủ tài chính','Không 02 · Mang tài sản ra ngoài','Không 03 · Nói xấu đồng nghiệp','Không 04 · Quấy rối đồng nghiệp','Không 05 · Tệ nạn xã hội','Không 06 · Nghỉ không phép','Không 07 · Buôn bán linh kiện','Không 08 · Trộm cắp tài sản','Không 09 · Gây thương tích','Không 10 · Cưỡng ép, đe doạ','Không 11 · Bí mật kinh doanh','Không 12 · Lương, thưởng','Quy định 4 Không — Khách hàng (mở đầu)','Không 01 · Tranh cãi, đe doạ (khách hàng)','Không 02 · Can thiệp dữ liệu (khách hàng)','Không 03 · Lấy máy dùng riêng (khách hàng)','Không 04 · Tư lợi, tráo linh kiện (khách hàng)'];if(c5Deck){if(typeof C5_SLIDES!=='undefined'&&C5_SLIDES.length){C5_SLIDES.forEach(function(src,j){var s=document.createElement('div');s.className='deck-slide'+(j===0?' active':'');var im=document.createElement('img');im.src=src;im.alt='Slide '+(j+1)+' · '+c5Alts[j];s.appendChild(im);c5Deck.appendChild(s)})}else{c5Deck.innerHTML='<p style="color:var(--muted)">Slide đang tải, bạn thử mở lại sau nhé.</p>'}}
       var c5Slides=c5Overlay?c5Overlay.querySelectorAll('.deck-slide'):[];var c5DotsWrap=document.getElementById('c5DeckDots');if(c5DotsWrap&&c5Overlay){c5DotsWrap.innerHTML='';c5Slides.forEach(function(_,j){var b=document.createElement('button');b.type='button';b.className='deck-dot'+(j===0?' active':'');b.setAttribute('aria-label','Slide '+(j+1));b.addEventListener('click',function(){c5ShowSlide(j)});c5DotsWrap.appendChild(b)})}var c5Dots=c5DotsWrap?c5DotsWrap.querySelectorAll('.deck-dot'):[];var c5DeckCount=document.getElementById('c5DeckCount');var c5Idx=0;
-      function c5ShowSlide(i){if(!c5Slides.length)return;c5Idx=Math.max(0,Math.min(c5Slides.length-1,i));c5Slides.forEach(function(sl,j){sl.classList.toggle('active',j===c5Idx)});c5Dots.forEach(function(d,j){d.classList.toggle('active',j===c5Idx)});if(c5DeckCount)c5DeckCount.textContent=(c5Idx+1)+' / '+c5Slides.length;var pv=document.getElementById('c5DeckPrev');var nx=document.getElementById('c5DeckNext');if(pv)pv.disabled=c5Idx===0;if(nx)nx.disabled=c5Idx===c5Slides.length-1}
+      function c5ShowSlide(i){if(!c5Slides.length)return;c5Idx=Math.max(0,Math.min(c5Slides.length-1,i));c5Slides.forEach(function(sl,j){sl.classList.toggle('active',j===c5Idx)});c5Dots.forEach(function(d,j){d.classList.toggle('active',j===c5Idx)});if(c5DeckCount)c5DeckCount.textContent=(c5Idx+1)+' / '+c5Slides.length;var pv=document.getElementById('c5DeckPrev');var nx=document.getElementById('c5DeckNext');if(pv)pv.disabled=c5Idx===0;if(nx)nx.disabled=c5Idx===c5Slides.length-1;deckSeen(SURVEY5_ID,c5Idx,c5Slides.length);}
       var c5dp=document.getElementById('c5DeckPrev');if(c5dp)c5dp.addEventListener('click',function(){c5ShowSlide(c5Idx-1)});
       var c5dn=document.getElementById('c5DeckNext');if(c5dn)c5dn.addEventListener('click',function(){c5ShowSlide(c5Idx+1)});
       if(c5Overlay){var c5tx=null;c5Overlay.addEventListener('touchstart',function(e){c5tx=e.changedTouches[0].clientX},{passive:true});c5Overlay.addEventListener('touchend',function(e){if(c5tx===null)return;var dx=e.changedTouches[0].clientX-c5tx;if(Math.abs(dx)>40){c5ShowSlide(c5Idx+(dx<0?1:-1))}c5tx=null},{passive:true})}
@@ -1647,7 +1650,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
       var c2Close=document.getElementById('closeC2');if(c2Close)c2Close.addEventListener('click',closeC2);
       if(c2Overlay)c2Overlay.addEventListener('click',function(e){if(e.target===c2Overlay)closeC2()});
       document.addEventListener('keydown',function(e){if(e.key==='Escape'&&c2Overlay&&c2Overlay.classList.contains('open'))closeC2()});
-      function c2ShowSlide(i){if(!c2Slides.length)return;c2Idx=Math.max(0,Math.min(c2Slides.length-1,i));c2Slides.forEach(function(sl,j){sl.classList.toggle('active',j===c2Idx)});c2Dots.forEach(function(d,j){d.classList.toggle('active',j===c2Idx)});if(c2DeckCount)c2DeckCount.textContent=(c2Idx+1)+' / '+c2Slides.length;var pv=document.getElementById('c2DeckPrev');var nx=document.getElementById('c2DeckNext');if(pv)pv.disabled=c2Idx===0;if(nx)nx.disabled=c2Idx===c2Slides.length-1}
+      function c2ShowSlide(i){if(!c2Slides.length)return;c2Idx=Math.max(0,Math.min(c2Slides.length-1,i));c2Slides.forEach(function(sl,j){sl.classList.toggle('active',j===c2Idx)});c2Dots.forEach(function(d,j){d.classList.toggle('active',j===c2Idx)});if(c2DeckCount)c2DeckCount.textContent=(c2Idx+1)+' / '+c2Slides.length;var pv=document.getElementById('c2DeckPrev');var nx=document.getElementById('c2DeckNext');if(pv)pv.disabled=c2Idx===0;if(nx)nx.disabled=c2Idx===c2Slides.length-1;deckSeen(SURVEY2_ID,c2Idx,c2Slides.length);}
       var c2dp=document.getElementById('c2DeckPrev');if(c2dp)c2dp.addEventListener('click',function(){c2ShowSlide(c2Idx-1)});
       var c2dn=document.getElementById('c2DeckNext');if(c2dn)c2dn.addEventListener('click',function(){c2ShowSlide(c2Idx+1)});
       if(c2Overlay){var c2tx=null;c2Overlay.addEventListener('touchstart',function(e){c2tx=e.changedTouches[0].clientX},{passive:true});c2Overlay.addEventListener('touchend',function(e){if(c2tx===null)return;var dx=e.changedTouches[0].clientX-c2tx;if(Math.abs(dx)>40){c2ShowSlide(c2Idx+(dx<0?1:-1))}c2tx=null},{passive:true})}
@@ -1705,6 +1708,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         var cc=document.getElementById('genDeckCount');if(cc)cc.textContent=(genDeckIdx+1)+' / '+slides.length;
         var pv=document.getElementById('genDeckPrev');var nx=document.getElementById('genDeckNext');
         if(pv)pv.disabled=genDeckIdx===0;if(nx)nx.disabled=genDeckIdx===slides.length-1;
+        var _dk=genDeckCfg&&genDeckCfg.lessonId;if(_dk==='chinh-sach-thu-ngan')_dk=SURVEY3_THU_NGAN_ID;else if(_dk==='chinh-sach-tu-van')_dk=SURVEY3_TU_VAN_ID;else if(_dk==='thuong-phan-hoi-cam')_dk=SURVEY3_THUONG_CHUNG_ID;if(_dk)deckSeen(_dk,genDeckIdx,slides.length);
       }
       var _gdClose=document.getElementById('closeGenDeck');if(_gdClose)_gdClose.addEventListener('click',closeGenDeck);
       if(genDeckOverlay)genDeckOverlay.addEventListener('click',function(e){if(e.target===genDeckOverlay)closeGenDeck()});
@@ -1736,7 +1740,8 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         var rows=vis.map(function(su){
           var done=!!ch3Subs[su.lessonId];
           var soon=su.slice===null;
-          var st=soon?'<span style="color:var(--muted)">Sắp có</span>':done?'<span style="color:var(--teal)">✓ Đã hoàn thành</span>':'<span style="color:var(--brand-strong)">Vào học →</span>';
+          var _sc=0;if(done){if(su.lessonId==='chinh-sach-thu-ngan')_sc=bestPassScoreFor(SURVEY3_THU_NGAN_ID,10);else if(su.lessonId==='chinh-sach-tu-van')_sc=bestPassScoreFor(SURVEY3_TU_VAN_ID,10);else if(su.lessonId==='thuong-phan-hoi-cam')_sc=bestPassScoreFor(SURVEY3_THUONG_CHUNG_ID,10);}
+          var st=soon?'<span style="color:var(--muted)">Sắp có</span>':done?(_sc>0?'<span style="color:var(--teal)">✓ '+_sc+'/10</span>':'<span style="color:var(--teal)">✓ Đã hoàn thành</span>'):'<span style="color:var(--brand-strong)">Vào học →</span>';
           return '<button type="button" data-ch3sub="'+su.key+'" style="display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:#fffefb;border:1.5px solid '+(done?'#f6d9bc':su.slice===null?'var(--line)':'var(--line)')+';border-radius:14px;padding:12px 14px;cursor:pointer;font:inherit;color:inherit;opacity:'+(soon?'.7':'1')+'"><span style="flex:1;min-width:0"><b style="display:block;font-size:15px">'+escapeHtml(su.name)+'</b><span style="display:block;font-size:13px;color:var(--muted)">'+escapeHtml(su.desc)+'</span></span><span style="flex:none;font-size:13px;font-weight:700">'+st+'</span></button>';
         }).join('');
         openDevModal('<div style="position:relative"><button class="close-btn" id="devModalClose" aria-label="Đóng" style="position:absolute;right:0;top:0">×</button><h3 style="margin:0 0 4px;padding-right:44px">Chặng 3 · Chính sách - Phúc lợi</h3><p style="color:var(--muted);margin:0 0 14px;font-size:14px;line-height:1.5">Chọn mục theo vị trí của bạn. Hoàn thành xong mục của mình là xong Chặng 3.</p><div style="display:grid;gap:10px">'+rows+'</div></div>');
@@ -1756,7 +1761,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
       }
       overlay.addEventListener('click',function(e){if(e.target===overlay)closeLesson()});
       document.addEventListener('keydown',function(e){if(e.key==='Escape'&&overlay.classList.contains('open'))closeLesson()});
-      document.querySelectorAll('.question').forEach(function(q){q.querySelectorAll('.option').forEach(function(opt,idx){opt.addEventListener('click',function(){q.querySelectorAll('.option').forEach(function(o){o.classList.remove('selected')});opt.classList.add('selected');q.dataset.selected=idx})})});
+      document.querySelectorAll('.question').forEach(function(q){q.querySelectorAll('.option').forEach(function(opt,idx){opt.addEventListener('click',function(){if(isQuizLocked(LESSON_ID))return;q.querySelectorAll('.option').forEach(function(o){o.classList.remove('selected')});opt.classList.add('selected');q.dataset.selected=idx;quizAbortCheck(LESSON_ID,'.question','.option',10,'c4')})})});
       /* Danh sách phẳng các Bài của Lộ trình chung (30 ngày) — thay cho 5 thẻ Mô-đun cũ.
          Bài 1–3 đã có nội dung thật (deck Canva + khảo sát, clip + quiz, game 4C);
          Bài 4–12 là nội dung sẽ bổ sung sau (chưa có nội dung nên mặc định CHƯA MỞ,
@@ -1915,6 +1920,41 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
       function annScoredTotal(qs){
         var n=0;qs.forEach(function(q){if(q.correct_index!==null&&q.correct_index!==undefined)n++});return n;
       }
+      /* Quy tac 8/10 cho bo Thong bao (Kem chot 23/11): bo co cau cham diem chi
+         tinh dat khi diem >= 80% tong (10 cau -> 8); bo chi co cau hoi y kien thi
+         nop la xong. Sau khi dat thi khoa, khong lam lai duoc nua. */
+      function annPassed(a,att){
+        att=att||annMyAttempt(a);if(!att)return false;
+        if(!att.total)return true;
+        return att.score>=passScoreFor(att.total);
+      }
+      function annLockKey(id){return 'fc-ann-lock:'+id;}
+      function annReviewKey(id){return 'fc-ann-review:'+id;}
+      function isAnnLocked(a){
+        if(userRole==='admin')return false;
+        var att=annMyAttempt(a);if(!att||annPassed(a,att))return false;
+        var lock=lsGet(annLockKey(a.id));if(!lock)return false;
+        var rev=lsGet(annReviewKey(a.id));
+        return !rev||Number(rev)<Number(lock);
+      }
+      function annAbortCheck(a,qs){
+        if(userRole==='admin')return false;
+        var att=annMyAttempt(a);if(att&&annPassed(a,att))return false;
+        var total=annScoredTotal(qs);if(!total)return false;
+        var wrong=0;
+        qs.forEach(function(q,qi){
+          if(q.correct_index===null||q.correct_index===undefined)return;
+          var s=document.querySelector('input[name="ann-q-'+qi+'"]:checked');
+          if(s&&Number(s.value)!==q.correct_index)wrong++;
+        });
+        if(wrong>total-passScoreFor(total)){
+          lsSet(annLockKey(a.id),String(Date.now()));
+          showToast('Bạn đã sai '+(total-passScoreFor(total)+1)+' câu — hãy đọc lại thông báo rồi làm lại nhé');
+          openAnnDetail(a.id);
+          return true;
+        }
+        return false;
+      }
       async function loadAnnouncements(){
         try{
           var res=await sb.from('announcements').select('id,title,body,created_by,created_at,is_open,deadline,xp_reward').order('created_at',{ascending:false});
@@ -1940,7 +1980,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         var att=annMyAttempt(a);
         if(!a.is_open)return 'Bản nháp — chưa mở';
         if(annExpired(a))return att?'Đã hết hạn · Bạn đã làm':'Đã hết hạn';
-        if(att)return 'Đã làm'+(att.total?' · '+att.score+'/'+att.total:'');
+        if(att){if(!att.total)return 'Đã làm';return att.score>=passScoreFor(att.total)?('Đã đạt · '+att.score+'/'+att.total):('Chưa đạt · '+att.score+'/'+att.total);}
         return 'Đang mở';
       }
       function renderAnnList(){
@@ -2004,7 +2044,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         var ms=annDeadlineMs(a);
         if(ms)html+='<p class="ann-dl">'+escapeHtml(fmtDeadlineLeft(ms-Date.now()))+' · hết hạn '+escapeHtml(fmtDeadlineDate(a.deadline))+'</p>';
         html+=bodyHtml;
-        if(att)html+='<p class="ann-done-note">Bạn đã làm bộ này'+(att.total?' — điểm cao nhất: '+att.score+'/'+att.total:'')+'. Làm lại được đến khi hết hạn (điểm lấy cao nhất, XP chỉ tính 1 lần).</p>';
+        if(att)html+='<p class="ann-done-note">'+(!att.total?'Bạn đã gửi khảo sát này.':annPassed(a,att)?('Bạn đã đạt '+att.score+'/'+att.total+' — bộ này đã khóa, không làm lại được.'):'Điểm cao nhất: '+att.score+'/'+att.total+' (chưa đạt '+passScoreFor(att.total)+'/'+att.total+') — đọc lại thông báo rồi làm lại nhé.')+'</p>';
         if(annTestMode)html+='<p class="ann-closed-note">Bạn đang xem thử với quyền QTV — bộ này '+(annExpired(a)?'đã hết hạn':'đang đóng')+'. Bài làm thử không được lưu và không cộng XP.</p>';
         html+='<div id="annQuiz">'+qs.map(function(q,qi){
           return '<div class="ann-q"><p class="ann-q-text"><strong>Câu '+(qi+1)+'.</strong> '+escapeHtml(q.question)+(q.correct_index===null?' <span class="ann-opinion">(câu hỏi ý kiến)</span>':'')+'</p>'+
@@ -2013,19 +2053,22 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
             }).join('')+'</div>';
         }).join('')+'</div>'+
         '<p class="ann-progress" id="annProgress"></p>'+
-        '<button type="button" class="btn-primary" id="annSubmit">'+(att?'Nộp lại bài':'Nộp bài')+'</button>'+
+        '<button type="button" class="btn-primary" id="annSubmit"'+(att&&annPassed(a,att)?' disabled':'')+'>'+(att?(annPassed(a,att)?'Đã đạt — không làm lại được':isAnnLocked(a)?'Đọc lại thông báo để làm lại':'Nộp lại bài'):'Nộp bài')+'</button>'+
+        (att&&!annPassed(a,att)&&isAnnLocked(a)?'<button type="button" class="btn-primary" id="annReread" style="margin-top:8px">Tôi đã đọc kỹ thông báo — làm lại</button>':'')+
         '<div id="annResult" style="margin-top:12px"></div></div>';
         box.innerHTML=html;
         document.getElementById('annBack').addEventListener('click',renderAnnList);
+        if(att&&!annPassed(a,att)&&isAnnLocked(a)){box.querySelectorAll('#annQuiz input[type="radio"]').forEach(function(r){r.disabled=true;});var _sb=document.getElementById('annSubmit');if(_sb)_sb.disabled=true;}
         var updateProg=function(){
           var answered=0;
           qs.forEach(function(q,qi){if(box.querySelector('input[name="ann-q-'+qi+'"]:checked'))answered++});
           var p=document.getElementById('annProgress');
           if(p)p.textContent='Đã trả lời '+answered+'/'+qs.length+' câu';
         };
-        box.querySelectorAll('input[type="radio"]').forEach(function(r){r.addEventListener('change',updateProg)});
+        box.querySelectorAll('input[type="radio"]').forEach(function(r){r.addEventListener('change',function(){updateProg();annAbortCheck(a,qs)})});
         updateProg();
         document.getElementById('annSubmit').addEventListener('click',function(){submitAnnSurvey(a,qs)});
+        var _ar=document.getElementById('annReread');if(_ar)_ar.addEventListener('click',function(){lsSet(annReviewKey(a.id),String(Date.now()));openAnnDetail(a.id);});
       }
       async function submitAnnSurvey(a,qs){
         var box=document.getElementById('annBody');
@@ -2041,7 +2084,11 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         qs.forEach(function(q,qi){if(q.correct_index!==null&&answers[qi]===q.correct_index)score++});
         var prev=annMyAttempt(a);
         var sameTotal=prev&&prev.total===total;
-        var xp=prev?prev.xp_earned:(a.xp_reward||10);
+        var _pass=total>0?score>=passScoreFor(total):true;
+        var xp;
+        if(total===0){xp=prev?prev.xp_earned:(a.xp_reward||10);}
+        else if(_pass){xp=(prev&&prev.xp_earned>0)?prev.xp_earned:(a.xp_reward||10);}
+        else{xp=0;}
         var bestScore=(prev&&sameTotal)?Math.max(prev.score,score):score;
         var bestAnswers=(prev&&sameTotal&&prev.score>score)?prev.answers:answers;
         var row={user_id:currentUser.id,announcement_id:a.id,answers:bestAnswers,score:bestScore,total:total,xp_earned:xp,updated_at:new Date().toISOString()};
@@ -2054,16 +2101,26 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
           if(btn)btn.textContent='Đã nộp (xem thử)';
           return;
         }
+        if(prev&&annPassed(a,prev)){showToast('Bạn đã đạt bộ này rồi');if(btn)btn.disabled=false;return;}
+        if(isAnnLocked(a)){showToast('Hãy đọc lại thông báo trước khi làm lại');if(btn)btn.disabled=false;return;}
         try{
           var res=await sb.from('announcement_attempts').upsert(row,{onConflict:'user_id,announcement_id'});
           if(res.error)throw res.error;
           myAnnAttempts[a.id]={announcement_id:a.id,answers:bestAnswers,score:bestScore,total:total,xp_earned:xp,created_at:(prev&&prev.created_at)||new Date().toISOString(),updated_at:row.updated_at};
+          if(total>0&&!_pass)lsSet(annLockKey(a.id),String(Date.now()));
           var resBox=document.getElementById('annResult');
           var first=!prev;
+          var xpNew=xp>0&&!(prev&&prev.xp_earned>0);
           if(resBox){
-            resBox.innerHTML='<div class="ann-result"><strong>'+(total?('Số điểm của bạn: '+bestScore+'/'+total):'Đã gửi khảo sát!')+'</strong><p>'+(first?'+'+xp+' XP — đã cộng vào tổng XP của bạn.':'XP đã cộng từ lần làm đầu, làm lại không cộng thêm.')+(bestScore===total&&total>0?' Hoàn hảo!':'')+'</p></div>';
+            resBox.innerHTML='<div class="ann-result"><strong>'+(total?('Số điểm của bạn: '+score+'/'+total+(bestScore>score?' · cao nhất: '+bestScore+'/'+total:'')):'Đã gửi khảo sát!')+'</strong><p>'+
+              (total===0?'Cảm ơn bạn đã gửi khảo sát!':
+                _pass?((xpNew?'+'+xp+' XP — đã cộng vào tổng XP của bạn. ':'XP đã cộng từ lần làm đầu. ')+'Bộ này đã đạt, không làm lại được.'+((bestScore===total&&total>0)?' Hoàn hảo!':'')):
+                'Chưa đạt '+passScoreFor(total)+'/'+total+' — hãy đọc lại thông báo rồi làm lại nhé.')+
+              '</p>'+(total>0&&!_pass?'<button type="button" class="btn-primary" id="annReread" style="margin-top:8px">Tôi đã đọc kỹ thông báo — làm lại</button>':'')+'</div>';
+            var _rr=document.getElementById('annReread');
+            if(_rr)_rr.addEventListener('click',function(){lsSet(annReviewKey(a.id),String(Date.now()));openAnnDetail(a.id);});
           }
-          if(btn)btn.textContent='Đã nộp bài';
+          if(btn)btn.textContent=_pass?(total===0?'Đã gửi khảo sát':'Đã đạt — không làm lại được'):'Đọc lại thông báo để làm lại';
           await refreshMyStats(); /* refreshMyStats đã gọi renderReminders() */
         }catch(e){
           showToast('Chưa nộp được — kiểm tra mạng rồi thử lại');
@@ -2075,7 +2132,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         if(!annLoaded)return items;
         annList.forEach(function(a){
           if(!a.is_open)return; /* bản nháp không nhắc */
-          if(annMyAttempt(a))return; /* đã làm thì không nhắc */
+          var _att=annMyAttempt(a);if(_att&&annPassed(a,_att))return; /* đã đạt thì không nhắc; chưa đạt vẫn nhắc tới hạn */
           var ms=annDeadlineMs(a);
           if(ms===null)return;
           var left=ms-Date.now();
@@ -2293,8 +2350,93 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
       function hasAttemptFor(lessonId){
         return (myQuizAttempts||[]).some(function(a){return a.lesson_id===lessonId;});
       }
-      function xpDeltaFor(lessonId,score){
-        return Math.max(0,score-bestScoreFor(lessonId));
+      /* Quy tac dat 8/10 (Kem chot 23/11/2026): moi bai Lo trinh + game + Thong bao
+         chi tinh hoan thanh khi dat >= 8/10; XP lay theo diem cao nhat DA DAT. */
+      var PASS_SCORE=8;var PASS_RATIO=0.8;
+      function passScoreFor(total){return Math.ceil((total||10)*PASS_RATIO);}
+      function lessonPassed(lessonId,total){return bestScoreFor(lessonId)>=passScoreFor(total||10);}
+      function bestPassScoreFor(lessonId,total){
+        var p=passScoreFor(total||10),b=0;
+        myQuizAttempts.forEach(function(a){if(a.lesson_id===lessonId&&a.score>=p&&a.score>b)b=a.score});
+        return b;
+      }
+      function xpDeltaFor(lessonId,score,total){
+        total=total||10;
+        if(score<passScoreFor(total))return 0; /* rot thi khong cong XP */
+        return Math.max(0,score-bestPassScoreFor(lessonId,total));
+      }
+      /* Khoa lam lai: rot -> phai xem het deck moi duoc lam lai (localStorage, theo user). */
+      function lsGet(k){try{return window.localStorage?window.localStorage.getItem(k):null}catch(e){return null}}
+      function lsSet(k,v){try{if(window.localStorage)window.localStorage.setItem(k,v)}catch(e){}}
+      function lsDel(k){try{if(window.localStorage)window.localStorage.removeItem(k)}catch(e){}}
+      function setReviewLock(lessonId){lsSet('fc-lock:'+lessonId,String(Date.now()));lsDel('fc-seen:'+lessonId);}
+      function isQuizLocked(lessonId){
+        if(userRole==='admin')return false;
+        if(bestScoreFor(lessonId)>=passScoreFor(10))return false;
+        var lock=lsGet('fc-lock:'+lessonId);if(!lock)return false;
+        var done=lsGet('fc-deckdone:'+lessonId);
+        return !done||Number(done)<Number(lock);
+      }
+      /* Ghi nhan da xem tung slide; xem het deck thi mo khoa lam lai. */
+      function deckSeen(deckKey,idx,total){
+        if(!total||total<=0)return false;
+        var raw=lsGet('fc-seen:'+deckKey),seen={};
+        try{seen=JSON.parse(raw||'{}')}catch(e){seen={}}
+        var wasComplete=Object.keys(seen).length>=total; /* rot -> setReviewLock da xoa seen, xem lai tu dau */
+        seen['s'+idx]=1;
+        lsSet('fc-seen:'+deckKey,JSON.stringify(seen));
+        if(!wasComplete&&Object.keys(seen).length>=total){
+          lsSet('fc-deckdone:'+deckKey,String(Date.now()));
+          if(deckKey===LESSON_ID||deckKey==='van-hoa-4c-noi-bo'){
+            lsSet('fc-deckdone:mini-game-vuot-ai-4c',String(Date.now()));
+            lsSet('fc-deckdone:mini-game-chay-cung-fastie',String(Date.now()));
+          }
+          if(lsGet('fc-lock:'+deckKey)){showToast('Đã xem hết bài học — làm lại được rồi!');syncQuizButtonFor(deckKey);}
+          return true;
+        }
+        return false;
+      }
+      function syncQuizButton(lessonId,btnId){
+        var b=document.getElementById(btnId);if(!b)return;
+        var best=bestPassScoreFor(lessonId,10);
+        if(best>0){b.disabled=false;b.textContent=best+'/10';b.dataset.done='1';return;}
+        delete b.dataset.done;
+        if(hasAttemptFor(lessonId)){b.textContent=isQuizLocked(lessonId)?'Xem lại bài học →':'Nộp lại bài';}
+        else{b.textContent='Nộp bài';}
+      }
+      function syncQuizButtonFor(lessonId){
+        var map={};map[SURVEY_ID]=['submitSurvey'];map[SURVEY2_ID]=['submitSurvey2','submitSurvey2Office'];map[SURVEY3_THU_NGAN_ID]=['submitSurvey3ThuNgan'];map[SURVEY3_TU_VAN_ID]=['submitSurvey3TuVan'];map[SURVEY3_THUONG_CHUNG_ID]=['submitSurvey3ThuongChung'];map[SURVEY5_ID]=['submitSurvey5'];
+        (map[lessonId]||[]).forEach(function(id){syncQuizButton(lessonId,id)});
+        if(lessonId===LESSON_ID){var b=document.getElementById('submitQuiz');if(b){b.style.display='';b.textContent='Nộp lại bài kiểm tra';}}
+      }
+      function scrollToDeck(kind){
+        if(kind==='c4'){closeLesson();openC4();return;}
+        var ovId=kind==='welcome'?'welcomeOverlay':kind==='c2'?'c2Overlay':kind==='c5'?'c5Overlay':'genDeckOverlay';
+        var ov=document.getElementById(ovId);if(!ov)return;
+        var sc=ov.querySelector('.lesson')||ov;
+        if(sc.scrollTo)sc.scrollTo({top:0,behavior:'auto'});else sc.scrollTop=0;
+      }
+      /* Da ve bai hoc khi sai qua 2 cau (lang le, khong cho biet sai cau nao). */
+      function quizAbortCheck(lessonId,qsSel,optSel,total,kind){
+        if(userRole==='admin')return false;
+        if(bestScoreFor(lessonId)>=passScoreFor(total))return false;
+        var ov=kind==='c4'?(document.querySelector('#lessonOverlay')||document):document;
+        var wrong=0;
+        ov.querySelectorAll(qsSel).forEach(function(q){
+          var sel=q.querySelector(optSel+'.selected');
+          var pick=null;
+          if(sel)pick=Array.prototype.indexOf.call(q.querySelectorAll(optSel),sel);
+          else if(q.dataset.selected!==undefined&&q.dataset.selected!=='')pick=Number(q.dataset.selected);
+          if(pick!==null&&pick!==Number(q.dataset.answer))wrong++;
+        });
+        if(wrong>total-passScoreFor(total)){
+          setReviewLock(lessonId);
+          ov.querySelectorAll(qsSel).forEach(function(q){delete q.dataset.selected;q.querySelectorAll(optSel+'.selected').forEach(function(o){o.classList.remove('selected')})});
+          showToast('Bạn đã sai 3 câu — hãy học lại bài học rồi làm lại nhé');
+          scrollToDeck(kind);
+          return true;
+        }
+        return false;
       }
       /* Mục nhỏ của Chặng 3 Cửa hàng (Kem chốt 16/11): Thu ngân / Tư vấn / Kỹ thuật
          chỉ mỗi vị trí đó thấy riêng bài của mình; Thưởng chung Cửa hàng là chính sách
@@ -2336,10 +2478,10 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
       function commonLessonDone(i,rm){
         rm=rm||activeRoadmap();
         if(i===0)return module1Done;
-        if(i===1)return hasAttemptFor(SURVEY2_ID);
+        if(i===1)return lessonPassed(SURVEY2_ID,10);
         if(i===2)return rm==='office'?officeC3Viewed:storeCh3Done();
         if(i===3)return rm==='office'?officeC4Viewed:(lessonCompleted&&game4cDone);
-        if(i===4)return rm==='office'?false:hasAttemptFor(SURVEY5_ID); /* VP chi co 4 chang tu 18/11 */
+        if(i===4)return rm==='office'?false:lessonPassed(SURVEY5_ID,10); /* VP chi co 4 chang tu 18/11 */
         return false;
       }
       function commonLessonOpen(i,rm){
@@ -2368,6 +2510,32 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         /* "Bắt đầu" chỉ dành cho Chặng 1 (chặng đầu tiên); các chặng đã mở ở dưới hiển thị "Đã mở". */
         return i===0?'current':'open';
       }
+      /* Nhan chang da xong: hien diem cao nhat da dat (8/10, 9/10, 10/10);
+         chang xem deck khong co diem thi giu chu Da hoan thanh. */
+      function ch3BestScore(){
+        var vis=visibleCh3Subs(),best=0,any=false;
+        vis.forEach(function(s){
+          if(s.lessonId==='chinh-sach-ky-thuat')return;
+          var id=s.lessonId==='chinh-sach-thu-ngan'?SURVEY3_THU_NGAN_ID:s.lessonId==='chinh-sach-tu-van'?SURVEY3_TU_VAN_ID:SURVEY3_THUONG_CHUNG_ID;
+          var b=bestPassScoreFor(id,10);if(b>0){any=true;if(best===0||b<best)best=b;}
+        });
+        return any?best:0;
+      }
+      function commonLessonScoreText(i,rm){
+        rm=rm||activeRoadmap();
+        var sc=0;
+        if(rm==='store'){
+          if(i===0)sc=bestPassScoreFor(SURVEY_ID,10);
+          else if(i===1)sc=bestPassScoreFor(SURVEY2_ID,10);
+          else if(i===2)sc=ch3BestScore();
+          else if(i===3)sc=bestPassScoreFor(LESSON_ID,10);
+          else if(i===4)sc=bestPassScoreFor(SURVEY5_ID,10);
+        }else{
+          if(i===0)sc=bestPassScoreFor(SURVEY_ID,10);
+          else if(i===1)sc=bestPassScoreFor(SURVEY2_ID,10);
+        }
+        return sc>0?sc+'/10':'Đã hoàn thành';
+      }
       function renderCommonLessons(rm){
         rm=rm||activeRoadmap();
         var list=document.getElementById(rm==='office'?'officeLessonList':'commonLessonList');
@@ -2383,7 +2551,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
           var nodeInner=st==='done'?'\u2713':st==='locked'?'\uD83D\uDD12':(i+1<10?'0'+(i+1):String(i+1));
           var nodeCls=st==='done'?'done':st==='locked'?'locked':(i===cur?'current':'');
           var action;
-          if(st==='done')action='<span class="act">\u0110\u00e3 ho\u00e0n th\u00e0nh</span>';
+          if(st==='done')action='<span class="act">'+commonLessonScoreText(i,rm)+'</span>';
           else if(commonLessonExpired(i))action=userRole==='admin'?'<span class="act">\u0110\u00e3 h\u1ebft h\u1ea1n \u2014 b\u1ea5m \u0111\u1ec3 xem th\u1eed (QTV)</span>':'<span>\u0110\u00e3 h\u1ebft h\u1ea1n \u2014 b\u00e0i \u0111\u00e3 kh\u00f3a</span>';
           else if(st==='locked')action='<span>Ch\u01b0a m\u1edf \u2014 n\u1ed9i dung \u0111ang \u0111\u01b0\u1ee3c chu\u1ea9n b\u1ecb</span>';
           else if(rm==='store'&&i===3&&lessonCompleted&&!game4cDone)action='<span class="act">Chơi game 4C →</span>';
@@ -2483,6 +2651,8 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         document.getElementById('heroTitle').innerHTML='Chuẩn tác phong<br>tạo nên sự chuyên nghiệp.';
       }
       document.getElementById('submitQuiz').addEventListener('click',async function(){
+        if(lessonPassed(LESSON_ID,10)){document.getElementById('submitQuiz').style.display='none';document.getElementById('completionActions').classList.add('show');return;}
+        if(isQuizLocked(LESSON_ID)){closeLesson();openC4();showToast('Bạn cần xem lại hết bài học 4C trước khi làm lại');return;}
         var questions=document.querySelectorAll('.question');var answered=0,score=0;
         questions.forEach(function(q){
           var selected=q.dataset.selected;if(selected!==undefined){answered++}
@@ -2495,16 +2665,17 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         if(answered<questions.length){result.textContent='Hãy trả lời đủ '+questions.length+' câu.';return}
         result.textContent='Kết quả: '+score+'/'+questions.length+' câu đúng';
         var _dq=await recordQuizAttempt(score,questions.length,{set:'q4',picks:quizPicksFrom(questions)});
-        completeCurrentLesson();
-        if(score===questions.length){
+        if(score>=passScoreFor(questions.length))completeCurrentLesson();
+        if(score>=passScoreFor(questions.length)){
           successCard.classList.add('show');
           document.getElementById('submitQuiz').style.display='none';
           document.getElementById('completionActions').classList.add('show');
           successCard.scrollIntoView({behavior:'smooth',block:'nearest'});
           showToast('Xuất sắc! Đã cộng '+_dq+' XP và mở bài tiếp theo');
         }else{
-          document.getElementById('submitQuiz').textContent='Nộp lại bài kiểm tra';
-          showToast(_dq>0?'Đã cộng '+_dq+' XP — làm lại để tăng điểm nhé':'Bạn có thể chọn lại đáp án rồi nộp lại');
+          setReviewLock(LESSON_ID);
+          document.getElementById('submitQuiz').textContent='Xem lại bài học →';
+          showToast('Chưa đạt 8/10 — hãy xem lại hết bài học 4C rồi làm lại nhé');
         }
       });
       function markModule1Done(){
@@ -2512,9 +2683,10 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         renderCommonLessons();
       }
       function surveyProgress(){var qs=document.querySelectorAll('.sq-question');var n=0;qs.forEach(function(q){if(q.querySelector('.sq-option.selected'))n++});var p=document.getElementById('surveyProgress');if(p)p.textContent=n>=qs.length?'Đã trả lời đủ '+qs.length+' câu — bấm Nộp bài nhé!':'Đã trả lời '+n+'/'+qs.length+' câu';}
-      document.querySelectorAll('.sq-question').forEach(function(q){q.querySelectorAll('.sq-option').forEach(function(opt,idx){opt.addEventListener('click',function(){q.querySelectorAll('.sq-option').forEach(function(o){o.classList.remove('selected')});opt.classList.add('selected');q.dataset.selected=idx;var _r=document.getElementById('surveyResult');if(_r)_r.textContent='';surveyProgress()})})});
+      document.querySelectorAll('.sq-question').forEach(function(q){q.querySelectorAll('.sq-option').forEach(function(opt,idx){opt.addEventListener('click',function(){if(isQuizLocked(SURVEY_ID))return;q.querySelectorAll('.sq-option').forEach(function(o){o.classList.remove('selected')});opt.classList.add('selected');q.dataset.selected=idx;var _r=document.getElementById('surveyResult');if(_r)_r.textContent='';surveyProgress();quizAbortCheck(SURVEY_ID,'.sq-question','.sq-option',10,'welcome')})})});
       document.getElementById('submitSurvey').addEventListener('click',async function(){
         var _db=document.getElementById('submitSurvey');if(_db&&_db.dataset.done==='1'){closeWelcome();switchView('route');showDevScreen(primaryDevScreen());return;}
+        if(isQuizLocked(SURVEY_ID)){scrollToDeck('welcome');showToast('Bạn cần xem lại hết bài học trước khi làm lại');return;}
         var qs=document.querySelectorAll('.sq-question');var answered=0,score=0;
         qs.forEach(function(q){
           var opts=q.querySelectorAll('.sq-option');
@@ -2531,27 +2703,29 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         result.textContent='Kết quả: '+score+'/'+qs.length+' câu đúng';
         var suc=document.getElementById('surveySuccess');
         if(suc){
-          var st=document.getElementById('surveySuccessTitle');if(st)st.textContent=score===qs.length?'Chúc mừng bạn đã hoàn thành bài tập!':'Bạn đã nộp bài!';
-          var sx=document.getElementById('surveySuccessText');if(sx)sx.textContent='Số điểm của bạn là '+score10+'/10'+(score===qs.length?' · +'+_d1+' XP — Bài 1 đã hoàn thành!':(_d1>0?' · +'+_d1+' XP — làm lại để tăng điểm nhé.':' · Chọn lại đáp án rồi nộp lại để cải thiện điểm nhé.'));
+          var st=document.getElementById('surveySuccessTitle');if(st)st.textContent=score>=passScoreFor(qs.length)?'Chúc mừng bạn đã hoàn thành bài tập!':'Chưa đạt 8/10 — cần học lại';
+          var sx=document.getElementById('surveySuccessText');if(sx)sx.textContent='Số điểm của bạn là '+score10+'/10'+(score>=passScoreFor(qs.length)?' · +'+_d1+' XP — Bài 1 đã hoàn thành!':' · Chưa đạt 8/10 — hãy xem lại hết bài học rồi làm lại nhé.');
           suc.classList.remove('show');void suc.offsetWidth;suc.classList.add('show');
           suc.scrollIntoView({behavior:'smooth',block:'nearest'});
         }
         if(currentUser){try{var r=await sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:SURVEY_ID,score:score,total:qs.length,xp_earned:_d1,answers:{set:'sq',picks:quizPicksFrom(qs)}});if(r.error)throw r.error}catch(e){dbErrorToast()}}
         var sBtn=document.getElementById('submitSurvey');
-        markModule1Done();refreshMyStats();
-        if(score===qs.length){
-          sBtn.textContent='Đã hoàn thành';sBtn.dataset.done='1';
+        if(score>=passScoreFor(qs.length))markModule1Done();refreshMyStats();
+        if(score>=passScoreFor(qs.length)){
+          sBtn.textContent=score+'/10';sBtn.dataset.done='1';
           showToast('Xuất sắc! Đã cộng '+_d1+' XP và hoàn thành Bài 1');
         }else{
-          sBtn.textContent='Nộp lại bài';
-          showToast(_d1>0?'Đã cộng '+_d1+' XP — làm lại để tăng điểm nhé':'Bạn có thể chọn lại đáp án rồi nộp lại');
+          setReviewLock(SURVEY_ID);
+          sBtn.textContent='Xem lại bài học →';
+          showToast('Chưa đạt 8/10 — hãy xem lại hết bài học rồi làm lại nhé');
         }
       });
       /* ---- Bài kiểm tra Chặng 2: 10 câu Quy định - Nội quy (Kem chốt 13/11) ---- */
       function survey2Progress(){var qs=document.querySelectorAll('.sq2-question');var n=0;qs.forEach(function(q){if(q.querySelector('.sq2-option.selected'))n++});var p=document.getElementById('survey2Progress');if(p)p.textContent=n>=qs.length?'Đã trả lời đủ '+qs.length+' câu — bấm Nộp bài nhé!':'Đã trả lời '+n+'/'+qs.length+' câu';}
-      document.querySelectorAll('.sq2-question').forEach(function(q){q.querySelectorAll('.sq2-option').forEach(function(opt,idx){opt.addEventListener('click',function(){q.querySelectorAll('.sq2-option').forEach(function(o){o.classList.remove('selected')});opt.classList.add('selected');q.dataset.selected=idx;var _r=document.getElementById('survey2Result');if(_r)_r.textContent='';survey2Progress()})})});
+      document.querySelectorAll('.sq2-question').forEach(function(q){q.querySelectorAll('.sq2-option').forEach(function(opt,idx){opt.addEventListener('click',function(){if(isQuizLocked(SURVEY2_ID))return;q.querySelectorAll('.sq2-option').forEach(function(o){o.classList.remove('selected')});opt.classList.add('selected');q.dataset.selected=idx;var _r=document.getElementById('survey2Result');if(_r)_r.textContent='';survey2Progress();quizAbortCheck(SURVEY2_ID,'.sq2-question','.sq2-option',10,'c2')})})});
       document.getElementById('submitSurvey2').addEventListener('click',async function(){
         var _db=document.getElementById('submitSurvey2');if(_db&&_db.dataset.done==='1'){closeC2();switchView('route');showDevScreen(primaryDevScreen());return;}
+        if(isQuizLocked(SURVEY2_ID)){scrollToDeck('c2');showToast('Bạn cần xem lại hết bài học trước khi làm lại');return;}
         var qs=document.querySelectorAll('.sq2-question');var answered=0,score=0;
         qs.forEach(function(q){
           var opts=q.querySelectorAll('.sq2-option');
@@ -2567,27 +2741,29 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         var _d2=xpDeltaFor(SURVEY2_ID,score);
         var suc=document.getElementById('survey2Success');
         if(suc){
-          var st=document.getElementById('survey2SuccessTitle');if(st)st.textContent=score===qs.length?'Chúc mừng bạn đã hoàn thành bài tập!':'Bạn đã nộp bài!';
-          var sx=document.getElementById('survey2SuccessText');if(sx)sx.textContent='Số điểm của bạn là '+score+'/10'+(score===qs.length?' · +'+_d2+' XP — Chặng 2 đã hoàn thành!':(_d2>0?' · +'+_d2+' XP — làm lại để tăng điểm nhé.':' · Chọn lại đáp án rồi nộp lại để cải thiện điểm nhé.'));
+          var st=document.getElementById('survey2SuccessTitle');if(st)st.textContent=score>=passScoreFor(qs.length)?'Chúc mừng bạn đã hoàn thành bài tập!':'Chưa đạt 8/10 — cần học lại';
+          var sx=document.getElementById('survey2SuccessText');if(sx)sx.textContent='Số điểm của bạn là '+score+'/10'+(score>=passScoreFor(qs.length)?' · +'+_d2+' XP — Chặng 2 đã hoàn thành!':' · Chưa đạt 8/10 — hãy xem lại hết bài học rồi làm lại nhé.');
           suc.classList.remove('show');void suc.offsetWidth;suc.classList.add('show');
           suc.scrollIntoView({behavior:'smooth',block:'nearest'});
         }
         if(currentUser){try{var r=await sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:SURVEY2_ID,score:score,total:qs.length,xp_earned:_d2,answers:{set:'sq2',picks:quizPicksFrom(qs)}});if(r.error)throw r.error}catch(e){dbErrorToast()}}
         var sBtn=document.getElementById('submitSurvey2');
         refreshMyStats();
-        if(score===qs.length){
-          sBtn.textContent='Đã hoàn thành';sBtn.dataset.done='1';
+        if(score>=passScoreFor(qs.length)){
+          sBtn.textContent=score+'/10';sBtn.dataset.done='1';
           showToast('Xuất sắc! Đã cộng '+_d2+' XP và hoàn thành Chặng 2');
         }else{
-          sBtn.textContent='Nộp lại bài';
-          showToast(_d2>0?'Đã cộng '+_d2+' XP — làm lại để tăng điểm nhé':'Bạn có thể chọn lại đáp án rồi nộp lại');
+          setReviewLock(SURVEY2_ID);
+          sBtn.textContent='Xem lại bài học →';
+          showToast('Chưa đạt 8/10 — hãy xem lại hết bài học rồi làm lại nhé');
         }
       });
       /* ---- Quiz Chặng 2 Khối Văn phòng (mirror quiz Cửa hàng, class sq2o-*; cùng SURVEY2_ID) ---- */
       function survey2OfficeProgress(){var qs=document.querySelectorAll('.sq2o-question');var n=0;qs.forEach(function(q){if(q.querySelector('.sq2o-option.selected'))n++});var p=document.getElementById('survey2OfficeProgress');if(p)p.textContent=n>=qs.length?'Đã trả lời đủ '+qs.length+' câu — bấm Nộp bài nhé!':'Đã trả lời '+n+'/'+qs.length+' câu';}
-      document.querySelectorAll('.sq2o-question').forEach(function(q){q.querySelectorAll('.sq2o-option').forEach(function(opt,idx){opt.addEventListener('click',function(){q.querySelectorAll('.sq2o-option').forEach(function(o){o.classList.remove('selected')});opt.classList.add('selected');q.dataset.selected=idx;var _r=document.getElementById('survey2OfficeResult');if(_r)_r.textContent='';survey2OfficeProgress()})})});
+      document.querySelectorAll('.sq2o-question').forEach(function(q){q.querySelectorAll('.sq2o-option').forEach(function(opt,idx){opt.addEventListener('click',function(){if(isQuizLocked(SURVEY2_ID))return;q.querySelectorAll('.sq2o-option').forEach(function(o){o.classList.remove('selected')});opt.classList.add('selected');q.dataset.selected=idx;var _r=document.getElementById('survey2OfficeResult');if(_r)_r.textContent='';survey2OfficeProgress();quizAbortCheck(SURVEY2_ID,'.sq2o-question','.sq2o-option',10,'c2')})})});
       document.getElementById('submitSurvey2Office').addEventListener('click',async function(){
         var _db=document.getElementById('submitSurvey2Office');if(_db&&_db.dataset.done==='1'){closeC2();switchView('route');showDevScreen(primaryDevScreen());return;}
+        if(isQuizLocked(SURVEY2_ID)){scrollToDeck('c2');showToast('Bạn cần xem lại hết bài học trước khi làm lại');return;}
         var qs=document.querySelectorAll('.sq2o-question');var answered=0,score=0;
         qs.forEach(function(q){
           var opts=q.querySelectorAll('.sq2o-option');
@@ -2603,27 +2779,29 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         var _d2=xpDeltaFor(SURVEY2_ID,score);
         var suc=document.getElementById('survey2OfficeSuccess');
         if(suc){
-          var st=document.getElementById('survey2OfficeSuccessTitle');if(st)st.textContent=score===qs.length?'Chúc mừng bạn đã hoàn thành bài tập!':'Bạn đã nộp bài!';
-          var sx=document.getElementById('survey2OfficeSuccessText');if(sx)sx.textContent='Số điểm của bạn là '+score+'/10'+(score===qs.length?' · +'+_d2+' XP — Chặng 2 đã hoàn thành!':(_d2>0?' · +'+_d2+' XP — làm lại để tăng điểm nhé.':' · Chọn lại đáp án rồi nộp lại để cải thiện điểm nhé.'));
+          var st=document.getElementById('survey2OfficeSuccessTitle');if(st)st.textContent=score>=passScoreFor(qs.length)?'Chúc mừng bạn đã hoàn thành bài tập!':'Chưa đạt 8/10 — cần học lại';
+          var sx=document.getElementById('survey2OfficeSuccessText');if(sx)sx.textContent='Số điểm của bạn là '+score+'/10'+(score>=passScoreFor(qs.length)?' · +'+_d2+' XP — Chặng 2 đã hoàn thành!':' · Chưa đạt 8/10 — hãy xem lại hết bài học rồi làm lại nhé.');
           suc.classList.remove('show');void suc.offsetWidth;suc.classList.add('show');
           suc.scrollIntoView({behavior:'smooth',block:'nearest'});
         }
         if(currentUser){try{var r=await sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:SURVEY2_ID,score:score,total:qs.length,xp_earned:_d2,answers:{set:'sq2o',picks:quizPicksFrom(qs)}});if(r.error)throw r.error}catch(e){dbErrorToast()}}
         var sBtn=document.getElementById('submitSurvey2Office');
         refreshMyStats();
-        if(score===qs.length){
-          sBtn.textContent='Đã hoàn thành';sBtn.dataset.done='1';
+        if(score>=passScoreFor(qs.length)){
+          sBtn.textContent=score+'/10';sBtn.dataset.done='1';
           showToast('Xuất sắc! Đã cộng '+_d2+' XP và hoàn thành Chặng 2');
         }else{
-          sBtn.textContent='Nộp lại bài';
-          showToast(_d2>0?'Đã cộng '+_d2+' XP — làm lại để tăng điểm nhé':'Bạn có thể chọn lại đáp án rồi nộp lại');
+          setReviewLock(SURVEY2_ID);
+          sBtn.textContent='Xem lại bài học →';
+          showToast('Chưa đạt 8/10 — hãy xem lại hết bài học rồi làm lại nhé');
         }
       });
       /* ---- Bài tập Thu ngân kiêm kho (Chặng 3 Cửa hàng, Kem chốt 16/11): 10 câu chính sách lương ---- */
       function survey3ThuNganProgress(){var qs=document.querySelectorAll('.sq3tn-question');var n=0;qs.forEach(function(q){if(q.querySelector('.sq3tn-option.selected'))n++});var p=document.getElementById('survey3ThuNganProgress');if(p)p.textContent=n>=qs.length?'Đã trả lời đủ '+qs.length+' câu — bấm Nộp bài nhé!':'Đã trả lời '+n+'/'+qs.length+' câu';}
-      document.querySelectorAll('.sq3tn-question').forEach(function(q){q.querySelectorAll('.sq3tn-option').forEach(function(opt,idx){opt.addEventListener('click',function(){q.querySelectorAll('.sq3tn-option').forEach(function(o){o.classList.remove('selected')});opt.classList.add('selected');q.dataset.selected=idx;var _r=document.getElementById('survey3ThuNganResult');if(_r)_r.textContent='';survey3ThuNganProgress()})})});
+      document.querySelectorAll('.sq3tn-question').forEach(function(q){q.querySelectorAll('.sq3tn-option').forEach(function(opt,idx){opt.addEventListener('click',function(){if(isQuizLocked(SURVEY3_THU_NGAN_ID))return;q.querySelectorAll('.sq3tn-option').forEach(function(o){o.classList.remove('selected')});opt.classList.add('selected');q.dataset.selected=idx;var _r=document.getElementById('survey3ThuNganResult');if(_r)_r.textContent='';survey3ThuNganProgress();quizAbortCheck(SURVEY3_THU_NGAN_ID,'.sq3tn-question','.sq3tn-option',10,'gen')})})});
       document.getElementById('submitSurvey3ThuNgan').addEventListener('click',async function(){
         var _db=document.getElementById('submitSurvey3ThuNgan');if(_db&&_db.dataset.done==='1'){closeGenDeck();switchView('route');showDevScreen(primaryDevScreen());return;}
+        if(isQuizLocked(SURVEY3_THU_NGAN_ID)){scrollToDeck('gen');showToast('Bạn cần xem lại hết bài học trước khi làm lại');return;}
         var qs=document.querySelectorAll('.sq3tn-question');var answered=0,score=0;
         qs.forEach(function(q){
           var opts=q.querySelectorAll('.sq3tn-option');
@@ -2639,29 +2817,31 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         var _d3=xpDeltaFor(SURVEY3_THU_NGAN_ID,score);
         var suc=document.getElementById('survey3ThuNganSuccess');
         if(suc){
-          var st=document.getElementById('survey3ThuNganSuccessTitle');if(st)st.textContent=score===qs.length?'Chúc mừng bạn đã hoàn thành bài tập!':'Bạn đã nộp bài!';
-          var sx=document.getElementById('survey3ThuNganSuccessText');if(sx)sx.textContent='Số điểm của bạn là '+score+'/10'+(score===qs.length?' · +'+_d3+' XP — mục Thu ngân kiêm kho đã hoàn thành!':(_d3>0?' · +'+_d3+' XP — làm lại để tăng điểm nhé.':' · Chọn lại đáp án rồi nộp lại để cải thiện điểm nhé.'));
+          var st=document.getElementById('survey3ThuNganSuccessTitle');if(st)st.textContent=score>=passScoreFor(qs.length)?'Chúc mừng bạn đã hoàn thành bài tập!':'Chưa đạt 8/10 — cần học lại';
+          var sx=document.getElementById('survey3ThuNganSuccessText');if(sx)sx.textContent='Số điểm của bạn là '+score+'/10'+(score>=passScoreFor(qs.length)?' · +'+_d3+' XP — mục Thu ngân kiêm kho đã hoàn thành!':' · Chưa đạt 8/10 — hãy xem lại hết bài học rồi làm lại nhé.');
           suc.classList.remove('show');void suc.offsetWidth;suc.classList.add('show');
           suc.scrollIntoView({behavior:'smooth',block:'nearest'});
         }
         if(currentUser){try{var r=await sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:SURVEY3_THU_NGAN_ID,score:score,total:qs.length,xp_earned:_d3,answers:{set:'sq3tn',picks:quizPicksFrom(qs)}});if(r.error)throw r.error}catch(e){dbErrorToast()}}
         /* Nộp bài = xong mục Thu ngân (giống Chang 2/5: nộp bài là xong); ghi nhan vao lesson_progress + ch3Subs. */
-        if(currentUser){try{var ok2=await markViewed('chinh-sach-thu-ngan');if(ok2){ch3Subs['chinh-sach-thu-ngan']=true;if(storeCh3Done()){await markViewed('phuc-loi');c3Viewed=true;}}}catch(e){}}
+        if(score>=passScoreFor(qs.length)&&currentUser){try{var ok2=await markViewed('chinh-sach-thu-ngan');if(ok2){ch3Subs['chinh-sach-thu-ngan']=true;if(storeCh3Done()){await markViewed('phuc-loi');c3Viewed=true;}}}catch(e){}}
         var sBtn=document.getElementById('submitSurvey3ThuNgan');
         refreshMyStats();
-        if(score===qs.length){
-          sBtn.textContent='Đã hoàn thành';sBtn.dataset.done='1';
+        if(score>=passScoreFor(qs.length)){
+          sBtn.textContent=score+'/10';sBtn.dataset.done='1';
           showToast('Xuất sắc! Đã cộng '+_d3+' XP và hoàn thành mục Thu ngân kiêm kho');
         }else{
-          sBtn.textContent='Nộp lại bài';
-          showToast(_d3>0?'Đã cộng '+_d3+' XP — làm lại để tăng điểm nhé':'Bạn có thể chọn lại đáp án rồi nộp lại');
+          setReviewLock(SURVEY3_THU_NGAN_ID);
+          sBtn.textContent='Xem lại bài học →';
+          showToast('Chưa đạt 8/10 — hãy xem lại hết bài học rồi làm lại nhé');
         }
       });
       /* ---- Bài tập Nhân viên Tư vấn (Chặng 3 Cửa hàng, Kem chốt 16/11): 10 câu lương & hoa hồng/KPIs ---- */
       function survey3TuVanProgress(){var qs=document.querySelectorAll('.sq3tv-question');var n=0;qs.forEach(function(q){if(q.querySelector('.sq3tv-option.selected'))n++});var p=document.getElementById('survey3TuVanProgress');if(p)p.textContent=n>=qs.length?'Đã trả lời đủ '+qs.length+' câu — bấm Nộp bài nhé!':'Đã trả lời '+n+'/'+qs.length+' câu';}
-      document.querySelectorAll('.sq3tv-question').forEach(function(q){q.querySelectorAll('.sq3tv-option').forEach(function(opt,idx){opt.addEventListener('click',function(){q.querySelectorAll('.sq3tv-option').forEach(function(o){o.classList.remove('selected')});opt.classList.add('selected');q.dataset.selected=idx;var _r=document.getElementById('survey3TuVanResult');if(_r)_r.textContent='';survey3TuVanProgress()})})});
+      document.querySelectorAll('.sq3tv-question').forEach(function(q){q.querySelectorAll('.sq3tv-option').forEach(function(opt,idx){opt.addEventListener('click',function(){if(isQuizLocked(SURVEY3_TU_VAN_ID))return;q.querySelectorAll('.sq3tv-option').forEach(function(o){o.classList.remove('selected')});opt.classList.add('selected');q.dataset.selected=idx;var _r=document.getElementById('survey3TuVanResult');if(_r)_r.textContent='';survey3TuVanProgress();quizAbortCheck(SURVEY3_TU_VAN_ID,'.sq3tv-question','.sq3tv-option',10,'gen')})})});
       document.getElementById('submitSurvey3TuVan').addEventListener('click',async function(){
         var _db=document.getElementById('submitSurvey3TuVan');if(_db&&_db.dataset.done==='1'){closeGenDeck();switchView('route');showDevScreen(primaryDevScreen());return;}
+        if(isQuizLocked(SURVEY3_TU_VAN_ID)){scrollToDeck('gen');showToast('Bạn cần xem lại hết bài học trước khi làm lại');return;}
         var qs=document.querySelectorAll('.sq3tv-question');var answered=0,score=0;
         qs.forEach(function(q){
           var opts=q.querySelectorAll('.sq3tv-option');
@@ -2677,29 +2857,31 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         var _d3v=xpDeltaFor(SURVEY3_TU_VAN_ID,score);
         var suc=document.getElementById('survey3TuVanSuccess');
         if(suc){
-          var st=document.getElementById('survey3TuVanSuccessTitle');if(st)st.textContent=score===qs.length?'Chúc mừng bạn đã hoàn thành bài tập!':'Bạn đã nộp bài!';
-          var sx=document.getElementById('survey3TuVanSuccessText');if(sx)sx.textContent='Số điểm của bạn là '+score+'/10'+(score===qs.length?' · +'+_d3v+' XP — mục Nhân viên Tư vấn đã hoàn thành!':(_d3v>0?' · +'+_d3v+' XP — làm lại để tăng điểm nhé.':' · Chọn lại đáp án rồi nộp lại để cải thiện điểm nhé.'));
+          var st=document.getElementById('survey3TuVanSuccessTitle');if(st)st.textContent=score>=passScoreFor(qs.length)?'Chúc mừng bạn đã hoàn thành bài tập!':'Chưa đạt 8/10 — cần học lại';
+          var sx=document.getElementById('survey3TuVanSuccessText');if(sx)sx.textContent='Số điểm của bạn là '+score+'/10'+(score>=passScoreFor(qs.length)?' · +'+_d3v+' XP — mục Nhân viên Tư vấn đã hoàn thành!':' · Chưa đạt 8/10 — hãy xem lại hết bài học rồi làm lại nhé.');
           suc.classList.remove('show');void suc.offsetWidth;suc.classList.add('show');
           suc.scrollIntoView({behavior:'smooth',block:'nearest'});
         }
         if(currentUser){try{var r=await sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:SURVEY3_TU_VAN_ID,score:score,total:qs.length,xp_earned:_d3v,answers:{set:'sq3tv',picks:quizPicksFrom(qs)}});if(r.error)throw r.error}catch(e){dbErrorToast()}}
         /* Nộp bài = xong mục Tư vấn (giống Thu ngân); ghi nhan vao lesson_progress + ch3Subs. */
-        if(currentUser){try{var ok2=await markViewed('chinh-sach-tu-van');if(ok2){ch3Subs['chinh-sach-tu-van']=true;if(storeCh3Done()){await markViewed('phuc-loi');c3Viewed=true;}}}catch(e){}}
+        if(score>=passScoreFor(qs.length)&&currentUser){try{var ok2=await markViewed('chinh-sach-tu-van');if(ok2){ch3Subs['chinh-sach-tu-van']=true;if(storeCh3Done()){await markViewed('phuc-loi');c3Viewed=true;}}}catch(e){}}
         var sBtn=document.getElementById('submitSurvey3TuVan');
         refreshMyStats();
-        if(score===qs.length){
-          sBtn.textContent='Đã hoàn thành';sBtn.dataset.done='1';
+        if(score>=passScoreFor(qs.length)){
+          sBtn.textContent=score+'/10';sBtn.dataset.done='1';
           showToast('Xuất sắc! Đã cộng '+_d3v+' XP và hoàn thành mục Nhân viên Tư vấn');
         }else{
-          sBtn.textContent='Nộp lại bài';
-          showToast(_d3v>0?'Đã cộng '+_d3v+' XP — làm lại để tăng điểm nhé':'Bạn có thể chọn lại đáp án rồi nộp lại');
+          setReviewLock(SURVEY3_TU_VAN_ID);
+          sBtn.textContent='Xem lại bài học →';
+          showToast('Chưa đạt 8/10 — hãy xem lại hết bài học rồi làm lại nhé');
         }
       });
       /* ---- Bài tập Thưởng chung Cửa hàng (Chặng 3 Cửa hàng, Kem chốt 17/11): 10 câu Thưởng 5 tiêu chí ---- */
       function survey3ThuongChungProgress(){var qs=document.querySelectorAll('.sq3tc-question');var n=0;qs.forEach(function(q){if(q.querySelector('.sq3tc-option.selected'))n++});var p=document.getElementById('survey3ThuongChungProgress');if(p)p.textContent=n>=qs.length?'Đã trả lời đủ '+qs.length+' câu — bấm Nộp bài nhé!':'Đã trả lời '+n+'/'+qs.length+' câu';}
-      document.querySelectorAll('.sq3tc-question').forEach(function(q){q.querySelectorAll('.sq3tc-option').forEach(function(opt,idx){opt.addEventListener('click',function(){q.querySelectorAll('.sq3tc-option').forEach(function(o){o.classList.remove('selected')});opt.classList.add('selected');q.dataset.selected=idx;var _r=document.getElementById('survey3ThuongChungResult');if(_r)_r.textContent='';survey3ThuongChungProgress()})})});
+      document.querySelectorAll('.sq3tc-question').forEach(function(q){q.querySelectorAll('.sq3tc-option').forEach(function(opt,idx){opt.addEventListener('click',function(){if(isQuizLocked(SURVEY3_THUONG_CHUNG_ID))return;q.querySelectorAll('.sq3tc-option').forEach(function(o){o.classList.remove('selected')});opt.classList.add('selected');q.dataset.selected=idx;var _r=document.getElementById('survey3ThuongChungResult');if(_r)_r.textContent='';survey3ThuongChungProgress();quizAbortCheck(SURVEY3_THUONG_CHUNG_ID,'.sq3tc-question','.sq3tc-option',10,'gen')})})});
       document.getElementById('submitSurvey3ThuongChung').addEventListener('click',async function(){
         var _db=document.getElementById('submitSurvey3ThuongChung');if(_db&&_db.dataset.done==='1'){closeGenDeck();switchView('route');showDevScreen(primaryDevScreen());return;}
+        if(isQuizLocked(SURVEY3_THUONG_CHUNG_ID)){scrollToDeck('gen');showToast('Bạn cần xem lại hết bài học trước khi làm lại');return;}
         var qs=document.querySelectorAll('.sq3tc-question');var answered=0,score=0;
         qs.forEach(function(q){
           var opts=q.querySelectorAll('.sq3tc-option');
@@ -2715,29 +2897,31 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         var _d3c=xpDeltaFor(SURVEY3_THUONG_CHUNG_ID,score);
         var suc=document.getElementById('survey3ThuongChungSuccess');
         if(suc){
-          var st=document.getElementById('survey3ThuongChungSuccessTitle');if(st)st.textContent=score===qs.length?'Chúc mừng bạn đã hoàn thành bài tập!':'Bạn đã nộp bài!';
-          var sx=document.getElementById('survey3ThuongChungSuccessText');if(sx)sx.textContent='Số điểm của bạn là '+score+'/10'+(score===qs.length?' · +'+_d3c+' XP — mục Thưởng chung Cửa hàng đã hoàn thành!':(_d3c>0?' · +'+_d3c+' XP — làm lại để tăng điểm nhé.':' · Chọn lại đáp án rồi nộp lại để cải thiện điểm nhé.'));
+          var st=document.getElementById('survey3ThuongChungSuccessTitle');if(st)st.textContent=score>=passScoreFor(qs.length)?'Chúc mừng bạn đã hoàn thành bài tập!':'Chưa đạt 8/10 — cần học lại';
+          var sx=document.getElementById('survey3ThuongChungSuccessText');if(sx)sx.textContent='Số điểm của bạn là '+score+'/10'+(score>=passScoreFor(qs.length)?' · +'+_d3c+' XP — mục Thưởng chung Cửa hàng đã hoàn thành!':' · Chưa đạt 8/10 — hãy xem lại hết bài học rồi làm lại nhé.');
           suc.classList.remove('show');void suc.offsetWidth;suc.classList.add('show');
           suc.scrollIntoView({behavior:'smooth',block:'nearest'});
         }
         if(currentUser){try{var r=await sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:SURVEY3_THUONG_CHUNG_ID,score:score,total:qs.length,xp_earned:_d3c,answers:{set:'sq3tc',picks:quizPicksFrom(qs)}});if(r.error)throw r.error}catch(e){dbErrorToast()}}
         /* Nộp bài = xong mục Tư vấn (giống Thu ngân); ghi nhan vao lesson_progress + ch3Subs. */
-        if(currentUser){try{var ok2=await markViewed('thuong-phan-hoi-cam');if(ok2){ch3Subs['thuong-phan-hoi-cam']=true;if(storeCh3Done()){await markViewed('phuc-loi');c3Viewed=true;}}}catch(e){}}
+        if(score>=passScoreFor(qs.length)&&currentUser){try{var ok2=await markViewed('thuong-phan-hoi-cam');if(ok2){ch3Subs['thuong-phan-hoi-cam']=true;if(storeCh3Done()){await markViewed('phuc-loi');c3Viewed=true;}}}catch(e){}}
         var sBtn=document.getElementById('submitSurvey3ThuongChung');
         refreshMyStats();
-        if(score===qs.length){
-          sBtn.textContent='Đã hoàn thành';sBtn.dataset.done='1';
+        if(score>=passScoreFor(qs.length)){
+          sBtn.textContent=score+'/10';sBtn.dataset.done='1';
           showToast('Xuất sắc! Đã cộng '+_d3c+' XP và hoàn thành mục Thưởng chung Cửa hàng');
         }else{
-          sBtn.textContent='Nộp lại bài';
-          showToast(_d3c>0?'Đã cộng '+_d3c+' XP — làm lại để tăng điểm nhé':'Bạn có thể chọn lại đáp án rồi nộp lại');
+          setReviewLock(SURVEY3_THUONG_CHUNG_ID);
+          sBtn.textContent='Xem lại bài học →';
+          showToast('Chưa đạt 8/10 — hãy xem lại hết bài học rồi làm lại nhé');
         }
       });
       /* ---- Bài kiểm tra Chặng 5: 10 câu Quy định 4 Không và 12 Không (Kem chốt 13/11) ---- */
       function survey5Progress(){var qs=document.querySelectorAll('.sq5-question');var n=0;qs.forEach(function(q){if(q.querySelector('.sq5-option.selected'))n++});var p=document.getElementById('survey5Progress');if(p)p.textContent=n>=qs.length?'Đã trả lời đủ '+qs.length+' câu — bấm Nộp bài nhé!':'Đã trả lời '+n+'/'+qs.length+' câu';}
-      document.querySelectorAll('.sq5-question').forEach(function(q){q.querySelectorAll('.sq5-option').forEach(function(opt,idx){opt.addEventListener('click',function(){q.querySelectorAll('.sq5-option').forEach(function(o){o.classList.remove('selected')});opt.classList.add('selected');q.dataset.selected=idx;var _r=document.getElementById('survey5Result');if(_r)_r.textContent='';survey5Progress()})})});
+      document.querySelectorAll('.sq5-question').forEach(function(q){q.querySelectorAll('.sq5-option').forEach(function(opt,idx){opt.addEventListener('click',function(){if(isQuizLocked(SURVEY5_ID))return;q.querySelectorAll('.sq5-option').forEach(function(o){o.classList.remove('selected')});opt.classList.add('selected');q.dataset.selected=idx;var _r=document.getElementById('survey5Result');if(_r)_r.textContent='';survey5Progress();quizAbortCheck(SURVEY5_ID,'.sq5-question','.sq5-option',10,'c5')})})});
       document.getElementById('submitSurvey5').addEventListener('click',async function(){
         var _db=document.getElementById('submitSurvey5');if(_db&&_db.dataset.done==='1'){closeC5();switchView('route');showDevScreen(primaryDevScreen());return;}
+        if(isQuizLocked(SURVEY5_ID)){scrollToDeck('c5');showToast('Bạn cần xem lại hết bài học trước khi làm lại');return;}
         var qs=document.querySelectorAll('.sq5-question');var answered=0,score=0;
         qs.forEach(function(q){
           var opts=q.querySelectorAll('.sq5-option');
@@ -2753,20 +2937,21 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         var _d5=xpDeltaFor(SURVEY5_ID,score);
         var suc=document.getElementById('survey5Success');
         if(suc){
-          var st=document.getElementById('survey5SuccessTitle');if(st)st.textContent=score===qs.length?'Chúc mừng bạn đã hoàn thành bài tập!':'Bạn đã nộp bài!';
-          var sx=document.getElementById('survey5SuccessText');if(sx)sx.textContent='Số điểm của bạn là '+score+'/10'+(score===qs.length?' · +'+_d5+' XP — Chặng 5 đã hoàn thành!':(_d5>0?' · +'+_d5+' XP — làm lại để tăng điểm nhé.':' · Chọn lại đáp án rồi nộp lại để cải thiện điểm nhé.'));
+          var st=document.getElementById('survey5SuccessTitle');if(st)st.textContent=score>=passScoreFor(qs.length)?'Chúc mừng bạn đã hoàn thành bài tập!':'Chưa đạt 8/10 — cần học lại';
+          var sx=document.getElementById('survey5SuccessText');if(sx)sx.textContent='Số điểm của bạn là '+score+'/10'+(score>=passScoreFor(qs.length)?' · +'+_d5+' XP — Chặng 5 đã hoàn thành!':' · Chưa đạt 8/10 — hãy xem lại hết bài học rồi làm lại nhé.');
           suc.classList.remove('show');void suc.offsetWidth;suc.classList.add('show');
           suc.scrollIntoView({behavior:'smooth',block:'nearest'});
         }
         if(currentUser){try{var r=await sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:SURVEY5_ID,score:score,total:qs.length,xp_earned:_d5,answers:{set:'sq5',picks:quizPicksFrom(qs)}});if(r.error)throw r.error}catch(e){dbErrorToast()}}
         var sBtn=document.getElementById('submitSurvey5');
         refreshMyStats();
-        if(score===qs.length){
-          sBtn.textContent='Đã hoàn thành';sBtn.dataset.done='1';
+        if(score>=passScoreFor(qs.length)){
+          sBtn.textContent=score+'/10';sBtn.dataset.done='1';
           showToast('Xuất sắc! Đã cộng '+_d5+' XP và hoàn thành Chặng 5');
         }else{
-          sBtn.textContent='Nộp lại bài';
-          showToast(_d5>0?'Đã cộng '+_d5+' XP — làm lại để tăng điểm nhé':'Bạn có thể chọn lại đáp án rồi nộp lại');
+          setReviewLock(SURVEY5_ID);
+          sBtn.textContent='Xem lại bài học →';
+          showToast('Chưa đạt 8/10 — hãy xem lại hết bài học rồi làm lại nhé');
         }
       });
       document.getElementById('nextLesson').addEventListener('click',function(){closeLesson();var cur=currentCommonLessonIdx();if(cur>=0)openCommonLesson(cur);else{switchView('route');showDevScreen('common')}});
@@ -2819,9 +3004,11 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
             var card0=document.querySelector('.activity-card');if(card0)card0.classList.remove('wide');
             activityTitle.textContent='Mini-game · Thử thách vui';
             /* Kem 09/11: chỉ giữ Vượt ải 4C trong Mini-game — 4 game kia (Lật thẻ, Khách khó tính, Đố nhanh, Xếp trình tự) tạm ẩn khỏi menu, code vẫn còn để khôi phục khi cần. Kem 11/11: thêm game thứ 2 'Chạy cùng Fastie' (kiểu Khủng long, 4C Nội bộ) — hoàn thành hết 2 game được +20 XP. */
-            activityBody.innerHTML='<p>Chọn một thử thách để chơi và cộng XP — hoàn thành hết 2 game được +20 XP:</p><div class="game-menu"><button class="game-pick" id="pickStage" type="button"><span class="game-pick-icon">🏪</span><span><strong>Vượt ải 4C</strong><small>Mô phỏng cửa hàng · 3 ải · tối đa 10 XP</small></span></button><button class="game-pick" id="pickDino" type="button"><span class="game-pick-icon">🌵</span><span><strong>Chạy cùng Fastie</strong><small>Chạy bộ kiểu Khủng long · 4C Nội bộ · 3 tim · tối đa 10 XP</small></span></button></div>';
-            document.getElementById('pickStage').addEventListener('click',startStageGame);
-            document.getElementById('pickDino').addEventListener('click',startDinoGame);
+            var _stBest=bestPassScoreFor('mini-game-vuot-ai-4c',10),_stLock=isQuizLocked('mini-game-vuot-ai-4c');
+            var _dnBest=bestPassScoreFor('mini-game-chay-cung-fastie',10),_dnLock=isQuizLocked('mini-game-chay-cung-fastie');
+            activityBody.innerHTML='<p>Chọn một thử thách để chơi và cộng XP — hoàn thành hết 2 game được +20 XP:</p><div class="game-menu"><button class="game-pick" id="pickStage" type="button"'+(_stBest>0||_stLock?' disabled':'')+'><span class="game-pick-icon">🏪</span><span><strong>Vượt ải 4C</strong><small>'+(_stBest>0?('Đã đạt '+_stBest+'/10'):(_stLock?'Xem lại bài học 4C để chơi lại':'Mô phỏng cửa hàng · 3 ải · tối đa 10 XP'))+'</small></span></button><button class="game-pick" id="pickDino" type="button"'+(_dnBest>0||_dnLock?' disabled':'')+'><span class="game-pick-icon">🌵</span><span><strong>Chạy cùng Fastie</strong><small>'+(_dnBest>0?('Đã đạt '+_dnBest+'/10'):(_dnLock?'Xem lại bài học 4C để chơi lại':'Chạy bộ kiểu Khủng long · 4C Nội bộ · 3 tim · tối đa 10 XP'))+'</small></span></button></div>';
+            var _ps=document.getElementById('pickStage');if(_ps&&!_ps.disabled)_ps.addEventListener('click',startStageGame);
+            var _pd=document.getElementById('pickDino');if(_pd&&!_pd.disabled)_pd.addEventListener('click',startDinoGame);
           }
           /* Kem 11/11: hiệu ứng ăn mừng chung cho mọi game — pháo giấy tung lên khi hoàn thành. */
           function confettiBurst(){
@@ -2977,6 +3164,8 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
           memBuild();
           }
           function startStageGame(){
+            if(bestPassScoreFor('mini-game-vuot-ai-4c',10)>0){showToast('Bạn đã đạt '+bestPassScoreFor('mini-game-vuot-ai-4c',10)+'/10 ở game này rồi');showGameMenu();return;}
+            if(isQuizLocked('mini-game-vuot-ai-4c')){showToast('Bạn cần xem lại hết bài học 4C trước khi chơi lại');closeActivity();switchView('route');showDevScreen(primaryDevScreen());return;}
             var STAGES=[
               {icon:'⚡',code:'C1',name:'Chủ động',color:'#e84924',soft:'#ffe7df',qs:[{q:'Một khách hàng vừa bước vào cửa hàng, nhưng bạn đang hỗ trợ một khách khác tại quầy. Bạn sẽ làm gì?',tip:'Chủ động ghi nhận khách mới, đồng thời không bỏ dở trách nhiệm với khách đang phục vụ.',opts:['Chào và hướng dẫn khách mới vào ghế chờ và báo sẽ hỗ trợ ngay, đồng thời tiếp tục phục vụ khách đang sửa máy','Tiếp tục làm việc, chờ khách mới tự lên tiếng','Bỏ khách đang phục vụ để chạy ngay sang khách mới','Hẹn khách mới hôm khác quay lại khi cửa hàng vắng hơn'],a:0,why:'Chủ động tiếp đón ngay từ giây đầu — đồng thời khéo léo hẹn khách mới chờ một chút thay vì bỏ dở khách đang phục vụ.'},{q:'Một chị khách đứng nhìn quanh cửa hàng, có vẻ đang tìm người giúp đỡ mà chưa mở lời. Bạn sẽ làm gì?',tip:'Quan sát và chủ động hỏi thăm trước khi khách phải lên tiếng.',opts:['Đứng quan sát thêm xem chị cần gì rồi tính','Chủ động đến hỏi: “Dạ chị cần em hỗ trợ gì ạ? - Mình đến sửa máy hay lấy máy ạ?”','Tiếp tục việc của mình, khách cần sẽ tự gọi','Chờ chị khách tự đến quầy rồi mới tiếp đón'],a:1,why:'Đừng đợi khách mở lời — chủ động hỏi thăm thể hiện sự quan tâm chân thành.'},{q:'Khách hỏi về một lỗi mà bạn chưa chắc chắn nguyên nhân. Bạn sẽ hành động thế nào?',tip:'Chủ động không có nghĩa là đoán mò — minh bạch và hẹn mốc cập nhật cụ thể.',opts:['Đoán nhanh một nguyên nhân để khách yên tâm trước','Chuyển ngay cho đồng nghiệp xử lý','Nhận máy và bảo khi nào xong sẽ gọi, không hẹn thời gian cụ thể','Trực tiếp hỏi thăm thêm và tình trạng máy, xin khách thêm thời gian kiểm tra kỹ máy trước khi đưa ra kết quả cuối'],a:3,why:'Đoán mò nghe có vẻ “chủ động” nhưng rất nguy hiểm — hỏi thêm tình trạng máy và xin thời gian kiểm tra kỹ trước khi kết luận mới là chuyên nghiệp.'},{q:'Trong lúc sửa máy, bạn phát hiện thêm một lỗi khác ngoài lỗi khách đã báo. Bạn sẽ làm gì?',tip:'Chủ động báo khách trước khi phát sinh thêm chi phí — minh bạch tạo niềm tin.',opts:['Tự sửa luôn lỗi đó rồi cộng tiền vào hóa đơn lúc giao máy','Bỏ qua lỗi đó, chỉ sửa đúng lỗi khách đã báo','Đợi đến lúc giao máy mới nói về lỗi phát sinh thêm','Liên hệ khách ngay, nói rõ lỗi phát sinh và chi phí, chỉ sửa tiếp khi khách đồng ý'],a:3,why:'Tự sửa rồi tính tiền sau khiến khách bị động và mất niềm tin — báo trước, được khách đồng ý rồi mới sửa thêm.'}]},
               {icon:'😊',code:'C2',name:'Cười',color:'#0f766e',soft:'#dceee9',qs:[{q:'Khách tỏ vẻ khó chịu vì chờ đợi quá lâu. Bạn sẽ làm gì?',tip:'Khách cần biết thiết bị của mình đang ở đâu — cập nhật chủ động với nụ cười.',opts:['Giải thích dài dòng vì sao hôm nay đông khách','Tươi cười và cập nhật tiến độ: “Máy mình đang ở bước kiểm tra cuối ạ!”','Im lặng, cố làm nhanh hơn mà không nói gì','Hẹn khách quay lại lấy máy vào hôm sau để khỏi phải chờ'],a:1,why:'Giải thích dài dòng nghe như biện minh — nụ cười thân thiện + cập nhật tiến độ cụ thể mới xoa dịu được.'},{q:'Khách nhăn mặt khi nghe báo giá sửa chữa. Bạn sẽ phản ứng thế nào?',tip:'Chuyên nghiệp không có nghĩa là nghiêm nghị — nụ cười nhẹ + minh bạch từng khoản.',opts:['Giữ vẻ mặt nghiêm túc cho chuyên nghiệp','Cười lớn, pha trò cho không khí nhẹ nhàng','Giảm giá ngay để khách đỡ khó chịu','Cười nhẹ và giải thích rõ từng khoản chi phí khi sửa'],a:3,why:'Nghiêm mặt dễ khiến khách thêm căng thẳng — nụ cười nhẹ kèm giải thích minh bạch từng khoản mới tạo niềm tin.'},{q:'Một khách lớn tuổi đến sửa máy, nghe không rõ và hỏi đi hỏi lại nhiều lần. Bạn sẽ làm gì?',tip:'Nụ cười và sự kiên nhẫn khiến khách lớn tuổi cảm thấy được tôn trọng.',opts:['Trả lời nhanh cho xong vì còn nhiều khách đang chờ','Nhờ khách khác đang chờ giải thích hộ cho nhanh','Mỉm cười, nói chậm và rõ, nhắc lại từng ý cho đến khi khách hiểu','Bảo khách để máy lại, hôm sau quay lại nghe kết quả'],a:2,why:'Vội vàng hay nhờ người khác giải thích đều khiến khách thấy mình làm phiền — cười, nói chậm và nhắc lại đến khi khách hiểu mới là chăm sóc thật sự.'}]},
@@ -3098,12 +3287,14 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
             async function showFinal(){
               var card=document.querySelector('.activity-card');if(card)card.classList.remove('wide');
               activityTitle.textContent='Mini-game · Huy hiệu 4C';
-              var xp=correct; /* mỗi câu đúng = 1 XP, tối đa 10 XP */
+              var _stPassed=correct>=passScoreFor(totalQ);
+              var xp=_stPassed?correct:0; /* mỗi câu đúng = 1 XP, tối đa 10 XP — chỉ khi đạt từ 8/10 */
+              if(!_stPassed)setReviewLock('mini-game-vuot-ai-4c');
               var _dg=xpDeltaFor('mini-game-vuot-ai-4c',correct);
-              var msg=correct===totalQ?'Hoàn hảo! Bạn xử lý đúng cả '+totalQ+' tình huống như một chiến binh FASTCARE thực thụ!':'Bạn xử lý đúng '+correct+'/'+totalQ+' tình huống — luyện thêm để đạt điểm tuyệt đối nhé!';
-              activityBody.innerHTML='<div class="badge-win"><img class="celebrate-fastie" src="assets/fastie-celebrate.webp" alt="Sóc Fastie ăn mừng chiến thắng"><div class="badge-medal">🏅</div><h3>Huy hiệu Nhân viên 4C</h3><p>'+msg+'</p><p class="badge-xp">+'+xp+' XP</p><div style="display:flex;gap:10px;justify-content:center;margin-top:8px;flex-wrap:wrap"><button class="primary" id="stReplay" type="button">Chơi lại</button><button class="secondary" id="stMenu" type="button">Chọn game khác</button></div></div>';
-              confettiBurst();
-              showToast(_dg>0?('Nhận Huy hiệu 4C! +'+_dg+' XP'):'Nhận Huy hiệu 4C!');
+              var msg=_stPassed?(correct===totalQ?'Hoàn hảo! Bạn xử lý đúng cả '+totalQ+' tình huống như một chiến binh FASTCARE thực thụ!':'Bạn xử lý đúng '+correct+'/'+totalQ+' tình huống — đã đạt, nhận huy hiệu 4C!'):'Bạn xử lý đúng '+correct+'/'+totalQ+' tình huống — cần từ 8/10 để hoàn thành, hãy xem lại bài học 4C rồi chơi lại nhé!';
+              activityBody.innerHTML='<div class="badge-win"><img class="celebrate-fastie" src="assets/fastie-celebrate.webp" alt="Sóc Fastie ăn mừng chiến thắng"><div class="badge-medal">🏅</div><h3>'+(_stPassed?'Huy hiệu Nhân viên 4C':'Chưa đạt 8/10')+'</h3><p>'+msg+'</p><p class="badge-xp">'+(_stPassed?('+'+xp+' XP'):('Chưa đạt 8/10 · +0 XP'))+'</p><div style="display:flex;gap:10px;justify-content:center;margin-top:8px;flex-wrap:wrap">'+(_stPassed?'<button class="secondary" id="stMenu" type="button">Chọn game khác</button>':'<button class="primary" id="stReview" type="button">Xem lại bài học 4C →</button><button class="secondary" id="stMenu" type="button">Chọn game khác</button>')+'</div></div>';
+              if(_stPassed)confettiBurst();
+              showToast(_stPassed?(_dg>0?('Nhận Huy hiệu 4C! +'+_dg+' XP'):'Nhận Huy hiệu 4C!'):'Chưa đạt 8/10 — xem lại bài học 4C rồi chơi lại nhé');
               if(currentUser&&sb){
                 try{
                   var r=await sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:'mini-game-vuot-ai-4c',score:correct,total:totalQ,xp_earned:_dg});
@@ -3111,12 +3302,14 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
                   refreshMyStats();renderRanking('individual');
                 }catch(e){}
               }
-              document.getElementById('stReplay').addEventListener('click',function(){si=0;qi=0;correct=0;stageIntro();});
+              var _sr=document.getElementById('stReview');if(_sr)_sr.addEventListener('click',function(){closeActivity();switchView('route');showDevScreen(primaryDevScreen());showToast('Hãy xem lại deck Văn hoá 4C trong Lộ trình rồi chơi lại nhé');});
               document.getElementById('stMenu').addEventListener('click',showGameMenu);
             }
             stageIntro();
           }
           function startDinoGame(){
+            if(bestPassScoreFor('mini-game-chay-cung-fastie',10)>0){showToast('Bạn đã đạt '+bestPassScoreFor('mini-game-chay-cung-fastie',10)+'/10 ở game này rồi');showGameMenu();return;}
+            if(isQuizLocked('mini-game-chay-cung-fastie')){showToast('Bạn cần xem lại hết bài học 4C trước khi chơi lại');closeActivity();switchView('route');showDevScreen(primaryDevScreen());return;}
             activityTitle.textContent='Mini-game · Chạy cùng Fastie';
             var card=document.querySelector('.activity-card');if(card)card.classList.add('wide');
             /* Kem 11/11: game chạy bộ kiểu Khủng long cho 4C Nội bộ — Fastie chạy, xương rồng = trạm câu hỏi, đúng thì xương rồng hạ xuống, sai mất 1 tim, mất hết 3 tim thì chơi lại từ đầu. 10 trạm = 10 câu (5 kiến thức + 5 tình huống), tối đa 10 XP. */
@@ -3212,6 +3405,8 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
               if(finish)finish.hidden=false;
               if(fastieEl)fastieEl.style.left=Math.max(70,w-160)+'px';
               var xpToSave=xp;
+              var _dnPassed=xpToSave>=passScoreFor(DQ.length);
+              if(!_dnPassed)setReviewLock('mini-game-chay-cung-fastie');
               var _dd=xpDeltaFor('mini-game-chay-cung-fastie',xpToSave);
               if(currentUser&&sb){
                 try{
@@ -3223,13 +3418,13 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
               setTimeout(function(){
                 if(!document.body.contains(track))return;
                 track.classList.add('paused');
-                confettiBurst();
-                var msg=xpToSave===DQ.length?'Hoàn hảo! Bạn chạy qua cả 10 trạm xương rồng và trả lời đúng ngay lần đầu!':'Bạn đã chạy qua cả 10 trạm xương rồng — đúng '+xpToSave+'/10 câu ngay lần đầu. Chơi lại để đạt điểm tuyệt đối nhé!';
-                endEl.innerHTML='<div class="badge-win"><img class="celebrate-fastie" src="assets/fastie-celebrate.webp" alt="Sóc Fastie ăn mừng chiến thắng"><div class="badge-medal">🌵</div><h3>Về đích rồi!</h3><p>'+msg+'</p><p class="badge-xp">+'+xpToSave+' XP · 4C Nội bộ</p><div style="display:flex;gap:10px;justify-content:center;margin-top:8px;flex-wrap:wrap"><button class="primary" id="dinoReplay" type="button">Chơi lại</button><button class="secondary" id="dinoMenu" type="button">Chọn game khác</button></div></div>';
+                if(_dnPassed)confettiBurst();
+                var msg=_dnPassed?(xpToSave===DQ.length?'Hoàn hảo! Bạn chạy qua cả 10 trạm xương rồng và trả lời đúng ngay lần đầu!':'Bạn đã chạy qua cả 10 trạm xương rồng — đúng '+xpToSave+'/10 câu ngay lần đầu. Đã đạt 8/10, game này đã hoàn thành!'):'Bạn đã chạy qua cả 10 trạm xương rồng — đúng '+xpToSave+'/10 câu ngay lần đầu. Cần từ 8/10 để nhận XP, hãy xem lại bài học 4C rồi chơi lại nhé!';
+                endEl.innerHTML='<div class="badge-win"><img class="celebrate-fastie" src="assets/fastie-celebrate.webp" alt="Sóc Fastie ăn mừng chiến thắng"><div class="badge-medal">🌵</div><h3>'+(_dnPassed?'Về đích rồi!':'Chưa đạt 8/10')+'</h3><p>'+msg+'</p><p class="badge-xp">'+(_dnPassed?('+'+xpToSave+' XP · 4C Nội bộ'):('Chưa đạt 8/10 · +0 XP'))+'</p><div style="display:flex;gap:10px;justify-content:center;margin-top:8px;flex-wrap:wrap">'+(_dnPassed?'<button class="secondary" id="dinoMenu" type="button">Chọn game khác</button>':'<button class="primary" id="dinoReview" type="button">Xem lại bài học 4C →</button><button class="secondary" id="dinoMenu" type="button">Chọn game khác</button>')+'</div></div>';
                 endEl.hidden=false;
                 qPanel.hidden=true;
-                showToast(_dd>0?('Về đích! +'+_dd+' XP'):'Về đích!');
-                document.getElementById('dinoReplay').addEventListener('click',function(){dinoStart();});
+                showToast(_dnPassed?(_dd>0?('Về đích! +'+_dd+' XP'):'Về đích!'):'Chưa đạt 8/10 — xem lại bài học 4C rồi chơi lại nhé');
+                var _dr=document.getElementById('dinoReview');if(_dr)_dr.addEventListener('click',function(){dinoStop();closeActivity();switchView('route');showDevScreen(primaryDevScreen());showToast('Hãy xem lại deck Văn hoá 4C trong Lộ trình rồi chơi lại nhé');});
                 document.getElementById('dinoMenu').addEventListener('click',function(){dinoStop();showGameMenu();});
               },1250);
             }
@@ -3237,10 +3432,11 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
               runState='over';
               dinoStop();
               track.classList.add('paused');
-              endEl.innerHTML='<div class="badge-win"><div class="badge-medal">💔</div><h3>Mất hết 3 tim!</h3><p>Bạn đã đến trạm '+(di+1)+' và mất hết 3 tim. Đừng nản — xem lại 10 slide 4C rồi chạy lại từ đầu nhé!</p><div style="display:flex;gap:10px;justify-content:center;margin-top:8px;flex-wrap:wrap"><button class="primary" id="dinoReplay" type="button">Chơi lại từ đầu</button><button class="secondary" id="dinoMenu" type="button">Chọn game khác</button></div></div>';
+              setReviewLock('mini-game-chay-cung-fastie');
+              endEl.innerHTML='<div class="badge-win"><div class="badge-medal">💔</div><h3>Mất hết 3 tim!</h3><p>Bạn đã đến trạm '+(di+1)+' và mất hết 3 tim. Đừng nản — xem lại 10 slide 4C rồi chạy lại từ đầu nhé!</p><div style="display:flex;gap:10px;justify-content:center;margin-top:8px;flex-wrap:wrap"><button class="primary" id="dinoReview" type="button">Xem lại bài học 4C →</button><button class="secondary" id="dinoMenu" type="button">Chọn game khác</button></div></div>';
               endEl.hidden=false;
               qPanel.hidden=true;
-              document.getElementById('dinoReplay').addEventListener('click',function(){dinoStart();});
+              var _dr2=document.getElementById('dinoReview');if(_dr2)_dr2.addEventListener('click',function(){dinoStop();closeActivity();switchView('route');showDevScreen(primaryDevScreen());showToast('Hãy xem lại deck Văn hoá 4C trong Lộ trình rồi chơi lại nhé');});
               document.getElementById('dinoMenu').addEventListener('click',function(){dinoStop();showGameMenu();});
             }
             document.getElementById('dinoBack').addEventListener('click',function(){dinoStop();showGameMenu();});
