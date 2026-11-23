@@ -206,6 +206,18 @@
     .scope-attempt strong{display:block;font-size:13px}
     .scope-attempt span{font-size:12px;color:var(--muted)}
     .scope-date{font-size:11px;color:var(--muted);white-space:nowrap}
+    .scope-attempt--click{cursor:pointer}
+    .scope-attempt--click:hover{background:var(--surface-2)}
+    .scope-attempt .rv-more,.scope-attempt .rv-note{display:block;font-size:11px;margin-top:2px}
+    .scope-attempt .rv-more{color:var(--brand);font-weight:700}
+    .attempt-review{padding:6px 0 14px;border-bottom:1px solid var(--line)}
+    .rv-q{margin:12px 0 0}
+    .rv-q>p{font-size:13px;font-weight:700;margin-bottom:7px}
+    .rv-opt{border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12px;margin-bottom:6px;background:var(--surface)}
+    .rv-opt.rv-correct{border-color:var(--teal);background:var(--teal-soft)}
+    .rv-opt.rv-wrong{border-color:var(--brand);background:var(--brand-soft)}
+    .rv-tag{font-weight:700;margin-left:6px}
+    .rv-mark{font-size:12px;font-weight:700;margin:2px 0 0}
     @media(max-width:700px){.rank-row.scope-row{grid-template-columns:34px minmax(0,1fr) minmax(96px,auto)}}
     .row-actions{display:inline-flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:nowrap;white-space:nowrap}
     .status-chip{display:inline-block;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:800}

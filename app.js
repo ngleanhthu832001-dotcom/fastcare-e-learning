@@ -143,11 +143,11 @@
           return true;
         }catch(e){dbErrorToast();return false}
       }
-      async function recordQuizAttempt(score,total){
+      async function recordQuizAttempt(score,total,answers){
         if(!currentUser)return 0;
         var delta=xpDeltaFor(LESSON_ID,score);
         try{
-          var r=await sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:LESSON_ID,score:score,total:total,xp_earned:delta});
+          var r=await sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:LESSON_ID,score:score,total:total,xp_earned:delta,answers:answers||null});
           if(r.error)throw r.error;
         }catch(e){dbErrorToast()}
         return delta;
@@ -861,6 +861,57 @@
           return '<div class="rank-row scope-row"><b>•</b><div class="person"><div class="person-dot">'+dotAvatar(null,p.full_name)+'</div><div><strong>'+escapeHtml(p.full_name||'Học viên')+'</strong><span>'+escapeHtml(p.department||'')+(p.employee_code?' · '+escapeHtml(p.employee_code):'')+'</span><span class="scope-prog">'+(p.lessons_done||0)+'/'+total+' bài · '+pct+'% · Hoạt động gần nhất: '+last+'</span></div></div><span class="xp row-actions"><b style="margin-right:10px">'+fmt(p.total_xp)+'</b>'+btn+'</span></div>';
         }).join('');
       }
+      /* "Xem bài làm" chi tiết từng câu (Kem 22/11, theo góp ý chị Quỳnh):
+         - Lúc nộp bài, mỗi bộ quiz lưu đáp án đã chọn vào quiz_attempts.answers dạng {set, picks}.
+         - QLCN bấm vào 1 lượt làm bài trong chi tiết → mở review từng câu (đề + đáp án đọc từ HTML tĩnh của chính bộ đó).
+         - Lượt làm chưa có answers (nộp trước 23/11, game Chặng 4) chỉ hiện điểm như trước. */
+      var QUIZ_SET_SEL={
+        sq:['.sq-question','.sq-option'],
+        sq2:['.sq2-question','.sq2-option'],
+        sq2o:['.sq2o-question','.sq2o-option'],
+        sq3tn:['.sq3tn-question','.sq3tn-option'],
+        sq3tv:['.sq3tv-question','.sq3tv-option'],
+        sq3tc:['.sq3tc-question','.sq3tc-option'],
+        sq5:['.sq5-question','.sq5-option'],
+        q4:['#lessonQuiz .question','.option']
+      };
+      function quizSetQuestions(setKey){
+        var sel=QUIZ_SET_SEL[setKey];if(!sel)return null;
+        var nodes=document.querySelectorAll(sel[0]);if(!nodes||!nodes.length)return null;
+        var out=[];
+        nodes.forEach(function(q){
+          var p=q.querySelector('p');
+          var opts=[];q.querySelectorAll(sel[1]).forEach(function(o){opts.push(o.textContent)});
+          out.push({q:p?p.textContent:'',opts:opts,answer:Number(q.dataset.answer)});
+        });
+        return out;
+      }
+      function quizPicksFrom(nodes){
+        var picks=[];
+        (nodes||[]).forEach(function(q){
+          var sel=null;try{sel=q.querySelector('.selected')}catch(e){sel=null}
+          var idx=null;
+          if(sel){var btns=q.querySelectorAll('button');idx=Array.prototype.indexOf.call(btns,sel);if(idx<0)idx=null}
+          if(idx===null&&q.dataset&&q.dataset.selected!==undefined&&q.dataset.selected!==''&&q.dataset.selected!==null){idx=Number(q.dataset.selected)}
+          picks.push((idx===null||idx===undefined||isNaN(idx))?null:idx);
+        });
+        return picks;
+      }
+      function attemptReviewHTML(questions,picks){
+        if(!questions||!questions.length)return '';
+        return questions.map(function(qq,idx){
+          var pick=(picks&&idx<picks.length)?picks[idx]:null;
+          var ok=pick!==null&&pick!==undefined&&pick===qq.answer;
+          var opts=qq.opts.map(function(op,oi){
+            var cls='',tag='';
+            if(oi===qq.answer){cls=' rv-correct';tag=' ✓ Đáp án đúng'}
+            if(pick===oi&&oi!==qq.answer){cls=' rv-wrong';tag=' ✗ Bạn chọn'}
+            if(pick===oi&&oi===qq.answer){tag=' ✓ Bạn chọn'}
+            return '<div class="rv-opt'+cls+'">'+escapeHtml(op)+(tag?'<span class="rv-tag">'+tag+'</span>':'')+'</div>';
+          }).join('');
+          return '<div class="rv-q"><p>'+escapeHtml(qq.q)+'</p>'+opts+'<p class="rv-mark">'+(ok?'✓ Trả lời đúng':(pick===null||pick===undefined?'— Chưa trả lời câu này':'✗ Trả lời sai'))+'</p></div>';
+        }).join('');
+      }
       async function renderScopeDetail(userId,opts){
         opts=opts||{};
         var box=document.getElementById(opts.boxId||'scopeDetail');
@@ -878,15 +929,43 @@
           var body='';
           if(!rows.length){body='<p>Chưa có lượt làm bài nào.</p>'}
           else{
-            body=rows.map(function(a){
+            body=rows.map(function(a,ai){
               var d=a.at?new Date(a.at).toLocaleDateString('vi-VN'):'—';
               var line=a.kind==='quiz'?('Quiz: '+(a.score==null?'—':a.score)+'/'+(a.total==null?'—':a.total)+' · +'+fmt(a.xp_earned)+' XP'):('Bài học: '+(a.completed?'Đã hoàn thành':'Chưa hoàn thành')+' · +'+fmt(a.xp_earned)+' XP');
-              return '<div class="scope-attempt"><div><strong>'+escapeHtml(lessonLabel(a.lesson_id))+'</strong><span>'+line+'</span></div><span class="scope-date">'+d+'</span></div>';
+              var ans=a.answers;if(typeof ans==='string'){try{ans=JSON.parse(ans)}catch(e){ans=null}}
+              var hasReview=a.kind==='quiz'&&ans&&ans.set&&ans.picks;
+              var head='<div><strong>'+escapeHtml(lessonLabel(a.lesson_id))+'</strong><span>'+line+'</span>';
+              if(!hasReview){
+                if(a.kind==='quiz')head+='<span class="rv-note">Chưa lưu chi tiết từng câu (chỉ bài làm từ 23/11 mới xem được).</span>';
+                return '<div class="scope-attempt">'+head+'</div><span class="scope-date">'+d+'</span></div>';
+              }
+              return '<div class="scope-attempt scope-attempt--click" data-review="'+ai+'" role="button" tabindex="0">'+head+'<span class="rv-more">Xem từng câu ▸</span></div><span class="scope-date">'+d+'</span></div><div class="attempt-review" id="attemptReview-'+ai+'" hidden></div>';
             }).join('');
           }
           box.innerHTML='<div class="side-card"><h3>Bài làm của '+(p?escapeHtml(p.full_name):'nhân sự')+'</h3>'+body+'<div style="margin-top:12px"><button class="btn-secondary" id="'+closeId+'" type="button">Đóng</button></div></div>';
           var c=document.getElementById(closeId);
           if(c)c.addEventListener('click',function(){box.hidden=true});
+          box.querySelectorAll('[data-review]').forEach(function(el){
+            el.addEventListener('click',function(){
+              var idx=el.getAttribute('data-review');
+              var panel=document.getElementById('attemptReview-'+idx);
+              if(!panel)return;
+              var more=el.querySelector('.rv-more');
+              if(panel.hidden){
+                if(!panel.dataset.filled){
+                  var a=rows[Number(idx)];
+                  var ans=a&&a.answers;if(typeof ans==='string'){try{ans=JSON.parse(ans)}catch(e){ans=null}}
+                  panel.innerHTML=attemptReviewHTML(ans?quizSetQuestions(ans.set):null,ans&&ans.picks);
+                  panel.dataset.filled='1';
+                }
+                panel.hidden=false;el.classList.add('open');
+                if(more)more.textContent='Ẩn chi tiết ▾';
+              }else{
+                panel.hidden=true;el.classList.remove('open');
+                if(more)more.textContent='Xem từng câu ▸';
+              }
+            });
+          });
           box.scrollIntoView({behavior:'smooth',block:'nearest'});
         }catch(e){
           box.innerHTML='<div class="side-card"><h3>Bài làm</h3><p class="muted-center">Chưa tải được bài làm. Có thể database chưa có hàm get_user_attempts — hãy chạy file SQL v11 rồi thử lại.</p></div>';
@@ -1131,7 +1210,7 @@
         box.innerHTML='<div class="dash-row dash-row-head"><span>Nhân sự ('+rows.length+')</span><span>Tiến độ</span><span class="xp">Tổng XP</span><span class="dash-last">Hoạt động gần nhất</span><span>Bài làm</span></div>'+page.map(function(p){
           var total=p.lessons_total||3,done=p.lessons_done||0,pct=Math.round(done*100/total);
           var last=p.last_activity?new Date(p.last_activity).toLocaleDateString('vi-VN'):'Chưa học';
-          return '<div class="dash-row"><div class="person"><div class="person-dot">'+dotAvatar(null,p.full_name)+'</div><div><strong>'+escapeHtml(p.full_name||'Học viên')+'</strong><span>'+escapeHtml(p.department||'')+(p.employee_code?' · '+escapeHtml(p.employee_code):'')+(p.position?' · '+escapeHtml(p.position):'')+'</span></div></div><div class="dash-pct"><div class="dash-bar"><i style="width:'+pct+'%"></i></div><b>'+done+'/'+total+' · '+pct+'%</b></div><span class="xp"><b>'+fmt(p.total_xp)+'</b></span><span class="dash-last">'+last+'</span>'+(canDetail?'<span class="dash-detail"><button class="restore-btn" type="button" data-dash-detail="'+p.user_id+'">Xem bài làm</button></span>':'<span class="dash-detail"></span>')+'</div>';
+          return '<div class="dash-row"><div class="person"><div class="person-dot">'+dotAvatar(null,p.full_name)+'</div><div><strong'+(canDetail?' data-dash-detail="'+p.user_id+'" style="cursor:pointer" title="Xem bài làm"':'')+'>'+escapeHtml(p.full_name||'Học viên')+'</strong><span>'+escapeHtml(p.department||'')+(p.employee_code?' · '+escapeHtml(p.employee_code):'')+(p.position?' · '+escapeHtml(p.position):'')+'</span></div></div><div class="dash-pct"><div class="dash-bar"><i style="width:'+pct+'%"></i></div><b>'+done+'/'+total+' · '+pct+'%</b></div><span class="xp"><b>'+fmt(p.total_xp)+'</b></span><span class="dash-last">'+last+'</span>'+(canDetail?'<span class="dash-detail"><button class="restore-btn" type="button" data-dash-detail="'+p.user_id+'">Xem bài làm</button></span>':'<span class="dash-detail"></span>')+'</div>';
         }).join('')+pagerHTML('dash',rows.length);
       }
 
@@ -2415,7 +2494,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         successCard.classList.remove('show');
         if(answered<questions.length){result.textContent='Hãy trả lời đủ '+questions.length+' câu.';return}
         result.textContent='Kết quả: '+score+'/'+questions.length+' câu đúng';
-        var _dq=await recordQuizAttempt(score,questions.length);
+        var _dq=await recordQuizAttempt(score,questions.length,{set:'q4',picks:quizPicksFrom(questions)});
         completeCurrentLesson();
         if(score===questions.length){
           successCard.classList.add('show');
@@ -2457,7 +2536,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
           suc.classList.remove('show');void suc.offsetWidth;suc.classList.add('show');
           suc.scrollIntoView({behavior:'smooth',block:'nearest'});
         }
-        if(currentUser){try{var r=await sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:SURVEY_ID,score:score,total:qs.length,xp_earned:_d1});if(r.error)throw r.error}catch(e){dbErrorToast()}}
+        if(currentUser){try{var r=await sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:SURVEY_ID,score:score,total:qs.length,xp_earned:_d1,answers:{set:'sq',picks:quizPicksFrom(qs)}});if(r.error)throw r.error}catch(e){dbErrorToast()}}
         var sBtn=document.getElementById('submitSurvey');
         markModule1Done();refreshMyStats();
         if(score===qs.length){
@@ -2493,7 +2572,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
           suc.classList.remove('show');void suc.offsetWidth;suc.classList.add('show');
           suc.scrollIntoView({behavior:'smooth',block:'nearest'});
         }
-        if(currentUser){try{var r=await sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:SURVEY2_ID,score:score,total:qs.length,xp_earned:_d2});if(r.error)throw r.error}catch(e){dbErrorToast()}}
+        if(currentUser){try{var r=await sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:SURVEY2_ID,score:score,total:qs.length,xp_earned:_d2,answers:{set:'sq2',picks:quizPicksFrom(qs)}});if(r.error)throw r.error}catch(e){dbErrorToast()}}
         var sBtn=document.getElementById('submitSurvey2');
         refreshMyStats();
         if(score===qs.length){
@@ -2529,7 +2608,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
           suc.classList.remove('show');void suc.offsetWidth;suc.classList.add('show');
           suc.scrollIntoView({behavior:'smooth',block:'nearest'});
         }
-        if(currentUser){try{var r=await sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:SURVEY2_ID,score:score,total:qs.length,xp_earned:_d2});if(r.error)throw r.error}catch(e){dbErrorToast()}}
+        if(currentUser){try{var r=await sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:SURVEY2_ID,score:score,total:qs.length,xp_earned:_d2,answers:{set:'sq2o',picks:quizPicksFrom(qs)}});if(r.error)throw r.error}catch(e){dbErrorToast()}}
         var sBtn=document.getElementById('submitSurvey2Office');
         refreshMyStats();
         if(score===qs.length){
@@ -2565,7 +2644,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
           suc.classList.remove('show');void suc.offsetWidth;suc.classList.add('show');
           suc.scrollIntoView({behavior:'smooth',block:'nearest'});
         }
-        if(currentUser){try{var r=await sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:SURVEY3_THU_NGAN_ID,score:score,total:qs.length,xp_earned:_d3});if(r.error)throw r.error}catch(e){dbErrorToast()}}
+        if(currentUser){try{var r=await sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:SURVEY3_THU_NGAN_ID,score:score,total:qs.length,xp_earned:_d3,answers:{set:'sq3tn',picks:quizPicksFrom(qs)}});if(r.error)throw r.error}catch(e){dbErrorToast()}}
         /* Nộp bài = xong mục Thu ngân (giống Chang 2/5: nộp bài là xong); ghi nhan vao lesson_progress + ch3Subs. */
         if(currentUser){try{var ok2=await markViewed('chinh-sach-thu-ngan');if(ok2){ch3Subs['chinh-sach-thu-ngan']=true;if(storeCh3Done()){await markViewed('phuc-loi');c3Viewed=true;}}}catch(e){}}
         var sBtn=document.getElementById('submitSurvey3ThuNgan');
@@ -2603,7 +2682,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
           suc.classList.remove('show');void suc.offsetWidth;suc.classList.add('show');
           suc.scrollIntoView({behavior:'smooth',block:'nearest'});
         }
-        if(currentUser){try{var r=await sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:SURVEY3_TU_VAN_ID,score:score,total:qs.length,xp_earned:_d3v});if(r.error)throw r.error}catch(e){dbErrorToast()}}
+        if(currentUser){try{var r=await sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:SURVEY3_TU_VAN_ID,score:score,total:qs.length,xp_earned:_d3v,answers:{set:'sq3tv',picks:quizPicksFrom(qs)}});if(r.error)throw r.error}catch(e){dbErrorToast()}}
         /* Nộp bài = xong mục Tư vấn (giống Thu ngân); ghi nhan vao lesson_progress + ch3Subs. */
         if(currentUser){try{var ok2=await markViewed('chinh-sach-tu-van');if(ok2){ch3Subs['chinh-sach-tu-van']=true;if(storeCh3Done()){await markViewed('phuc-loi');c3Viewed=true;}}}catch(e){}}
         var sBtn=document.getElementById('submitSurvey3TuVan');
@@ -2641,7 +2720,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
           suc.classList.remove('show');void suc.offsetWidth;suc.classList.add('show');
           suc.scrollIntoView({behavior:'smooth',block:'nearest'});
         }
-        if(currentUser){try{var r=await sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:SURVEY3_THUONG_CHUNG_ID,score:score,total:qs.length,xp_earned:_d3c});if(r.error)throw r.error}catch(e){dbErrorToast()}}
+        if(currentUser){try{var r=await sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:SURVEY3_THUONG_CHUNG_ID,score:score,total:qs.length,xp_earned:_d3c,answers:{set:'sq3tc',picks:quizPicksFrom(qs)}});if(r.error)throw r.error}catch(e){dbErrorToast()}}
         /* Nộp bài = xong mục Tư vấn (giống Thu ngân); ghi nhan vao lesson_progress + ch3Subs. */
         if(currentUser){try{var ok2=await markViewed('thuong-phan-hoi-cam');if(ok2){ch3Subs['thuong-phan-hoi-cam']=true;if(storeCh3Done()){await markViewed('phuc-loi');c3Viewed=true;}}}catch(e){}}
         var sBtn=document.getElementById('submitSurvey3ThuongChung');
@@ -2679,7 +2758,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
           suc.classList.remove('show');void suc.offsetWidth;suc.classList.add('show');
           suc.scrollIntoView({behavior:'smooth',block:'nearest'});
         }
-        if(currentUser){try{var r=await sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:SURVEY5_ID,score:score,total:qs.length,xp_earned:_d5});if(r.error)throw r.error}catch(e){dbErrorToast()}}
+        if(currentUser){try{var r=await sb.from('quiz_attempts').insert({user_id:currentUser.id,lesson_id:SURVEY5_ID,score:score,total:qs.length,xp_earned:_d5,answers:{set:'sq5',picks:quizPicksFrom(qs)}});if(r.error)throw r.error}catch(e){dbErrorToast()}}
         var sBtn=document.getElementById('submitSurvey5');
         refreshMyStats();
         if(score===qs.length){
