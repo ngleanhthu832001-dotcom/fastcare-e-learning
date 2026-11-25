@@ -95,7 +95,7 @@
         try{
           var lp=await sb.from('lesson_progress').select('lesson_id,completed,xp_earned,updated_at').eq('user_id',currentUser.id);
           if(lp.error)throw lp.error;
-          var qa=await sb.from('quiz_attempts').select('lesson_id,score,total,xp_earned,created_at').eq('user_id',currentUser.id);
+          var qa=await sb.from('quiz_attempts').select('lesson_id,score,total,xp_earned,created_at,answers').eq('user_id',currentUser.id);
           if(qa.error)throw qa.error;
           var aa=await sb.from('announcement_attempts').select('xp_earned,updated_at').eq('user_id',currentUser.id);
           var rows=lp.data||[],atts=qa.data||[],annAtts=(aa&&!aa.error)?(aa.data||[]):[];
@@ -508,6 +508,11 @@
         else st.page=parseInt(pg,10)||1;
         pagerRender(key);
       });
+      document.addEventListener('click',function(e){
+        var b=e.target&&e.target.closest?e.target.closest('[data-my-review]'):null;
+        if(!b)return;
+        toggleMyQuizReview(b.getAttribute('data-my-review'),b.getAttribute('data-my-review-set'),b.getAttribute('data-my-review-panel'),b);
+      });
       document.addEventListener('change',function(e){
         var s=e.target&&e.target.closest?e.target.closest('[data-pager-size]'):null;
         if(!s)return;
@@ -916,6 +921,33 @@
           }).join('');
           return '<div class="rv-q"><p>'+escapeHtml(qq.q)+'</p>'+opts+'<p class="rv-mark">'+(ok?'✓ Trả lời đúng':(pick===null||pick===undefined?'— Chưa trả lời câu này':'✗ Trả lời sai'))+'</p></div>';
         }).join('');
+      }
+/* Xem lai bai lam cua chinh minh (Kem chot 25/11/2026 theo goi y anh Vu):
+   chi bai DAT >= 8/10 moi xem duoc tung cau; bai rot van giu (quy tac 8/10).
+   Dap an tung cau da luu tu 23/11 (v47) trong quiz_attempts.answers {set,picks}. */
+      function latestPassedQuizAttempt(lessonId,setKey){
+        var best=null;
+        (myQuizAttempts||[]).forEach(function(a){
+          if(a.lesson_id!==lessonId)return;
+          if((a.score||0)<passScoreFor(a.total||10))return;
+          var ans=a.answers;if(typeof ans==='string'){try{ans=JSON.parse(ans)}catch(e){ans=null}}
+          if(!ans||!ans.set||!ans.picks)return;
+          if(setKey&&ans.set!==setKey)return;
+          if(!best||new Date(a.created_at||0)>new Date(best.created_at||0))best=a;
+        });
+        return best;
+      }
+      function toggleMyQuizReview(lessonId,setKey,panelId,btn){
+        var panel=document.getElementById(panelId);if(!panel)return;
+        if(!panel.hidden){panel.hidden=true;if(btn)btn.textContent='Xem lại bài làm';return;}
+        var att=latestPassedQuizAttempt(lessonId,setKey);
+        if(!att){panel.innerHTML='<p class="rv-note">Chưa lưu chi tiết từng câu (chỉ bài làm từ 23/11 mới xem được).</p>';}
+        else{
+          var ans=att.answers;if(typeof ans==='string'){try{ans=JSON.parse(ans)}catch(e){ans=null}}
+          panel.innerHTML=attemptReviewHTML(quizSetQuestions(ans?ans.set:setKey),ans&&ans.picks);
+        }
+        panel.hidden=false;if(btn)btn.textContent='Ẩn bài làm ▾';
+        panel.scrollIntoView({behavior:'smooth',block:'nearest'});
       }
       async function renderScopeDetail(userId,opts){
         opts=opts||{};
@@ -1938,6 +1970,31 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         if(!att.total)return true;
         return att.score>=passScoreFor(att.total);
       }
+      function annReviewHTML(a,qs){
+        var att=annMyAttempt(a);if(!att||!att.total)return null;
+        var picks=att.answers;if(typeof picks==='string'){try{picks=JSON.parse(picks)}catch(e){picks=null}}
+        if(!Array.isArray(picks))return null;
+        var qs2=[],pk=[];
+        qs.forEach(function(q,qi){
+          if(q.correct_index===null||q.correct_index===undefined)return;
+          qs2.push({q:'Câu '+(qi+1)+'. '+q.question,opts:q.options||[],answer:q.correct_index});
+          pk.push(picks[qi]);
+        });
+        if(!qs2.length)return null;
+        return attemptReviewHTML(qs2,pk);
+      }
+      function wireAnnReviewBtn(a,qs){
+        var btn=document.getElementById('annReviewBtn');if(!btn)return;
+        btn.addEventListener('click',async function(){
+          var panel=document.getElementById('annReviewPanel');if(!panel)return;
+          if(!panel.hidden){panel.hidden=true;btn.textContent='Xem lại bài làm';return;}
+          var q=qs;if(!q){try{q=await loadAnnQuestions(a.id)}catch(e){q=null}}
+          var h=q?annReviewHTML(a,q):null;
+          panel.innerHTML=h||'<p class="rv-note">Chưa tải được chi tiết bài làm — kiểm tra mạng rồi thử lại.</p>';
+          panel.hidden=false;btn.textContent='Ẩn bài làm ▾';
+          panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+        });
+      }
       function annLockKey(id){return 'fc-ann-lock:'+id;}
       function annReviewKey(id){return 'fc-ann-review:'+id;}
       function isAnnLocked(a){
@@ -2038,8 +2095,9 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         var annTestMode=userRole==='admin'&&(!a.is_open||annExpired(a)); /* QTV xem thử bộ đã đóng/hết hạn: làm được nhưng không lưu, không cộng XP (Kem chốt 09/11) */
         if(!annTestMode&&(!a.is_open||annExpired(a))){
           /* đã đóng / hết hạn: chỉ xem nội dung + kết quả cũ (nếu đã làm) */
-          box.innerHTML=backBtn+'<div class="ann-detail"><h3>'+escapeHtml(a.title)+'</h3>'+bodyHtml+'<p class="ann-closed-note">Bộ khảo sát này '+(annExpired(a)?'đã hết hạn':'đang đóng')+' nên không làm bài được nữa.'+(att?' Bạn đã làm: '+(att.total?att.score+'/'+att.total:'đã gửi')+' · +'+(att.xp_earned||0)+' XP.':'')+'</p></div>';
+          box.innerHTML=backBtn+'<div class="ann-detail"><h3>'+escapeHtml(a.title)+'</h3>'+bodyHtml+'<p class="ann-closed-note">Bộ khảo sát này '+(annExpired(a)?'đã hết hạn':'đang đóng')+' nên không làm bài được nữa.'+(att?' Bạn đã làm: '+(att.total?att.score+'/'+att.total:'đã gửi')+' · +'+(att.xp_earned||0)+' XP.':'')+'</p>'+(att&&annPassed(a,att)&&att.total?'<button type="button" class="btn-secondary" id="annReviewBtn" style="margin-top:8px">Xem lại bài làm</button><div class="attempt-review" id="annReviewPanel" hidden></div>':'')+'</div>';
           document.getElementById('annBack').addEventListener('click',renderAnnList);
+          wireAnnReviewBtn(a,null);
           return;
         }
         box.innerHTML='<p class="muted-center">Đang tải bộ câu hỏi…</p>';
@@ -2065,6 +2123,8 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         '<p class="ann-progress" id="annProgress"></p>'+
         '<button type="button" class="btn-primary" id="annSubmit"'+(att&&annPassed(a,att)?' disabled':'')+'>'+(att?(annPassed(a,att)?'Đã đạt — không làm lại được':isAnnLocked(a)?'Đọc lại thông báo để làm lại':'Nộp lại bài'):'Nộp bài')+'</button>'+
         (att&&!annPassed(a,att)&&isAnnLocked(a)?'<button type="button" class="btn-primary" id="annReread" style="margin-top:8px">Tôi đã đọc kỹ thông báo — làm lại</button>':'')+
+        '<button type="button" class="btn-secondary" id="annReviewBtn" style="margin-top:8px"'+(att&&annPassed(a,att)&&att.total?'':' hidden')+'>Xem lại bài làm</button>'+
+        '<div class="attempt-review" id="annReviewPanel" hidden></div>'+
         '<div id="annResult" style="margin-top:12px"></div></div>';
         box.innerHTML=html;
         document.getElementById('annBack').addEventListener('click',renderAnnList);
@@ -2078,6 +2138,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         box.querySelectorAll('input[type="radio"]').forEach(function(r){r.addEventListener('change',function(){updateProg();annAbortCheck(a,qs)})});
         updateProg();
         document.getElementById('annSubmit').addEventListener('click',function(){submitAnnSurvey(a,qs)});
+        wireAnnReviewBtn(a,qs);
         var _ar=document.getElementById('annReread');if(_ar)_ar.addEventListener('click',function(){lsSet(annReviewKey(a.id),String(Date.now()));openAnnDetail(a.id);});
       }
       async function submitAnnSurvey(a,qs){
@@ -2117,6 +2178,7 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
           var res=await sb.from('announcement_attempts').upsert(row,{onConflict:'user_id,announcement_id'});
           if(res.error)throw res.error;
           myAnnAttempts[a.id]={announcement_id:a.id,answers:bestAnswers,score:bestScore,total:total,xp_earned:xp,created_at:(prev&&prev.created_at)||new Date().toISOString(),updated_at:row.updated_at};
+          var _arb2=document.getElementById('annReviewBtn');if(_arb2&&total>0&&_pass)_arb2.hidden=false;
           if(total>0&&!_pass)lsSet(annLockKey(a.id),String(Date.now()));
           var resBox=document.getElementById('annResult');
           var first=!prev;
@@ -2406,9 +2468,12 @@ var ch1Deck=document.getElementById('ch1Deck');var ch1Alts=['Chào mừng đến
         }
         return false;
       }
+      var MY_REVIEW_BTN={submitSurvey:'reviewSurvey',submitSurvey2:'reviewSurvey2',submitSurvey2Office:'reviewSurvey2Office',submitSurvey3ThuNgan:'reviewSurvey3ThuNgan',submitSurvey3TuVan:'reviewSurvey3TuVan',submitSurvey3ThuongChung:'reviewSurvey3ThuongChung',submitSurvey5:'reviewSurvey5'};
+      var MY_REVIEW_SET={submitSurvey:'sq',submitSurvey2:'sq2',submitSurvey2Office:'sq2o',submitSurvey3ThuNgan:'sq3tn',submitSurvey3TuVan:'sq3tv',submitSurvey3ThuongChung:'sq3tc',submitSurvey5:'sq5'};
       function syncQuizButton(lessonId,btnId){
         var b=document.getElementById(btnId);if(!b)return;
         var best=bestPassScoreFor(lessonId,10);
+        var rb=document.getElementById(MY_REVIEW_BTN[btnId]);if(rb){rb.hidden=!latestPassedQuizAttempt(lessonId,MY_REVIEW_SET[btnId]);}
         if(best>0){b.disabled=false;b.textContent=best+'/10';b.dataset.done='1';return;}
         delete b.dataset.done;
         if(hasAttemptFor(lessonId)){b.textContent=isQuizLocked(lessonId)?'Xem lại bài học →':'Nộp lại bài';}
